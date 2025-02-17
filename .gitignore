@@ -1,0 +1,9 @@
+.vscode
+.idea
+.DS_Store
+.zed
+.env
+*.env
+secrets/
+credentials/
+
