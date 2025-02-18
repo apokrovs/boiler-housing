@@ -2,8 +2,10 @@
 .idea
 .DS_Store
 .zed
-.env
-*.env
 secrets/
 credentials/
-
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

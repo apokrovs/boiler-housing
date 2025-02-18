@@ -1,11 +1,22 @@
+# alembic/env.py
 import os
+import sys
 from logging.config import fileConfig
 
-from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+from alembic import context
+
+# Add the parent directory to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+# Now we can import from app
+from app.models.models import SQLModel  # noqa
+
+from app.core.config import settings
+
+# this is the Alembic Config object
 config = context.config
 
 # Interpret the config file for Python logging.
@@ -18,8 +29,6 @@ fileConfig(config.config_file_name)
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from app.models import SQLModel  # noqa
-from app.core.config import settings # noqa
 
 target_metadata = SQLModel.metadata
 
@@ -30,7 +39,27 @@ target_metadata = SQLModel.metadata
 
 
 def get_url():
-    return str(settings.SQLALCHEMY_DATABASE_URI)
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "")
+    server = os.getenv("POSTGRES_SERVER", "localhost")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    db = os.getenv("POSTGRES_DB", "db")
+
+    if not password:
+        # If no password is set, we assume we are using a local database
+        # Get password from .env file in the root directory
+        from dotenv import load_dotenv
+
+        # the env file is located in ../.env
+        load_dotenv(dotenv_path="../.env")
+
+        user = os.getenv("POSTGRES_USER", "postgres")
+        password = os.getenv("POSTGRES_PASSWORD", "")
+        server = os.getenv("POSTGRES_SERVER", "localhost")
+        port = os.getenv("POSTGRES_PORT", "5432")
+        db = os.getenv("POSTGRES_DB", "db")
+
+    return f"postgresql+psycopg://{user}:{password}@{server}:{port}/{db}"
 
 
 def run_migrations_offline():
