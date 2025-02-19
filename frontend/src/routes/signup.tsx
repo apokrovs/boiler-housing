@@ -1,14 +1,15 @@
 import {
+  Box,
   Button,
-  Container,
-  Flex,
+  Stack,
+  Center,
   FormControl,
   FormErrorMessage,
-  FormLabel,
+  FormLabel, HStack,
   Image,
   Input,
   Link,
-  Text,
+  Text, Heading,
 } from "@chakra-ui/react"
 import {
   Link as RouterLink,
@@ -17,7 +18,7 @@ import {
 } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
-import Logo from "/assets/images/fastapi-logo.svg"
+import Logo from "/assets/images/BoilerHousingCropped.png"
 import type { UserRegister } from "../client"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { confirmPasswordRules, emailPattern, passwordRules } from "../utils"
@@ -61,25 +62,32 @@ function SignUp() {
 
   return (
     <>
-      <Flex flexDir={{ base: "column", md: "row" }} justify="center" h="100vh">
-        <Container
-          as="form"
-          onSubmit={handleSubmit(onSubmit)}
-          h="100vh"
-          maxW="sm"
-          alignItems="stretch"
-          justifyContent="center"
-          gap={4}
-          centerContent
+        <Box
+            boxShadow={'md'}
+            height={"100px"}
+            background={"black"}
+            width={"100%"}>
+          <HStack gap={90}>
+            <Image pl={4} pt={"15px"} src={Logo}></Image>
+          </HStack>
+        </Box>
+        <Center p={6} bg={'white'}>
+        <Stack
+            rounded={'lg'}
+            boxShadow={'lg'}
+            bg={"white"} p={20}
+            gap={5}
         >
-          <Image
-            src={Logo}
-            alt="FastAPI logo"
-            height="auto"
-            maxW="2xs"
-            alignSelf="center"
-            mb={4}
-          />
+          <Heading
+                fontSize={"3xl"}
+                color={"#373A36"}>
+              Let's get to know you!
+          </Heading>
+          <Text
+                color={"#373A36"}
+                fontSize={"md"}>
+              Please enter your information below.
+          </Text>
           <FormControl id="full_name" isInvalid={!!errors.full_name}>
             <FormLabel htmlFor="full_name" srOnly>
               Full Name
@@ -117,17 +125,17 @@ function SignUp() {
               Password
             </FormLabel>
             <Input
-              id="password"
+              id={"password"}
               {...register("password", passwordRules())}
-              placeholder="Password"
-              type="password"
+              placeholder={"Password"}
+              type={"password"}
             />
             {errors.password && (
               <FormErrorMessage>{errors.password.message}</FormErrorMessage>
             )}
           </FormControl>
           <FormControl
-            id="confirm_password"
+            id={"confirm_password"}
             isInvalid={!!errors.confirm_password}
           >
             <FormLabel htmlFor="confirm_password" srOnly>
@@ -135,10 +143,10 @@ function SignUp() {
             </FormLabel>
 
             <Input
-              id="confirm_password"
+              id={"confirm_password"}
               {...register("confirm_password", confirmPasswordRules(getValues))}
-              placeholder="Repeat Password"
-              type="password"
+              placeholder={"Repeat Password"}
+              type={"password"}
             />
             {errors.confirm_password && (
               <FormErrorMessage>
@@ -146,17 +154,28 @@ function SignUp() {
               </FormErrorMessage>
             )}
           </FormControl>
-          <Button variant="primary" type="submit" isLoading={isSubmitting}>
+          <Button
+              //variant="primary"
+              type={"submit"}
+              isLoading={isSubmitting}
+              bg={"black"}
+              loadingText={"Signing you up..."}
+              width={"100%"}
+              size={'lg'}
+              color={'#C5A939'}>
             Sign Up
           </Button>
           <Text>
             Already have an account?{" "}
-            <Link as={RouterLink} to="/login" color="blue.500">
+            <Link
+                as={RouterLink}
+                to={"/login"}
+                color={"#C5A939"}>
               Log In
             </Link>
           </Text>
-        </Container>
-      </Flex>
+        </Stack>
+      </Center>
     </>
   )
 }
