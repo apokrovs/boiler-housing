@@ -41,9 +41,6 @@ import type {
   UsersUpdateUserResponse,
   UsersDeleteUserData,
   UsersDeleteUserResponse,
-  UtilsTestEmailData,
-  UtilsTestEmailResponse,
-  UtilsHealthCheckResponse,
 } from "./types.gen"
 
 export class ItemsService {
@@ -61,7 +58,7 @@ export class ItemsService {
   ): CancelablePromise<ItemsReadItemsResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/",
+      url: "/api/v1/items/items/",
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -85,7 +82,7 @@ export class ItemsService {
   ): CancelablePromise<ItemsCreateItemResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/items/",
+      url: "/api/v1/items/items/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -107,7 +104,7 @@ export class ItemsService {
   ): CancelablePromise<ItemsReadItemResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/items/items/{id}",
       path: {
         id: data.id,
       },
@@ -131,7 +128,7 @@ export class ItemsService {
   ): CancelablePromise<ItemsUpdateItemResponse> {
     return __request(OpenAPI, {
       method: "PUT",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/items/items/{id}",
       path: {
         id: data.id,
       },
@@ -156,7 +153,7 @@ export class ItemsService {
   ): CancelablePromise<ItemsDeleteItemResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/items/items/{id}",
       path: {
         id: data.id,
       },
@@ -287,7 +284,7 @@ export class UsersService {
   ): CancelablePromise<UsersReadUsersResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/",
+      url: "/api/v1/users/users/",
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -311,7 +308,7 @@ export class UsersService {
   ): CancelablePromise<UsersCreateUserResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/users/",
+      url: "/api/v1/users/users/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -329,7 +326,7 @@ export class UsersService {
   public static readUserMe(): CancelablePromise<UsersReadUserMeResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/me",
+      url: "/api/v1/users/users/me",
     })
   }
 
@@ -342,7 +339,7 @@ export class UsersService {
   public static deleteUserMe(): CancelablePromise<UsersDeleteUserMeResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/users/me",
+      url: "/api/v1/users/users/me",
     })
   }
 
@@ -359,7 +356,7 @@ export class UsersService {
   ): CancelablePromise<UsersUpdateUserMeResponse> {
     return __request(OpenAPI, {
       method: "PATCH",
-      url: "/api/v1/users/me",
+      url: "/api/v1/users/users/me",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -381,7 +378,7 @@ export class UsersService {
   ): CancelablePromise<UsersUpdatePasswordMeResponse> {
     return __request(OpenAPI, {
       method: "PATCH",
-      url: "/api/v1/users/me/password",
+      url: "/api/v1/users/users/me/password",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -403,7 +400,7 @@ export class UsersService {
   ): CancelablePromise<UsersRegisterUserResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/users/signup",
+      url: "/api/v1/users/users/signup",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -425,7 +422,7 @@ export class UsersService {
   ): CancelablePromise<UsersReadUserByIdResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/{user_id}",
+      url: "/api/v1/users/users/{user_id}",
       path: {
         user_id: data.userId,
       },
@@ -449,7 +446,7 @@ export class UsersService {
   ): CancelablePromise<UsersUpdateUserResponse> {
     return __request(OpenAPI, {
       method: "PATCH",
-      url: "/api/v1/users/{user_id}",
+      url: "/api/v1/users/users/{user_id}",
       path: {
         user_id: data.userId,
       },
@@ -474,50 +471,13 @@ export class UsersService {
   ): CancelablePromise<UsersDeleteUserResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/users/{user_id}",
+      url: "/api/v1/users/users/{user_id}",
       path: {
         user_id: data.userId,
       },
       errors: {
         422: "Validation Error",
       },
-    })
-  }
-}
-
-export class UtilsService {
-  /**
-   * Test Email
-   * Test emails.
-   * @param data The data for the request.
-   * @param data.emailTo
-   * @returns Message Successful Response
-   * @throws ApiError
-   */
-  public static testEmail(
-    data: UtilsTestEmailData,
-  ): CancelablePromise<UtilsTestEmailResponse> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/utils/test-email/",
-      query: {
-        email_to: data.emailTo,
-      },
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-  /**
-   * Health Check
-   * @returns boolean Successful Response
-   * @throws ApiError
-   */
-  public static healthCheck(): CancelablePromise<UtilsHealthCheckResponse> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/utils/health-check/",
     })
   }
 }

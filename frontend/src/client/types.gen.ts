@@ -211,11 +211,3 @@ export type UsersDeleteUserData = {
 }
 
 export type UsersDeleteUserResponse = Message
-
-export type UtilsTestEmailData = {
-  emailTo: string
-}
-
-export type UtilsTestEmailResponse = Message
-
-export type UtilsHealthCheckResponse = boolean
