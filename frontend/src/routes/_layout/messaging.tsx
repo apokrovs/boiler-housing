@@ -7,6 +7,12 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
+import {
+  createFileRoute,
+} from "@tanstack/react-router"
+export const Route = createFileRoute("/_layout/messaging")({
+  component: Messaging,
+})
 
 type MessageProps = {
   text: string;
@@ -27,7 +33,7 @@ const Message = ({ text, actor }: MessageProps) => {
   );
 };
 
-export function App() {
+function Messaging() {
   return (
     <Flex h="100vh" py={12}>
       <Flex
@@ -80,5 +86,3 @@ export function App() {
     </Flex>
   );
 }
-
-export default App;
