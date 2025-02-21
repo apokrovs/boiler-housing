@@ -18,8 +18,10 @@ import UserInformation from "../../components/UserSettings/UserInformation"
 
 const tabsConfig = [
   { title: "My profile", component: UserInformation },
-  { title: "Password", component: ChangePassword },
-  { title: "Appearance", component: Appearance },
+  { title: "Security", component: ChangePassword},
+  { title: "Profile Visibility", component: Appearance },
+  { title: "Notification", component: Appearance },
+  { title: "System Settings", component: Appearance },
   { title: "Danger zone", component: DeleteAccount },
 ]
 
@@ -31,7 +33,7 @@ function UserSettings() {
   const queryClient = useQueryClient()
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   const finalTabs = currentUser?.is_superuser
-    ? tabsConfig.slice(0, 3)
+    ? tabsConfig.slice(0, 6)
     : tabsConfig
 
   return (

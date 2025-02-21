@@ -18,7 +18,7 @@ interface SidebarItemsProps {
 const SidebarItems = ({ onClose }: SidebarItemsProps) => {
   const queryClient = useQueryClient()
   const textColor = useColorModeValue("ui.main", "ui.light")
-  const bgActive = useColorModeValue("#E2E8F0", "#4A5568")
+  const bgActive = useColorModeValue("#f0eee2", "#68634a")
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
 
   const finalItems = currentUser?.is_superuser
@@ -29,7 +29,7 @@ const SidebarItems = ({ onClose }: SidebarItemsProps) => {
     <Flex
       as={Link}
       to={path}
-      w="100%"
+      h="100%"
       p={2}
       key={title}
       activeProps={{
@@ -48,7 +48,11 @@ const SidebarItems = ({ onClose }: SidebarItemsProps) => {
 
   return (
     <>
-      <Box>{listItems}</Box>
+      <Box>
+        <Flex direction="row" gap={4} wrap="wrap">
+        {listItems}
+        </Flex>
+      </Box>
     </>
   )
 }
