@@ -10,14 +10,17 @@ import {
 import {
   createFileRoute,
 } from "@tanstack/react-router"
+import {useState} from "react";
+
 export const Route = createFileRoute("/_layout/messaging")({
   component: Messaging,
 })
 
 type MessageProps = {
   text: string;
-  actor: 'user' | 'bot';
+  actor: 'user' | 'user2';
 };
+
 const Message = ({ text, actor }: MessageProps) => {
   return (
     <Flex
@@ -33,7 +36,20 @@ const Message = ({ text, actor }: MessageProps) => {
   );
 };
 
-function Messaging() {
+function Messaging () {
+    const [messages, setMessages] = useState<MessageProps[]>([]);
+  const[inputText, setInputText] = useState('');
+  const sendMessage = () => {
+    if (inputText.trim() === '') return;
+
+    const newMessage: MessageProps = {
+      text: inputText,
+      actor: 'user',
+    };
+    setMessages([...messages, newMessage]);
+    setInputText('');
+
+  }
   return (
     <Flex h="100vh" py={12}>
       <Flex
@@ -68,21 +84,24 @@ function Messaging() {
             },
           }}
         >
-          <Message text="Hi" actor="user" />
-          <Message text="How may I help you?" actor="bot" />
-          <Message text="Hi" actor="user" />
-          <Message text="How may I help you?" actor="bot" />
-          <Message text="Hi" actor="user" />
-          <Message text="How may I help you?" actor="bot" />
-          <Message text="Hi" actor="user" />
-          <Message text="How may I help you?" actor="bot" />
+          {messages.map((message, index) => (
+            <Message key={index} text={message.text} actor={message.actor} />
+          ))}
         </Stack>
 
         <HStack p={4} bg="gray.100">
-          <Input bg="white" placeholder="Enter your text" />
-          <Button colorScheme="blue">Send</Button>
+          <Input
+            bg="white"
+            placeholder="Enter your text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
+          <Button onClick={sendMessage} colorScheme="blue">
+            Send
+          </Button>
         </HStack>
       </Flex>
     </Flex>
   );
 }
+export default Messaging;
