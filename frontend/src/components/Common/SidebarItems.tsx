@@ -42,7 +42,7 @@ const SidebarItems = ({ onClose }: SidebarItemsProps) => {
       onClick={onClose}
     >
       <Icon as={icon} alignSelf="center" />
-      <Text ml={2}>{title}</Text>
+      <Text ml={2} fontSize="xl">{title}</Text>
     </Flex>
   ))
 

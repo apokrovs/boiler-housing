@@ -41,7 +41,7 @@ const Sidebar = () => {
         display={{ base: "flex", md: "none" }}
         aria-label="Open Menu"
         position="absolute"
-        fontSize="20px"
+        fontSize="30px"
         m={4}
         icon={<FiMenu />}
       />
@@ -79,7 +79,7 @@ const Sidebar = () => {
       {/* Desktop */}
       <Box
         bg={bgColor}
-        p={3}
+        p={1}
         w="100vw"
         position="sticky"
         top="0"
@@ -90,7 +90,7 @@ const Sidebar = () => {
           justify="stretch"
           bg={secBgColor}
           p={2}
-          borderRadius={12}
+          borderRadius={6}
           align={"center"}
           w={'100%'}
         >
