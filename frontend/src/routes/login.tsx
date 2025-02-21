@@ -2,9 +2,9 @@
 import {
   Box,
   Button,
-  Container,
+  //Container,
   FormControl,
-  FormErrorMessage,
+  //FormErrorMessage,
   Heading,
   HStack,
   //Icon,
@@ -14,12 +14,14 @@ import {
   Text,
   Stack,
   Center,
-  useBoolean
+    Alert,
+    AlertIcon
+  //useBoolean
 } from "@chakra-ui/react"
 import {
   Link as RouterLink,
   createFileRoute,
-  //redirect,
+  redirect,
 } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
@@ -40,7 +42,7 @@ export const Route = createFileRoute("/login")({
 })
 
 function Login() {
-  const [show, setShow] = useBoolean()
+  //const [show, setShow] = useBoolean()
   const { loginMutation, error, resetError } = useAuth()
   const {
     register,
@@ -62,6 +64,7 @@ function Login() {
 
     try {
       await loginMutation.mutateAsync(data)
+      //throw redirect({to: "/settings"})
     } catch {
       // error is handled by useAuth hook
     }
@@ -70,6 +73,8 @@ function Login() {
   return (
       <>
         <Box
+            as = {"form"}
+            onSubmit = {handleSubmit(onSubmit)}
             boxShadow={'md'}
             height={"100px"}
             background={"black"}
@@ -94,16 +99,28 @@ function Login() {
                 fontSize={"md"}>
               Please log in with your email and password.
             </Text>
+            {error && (
+              <Alert status="error">
+                <AlertIcon />
+                {error}
+            </Alert>
+          )}
+            <FormControl id = {"username"} isInvalid={!!errors.username || !!error}>
             <Input
+                {...register("username", {required: "Username is required", pattern: emailPattern})}
                 placeholder={"Email"}
                 type={"email"}
                 id={"username"}
                 >
             </Input>
-              <Input
+            </FormControl>
+            <FormControl id={"password"} isInvalid = {!!error}>
+            <Input
+                {...register("password", {required: "Password is required"})}
                 placeholder={"Password"}
                 type={"password"}>
               </Input>
+            </FormControl>
             <HStack gap={19}>
               <Link
                   as={RouterLink}
@@ -112,8 +129,10 @@ function Login() {
                 Forgot Password?
               </Link>
               <Button
+                  type={"submit"}
                   bg={"black"}
                   loadingText={"Signing you in..."}
+                  isLoading={isSubmitting}
                   width={"50%"}
                   size={'lg'}
                   color={'#C5A939'}>Sign in</Button>

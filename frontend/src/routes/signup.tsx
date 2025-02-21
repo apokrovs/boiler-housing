@@ -21,7 +21,7 @@ import { type SubmitHandler, useForm } from "react-hook-form"
 import Logo from "/assets/images/BoilerHousingCropped.png"
 import type { UserRegister } from "../client"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
-import { confirmPasswordRules, emailPattern, passwordRules } from "../utils"
+import { confirmPasswordRules, emailPattern, passwordRules, phonePattern } from "../utils"
 
 export const Route = createFileRoute("/signup")({
   component: SignUp,
@@ -36,6 +36,7 @@ export const Route = createFileRoute("/signup")({
 
 interface UserRegisterForm extends UserRegister {
   confirm_password: string
+  phone_number?: string
 }
 
 function SignUp() {
@@ -51,6 +52,7 @@ function SignUp() {
     defaultValues: {
       email: "",
       full_name: "",
+      phone_number: "",
       password: "",
       confirm_password: "",
     },
@@ -63,6 +65,8 @@ function SignUp() {
   return (
     <>
         <Box
+            as={"form"}
+            onSubmit = {handleSubmit(onSubmit)}
             boxShadow={'md'}
             height={"100px"}
             background={"black"}
@@ -118,6 +122,21 @@ function SignUp() {
             />
             {errors.email && (
               <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+            )}
+          </FormControl>
+          <FormControl id={"phone_number"} isInvalid={!!errors.phone_number}>
+            <FormLabel htmlFor="phone_number" srOnly>
+              Phone Number
+            </FormLabel>
+            <Input
+                id={"phone_number"}
+                placeholder={"Phone (Optional) (XXX)-XXX-XXXX"}
+              {...register("phone_number", {
+                pattern: phonePattern
+              })}>
+            </Input>
+            {errors.phone_number && (
+              <FormErrorMessage>{errors.phone_number.message}</FormErrorMessage>
             )}
           </FormControl>
           <FormControl id="password" isInvalid={!!errors.password}>
