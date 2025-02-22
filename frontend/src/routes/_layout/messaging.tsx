@@ -8,11 +8,13 @@ import {
     Stack,
     Text,
     VStack,
+    Divider, IconButton,
 } from '@chakra-ui/react';
 import {
     createFileRoute,
 } from "@tanstack/react-router"
 import {useState} from "react";
+import {AddIcon} from "@chakra-ui/icons";
 
 export const Route = createFileRoute("/_layout/messaging")({
     component: Messaging,
@@ -43,21 +45,44 @@ const Message = ({text, actor}: MessageProps) => {
 function Messaging() {
     const [messages, setMessages] = useState<MessageProps[]>([]);
     const [inputText, setInputText] = useState('');
+    const [selectedChat, setSelectedChat] = useState<string>('Alice')
+    const [chats, setChats] = useState<string[]>(['Alice', 'Bob', 'Charlie']);
     const sendMessage = () => {
         if (inputText.trim() === '') return;
 
         const newMessage: MessageProps = {
             text: inputText,
             actor: 'user',
-            bgColor: 'lightgrey',
+            bgColor: 'white',
             textColor: 'black'
+
+
         };
         setMessages([...messages, newMessage]);
         setInputText('');
 
+        setChats(prevChats => {
+            const chatIndex = prevChats.indexOf(selectedChat);
+            if (chatIndex > -1) {
+                let updatedChats = [...prevChats];
+                updatedChats.splice(chatIndex, 1);
+                updatedChats.unshift(selectedChat);
+                return updatedChats;
+            }
+            return prevChats;
+        });
+
     }
+    const addChat = () => {
+
+    }
+
+    const handleChatClick = (chat: string) => {
+        setSelectedChat(chat);
+    };
+
     return (
-        <Flex h="100vh" py={12}>
+        <Flex h="100vh" py={12} >
             <Flex
                 flexDirection="column"
                 w="xs"
@@ -67,22 +92,35 @@ function Messaging() {
                 roundedTop="lg"
                 bg="white"
             >
-                <Heading size="md" mb={4}>Chats</Heading>
-                <VStack spacing={4} align="stretch">
-                    <Box p={4} bg="white" borderRadius="md" shadow="sm">
-                        Chat with Alice
-                    </Box>
-                    <Box p={4} bg="white" borderRadius="md" shadow="sm">
-                        Chat with Bob
-                    </Box>
-                    <Box p={4} bg="white" borderRadius="md" shadow="sm">
-                        Chat with Charlie
-                    </Box>
+                <HStack justifyContent="space-between" px={4} py={2}>
+                    <Heading size="md" borderRadius="md" textAlign="center">Chats</Heading>
+                    <IconButton
+                        aria-label="Add chat"
+                        icon={<AddIcon />}
+                        size="sm"
+                        variant="outline"
+                    />
+                </HStack>
+               <Divider />
+                <VStack  align="stretch">
+                  {chats.map(chat => (
+                        <Box
+                            key={chat}
+                            p={4}
+                            bg={selectedChat === chat ? "gray.200" : "white"}
+                            borderRadius="md"
+                            shadow="sm"
+                            cursor="pointer"
+                            onClick={() => handleChatClick(chat)}
+                        >
+                            Chat with {chat}
+                        </Box>
+                    ))}
                 </VStack>
             </Flex>
             <Flex
                 flexDirection="column"
-                w="2xl"
+                w="3xl"
                 m="auto"
                 h="full"
                 borderWidth="1px"
@@ -90,9 +128,9 @@ function Messaging() {
                 bg="white"
             >
 
-                <HStack p={4} bg="lightgrey">
-                    <Heading size="lg" color="black">
-                        Bob
+                <HStack p={4} bg="lightgrey" width="full">
+                    <Heading size="lg" color="black" width="full">
+                        Chat with {selectedChat}
                     </Heading>
                 </HStack>
 
