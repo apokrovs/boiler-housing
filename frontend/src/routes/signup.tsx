@@ -1,3 +1,4 @@
+console.log(isLoggedIn())
 import {
   Box,
   Button,
@@ -130,7 +131,7 @@ function SignUp() {
             </FormLabel>
             <Input
                 id={"phone_number"}
-                placeholder={"Phone (Optional) (XXX)-XXX-XXXX"}
+                placeholder="Phone (Optional) XXX-XXX-XXXX"
               {...register("phone_number", {
                 pattern: phonePattern
               })}>
