@@ -1,5 +1,5 @@
 import {
-    Box,
+    //Box,
     Button,
     Container,
     Flex,
@@ -77,141 +77,137 @@ const UserInformation = () => {
 
     return (
         <>
-            <Container maxW="full">
-                <Heading size="sm" py={4} textDecoration="underline">
+            <Container maxW="md" mt={8}>
+                <Heading size="lg" mb={6} textDecoration="underline">
                     User Information
                 </Heading>
-                <Flex direction={{base: "column", md: "row"}} gap={8}>
-                    {/* Left Section: User Information */}
-                    <Box
-                        w={{sm: "full", md: "50%"}}
-                        as="form"
-                        onSubmit={handleSubmit(onSubmit)}
-                    >
-                        <FormControl>
-                            <FormLabel color={color} htmlFor="name">
-                                Full Name
-                            </FormLabel>
-                            {editMode ? (
-                                <Input
-                                    id="name"
-                                    {...register("full_name", {maxLength: 30})}
-                                    placeholder="First and Last Name"
-                                    type="text"
-                                    size="md"
-                                    w="auto"
-                                />
-                            ) : (
-                                <Text
-                                    size="md"
-                                    py={2}
-                                    color={!currentUser?.full_name ? "ui.dim" : "inherit"}
-                                    isTruncated
-                                    maxWidth="250px"
-                                >
-                                    {currentUser?.full_name || "N/A"}
-                                </Text>
-                            )}
-                        </FormControl>
-                        <FormControl mt={4} isInvalid={!!errors.email}>
-                            <FormLabel color={color} htmlFor="email">
-                                Email
-                            </FormLabel>
-                            {editMode ? (
-                                <Input
-                                    id="email"
-                                    {...register("email", {
-                                        required: "Email is required",
-                                        pattern: emailPattern,
-                                    })}
-                                    placeholder="email@example.com"
-                                    type="email"
-                                    size="md"
-                                    w="auto"
-                                />
-                            ) : (
-                                <Text size="md" py={2} isTruncated maxWidth="250px">
-                                    {currentUser?.email}
-                                </Text>
-                            )}
-                            {errors.email && (
-                                <FormErrorMessage>{errors.email.message}</FormErrorMessage>
-                            )}
-                        </FormControl>
-                        <FormControl mt={4} isInvalid={!!errors.phone}>
-                            <FormLabel color={color} htmlFor="phone">
-                                Phone Number (Optional)
-                            </FormLabel>
-                            {editMode ? (
-                                <Input
-                                    id="phone"
-                                    {...register("phone", {
-                                        pattern: {
-                                            value: /^[0-9]{10}$/, // Allows only 10-digit phone numbers
-                                            message: "Phone number must be 10 digits",
-                                        },
-                                    })}
-                                    placeholder="(XXX) XXX-XXXX"
-                                    type="tel"
-                                    size="md"
-                                    w="auto"
-                                />
-                            ) : (
-                                <Text size="md" py={2} color={!currentUser?.phone ? "ui.dim" : "inherit"} isTruncated
-                                      maxWidth="250px">
-                                    {currentUser?.phone || "N/A"}
-                                </Text>
-                            )}
-                            {errors.phone && (
-                                <FormErrorMessage>{errors.phone.message}</FormErrorMessage>
-                            )}
-                        </FormControl>
-                        <Flex mt={4} gap={3}>
-                            <Button
-                                variant="primary"
-                                onClick={toggleEditMode}
-                                type={editMode ? "button" : "submit"}
-                                isLoading={editMode ? isSubmitting : false}
-                                isDisabled={editMode ? !isDirty || !getValues("email") : false}
-                            >
-                                {editMode ? "Save" : "Edit"}
-                            </Button>
-                            {editMode && (
-                                <Button onClick={onCancel} isDisabled={isSubmitting}>
-                                    Cancel
-                                </Button>
-                            )}
-                        </Flex>
-                    </Box>
-                    {/* Left Section: Bio and Profile Specification */}
-                    <Box w={{base: "full", md: "50%"}}>
-                        <Heading size="sm" py={2}>
-                            Bio
-                        </Heading>
+                <Stack spacing={4} mb={6}
+                       as="form"
+                       onSubmit={handleSubmit(onSubmit)}
+                >
+                    <FormControl>
+                        <FormLabel color={color} htmlFor="name">
+                            Full Name
+                        </FormLabel>
                         {editMode ? (
-                            <Textarea
-                                id="bio"
-                                {...register("bio", {maxLength: 200})}
-                                placeholder="Tell us about yourself..."
-                                resize="none"
-                                height="150px"
-                                w="full"
+                            <Input
+                                id="name"
+                                {...register("full_name", {maxLength: 30})}
+                                placeholder="First and Last Name"
+                                type="text"
+                                size="md"
+                                w="auto"
                             />
                         ) : (
-                            <Text height="150px" width="full" color={!currentUser?.bio ? "ui.dim" : "inherit"}>
-                                {currentUser?.bio || "No bio available."}
+                            <Text
+                                size="md"
+                                py={2}
+                                color={!currentUser?.full_name ? "ui.dim" : "inherit"}
+                                isTruncated
+                                maxWidth="250px"
+                            >
+                                {currentUser?.full_name || "N/A"}
                             </Text>
                         )}
-                        <FormLabel py={2}>Profile Type:</FormLabel>
-                        <RadioGroup defaultValue="renter">
-                            <Stack direction="row">
-                                <Radio value="leaser">Leaser</Radio>
-                                <Radio value="renter">Renter</Radio>
-                                <Radio value="both">Both</Radio>
-                            </Stack>
-                        </RadioGroup>
-                    </Box>
-                </Flex>
+                    </FormControl>
+                    <FormControl mt={4} isInvalid={!!errors.email}>
+                        <FormLabel color={color} htmlFor="email">
+                            Email
+                        </FormLabel>
+                        {editMode ? (
+                            <Input
+                                id="email"
+                                {...register("email", {
+                                    required: "Email is required",
+                                    pattern: emailPattern,
+                                })}
+                                placeholder="email@example.com"
+                                type="email"
+                                size="md"
+                                w="auto"
+                            />
+                        ) : (
+                            <Text size="md" py={2} isTruncated maxWidth="250px">
+                                {currentUser?.email}
+                            </Text>
+                        )}
+                        {errors.email && (
+                            <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+                        )}
+                    </FormControl>
+                    <FormControl mt={4} isInvalid={!!errors.phone_number}>
+                        <FormLabel color={color} htmlFor="phone">
+                            Phone Number (Optional)
+                        </FormLabel>
+                        {editMode ? (
+                            <Input
+                                id="phone"
+                                {...register("phone_number", {
+                                    pattern: {
+                                        value: /^[0-9]{10}$/, // Allows only 10-digit phone numbers
+                                        message: "Phone number must be 10 digits",
+                                    },
+                                })}
+                                placeholder="(XXX) XXX-XXXX"
+                                type="tel"
+                                size="md"
+                                w="auto"
+                            />
+                        ) : (
+                            <Text size="md" py={2} color={!currentUser?.phone_number ? "ui.dim" : "inherit"} isTruncated
+                                  maxWidth="250px">
+                                {currentUser?.phone_number || "N/A"}
+                            </Text>
+                        )}
+                        {errors.phone_number && (
+                            <FormErrorMessage>{errors.phone_number.message}</FormErrorMessage>
+                        )}
+                    </FormControl>
+                    <Heading size="sm" py={2}>
+                        Bio
+                    </Heading>
+                    {editMode ? (
+                        <Textarea
+                            id="bio"
+                            {...register("bio", {maxLength: 200})}
+                            placeholder="Tell us about yourself..."
+                            resize="none"
+                            height="150px"
+                            w="full"
+                        />
+                    ) : (
+                        <Text height="150px" width="full" color={!currentUser?.bio ? "ui.dim" : "inherit"}>
+                            {currentUser?.bio || "No bio available."}
+                        </Text>
+                    )}
+                    <FormLabel py={2}>Profile Type:</FormLabel>
+                    <RadioGroup defaultValue="renter">
+                        <Stack direction="row">
+                            <Radio value="leaser">Leaser</Radio>
+                            <Radio value="renter">Renter</Radio>
+                            <Radio value="both">Both</Radio>
+                        </Stack>
+                    </RadioGroup>
+                    <Flex mt={4} gap={3}>
+                        <Button
+                            bg="#68634a"
+                            _hover={{bg: "#5a5640"}}
+                            _active={{bg: "#4e4a38"}}
+                            variant="solid"
+                            onClick={toggleEditMode}
+                            type={editMode ? "button" : "submit"}
+                            isLoading={editMode ? isSubmitting : false}
+                            isDisabled={editMode ? !isDirty || !getValues("email") : false}
+                        >
+                            {editMode ? "Save" : "Edit"}
+                        </Button>
+                        {editMode && (
+                            <Button onClick={onCancel} isDisabled={isSubmitting}>
+                                Cancel
+                            </Button>
+                        )}
+                    </Flex>
+                </Stack>
             </Container>
         </>
     )
