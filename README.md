@@ -11,3 +11,4 @@
 An IDE [I like pycharm](https://www.jetbrains.com/pycharm/)  
 [uv](https://docs.astral.sh/uv/getting-started/installation/) Install w brew like always  
 
+Is the branch protection on?
