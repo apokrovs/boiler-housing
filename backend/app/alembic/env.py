@@ -5,14 +5,13 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
+from sqlmodel import SQLModel
 from alembic import context
 
 # Add the parent directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 # Now we can import from app
-from app.models.models import SQLModel  # noqa
 
 from app.core.config import settings
 
