@@ -95,9 +95,14 @@ services:
   frontend:
     restart: "no"
     ports:
-      - "5173:80"
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/vite.config.ts:/app/vite.config.ts
     build:
       context: ./frontend
+      dockerfile: Dockerfile.dev
       args:
         - VITE_API_URL=http://localhost:8000
         - NODE_ENV=development
