@@ -19,7 +19,7 @@ import {
 } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
-import Logo from "/assets/images/BoilerHousingCropped.png"
+const Logo = "/assets/images/BoilerHousingCropped.png"
 import type { UserRegister } from "../client"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { confirmPasswordRules, emailPattern, passwordRules, phonePattern } from "../utils"
@@ -66,8 +66,6 @@ function SignUp() {
   return (
     <>
         <Box
-            as={"form"}
-            onSubmit = {handleSubmit(onSubmit)}
             boxShadow={'md'}
             height={"100px"}
             background={"black"}
@@ -78,6 +76,8 @@ function SignUp() {
         </Box>
         <Center p={6} bg={'white'}>
         <Stack
+            as={"form"}
+            onSubmit = {handleSubmit(onSubmit)}
             rounded={'lg'}
             boxShadow={'lg'}
             bg={"white"} p={20}
@@ -131,7 +131,7 @@ function SignUp() {
             </FormLabel>
             <Input
                 id={"phone_number"}
-                placeholder="Phone (Optional) XXX-XXX-XXXX"
+                placeholder="Phone XXXXXXXXXX"
               {...register("phone_number", {
                 pattern: phonePattern
               })}>

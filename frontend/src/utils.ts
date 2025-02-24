@@ -10,7 +10,7 @@ export const namePattern = {
   message: "Invalid name",
 }
 export const phonePattern = {
-  value: /^[0-9]{3,}-[0-9]{3,}-[0-9]{4,}$/,
+  value: /^[0-9]{10,}$/,
   message: "Invalid Phone Number"
 }
 

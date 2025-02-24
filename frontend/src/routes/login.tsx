@@ -14,8 +14,8 @@ import {
   Text,
   Stack,
   Center,
-    Alert,
-    AlertIcon
+  Alert,
+  AlertIcon, FormErrorMessage
   //useBoolean
 } from "@chakra-ui/react"
 import {
@@ -25,7 +25,7 @@ import {
 } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
- import Logo from "/assets/images/BoilerHousingCropped.png"
+//const Logo = "/assets/images/BoilerHousingCropped.png"
 import type { Body_login_login_access_token as AccessToken } from "../client"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { emailPattern } from "../utils"
@@ -73,18 +73,18 @@ function Login() {
   return (
       <>
         <Box
-            as = {"form"}
-            onSubmit = {handleSubmit(onSubmit)}
             boxShadow={'md'}
             height={"100px"}
             background={"black"}
             width={"100%"}>
           <HStack gap={90}>
-            <Image pl={4} pt={"15px"} src={Logo}></Image>
+            <Image pl={4} pt={"15px"} src={"/assets/images/BoilerHousingCropped.png"}></Image>
           </HStack>
         </Box>
         <Center p={12} bg={'white'}>
           <Stack
+              as = {"form"}
+              onSubmit = {handleSubmit(onSubmit)}
               rounded={'lg'}
               boxShadow={'lg'}
               bg={"white"} p={20}
@@ -107,12 +107,18 @@ function Login() {
           )}
             <FormControl id = {"username"} isInvalid={!!errors.username || !!error}>
             <Input
-                {...register("username", {required: "Username is required", pattern: emailPattern})}
+                {...register("username", {
+                  required: "Username is required",
+                  pattern: emailPattern,
+                })}
                 placeholder={"Email"}
                 type={"email"}
                 id={"username"}
                 >
             </Input>
+              {errors.username && (
+                <FormErrorMessage>{errors.username.message}</FormErrorMessage>
+              )}
             </FormControl>
             <FormControl id={"password"} isInvalid = {!!error}>
             <Input
@@ -131,11 +137,11 @@ function Login() {
               <Button
                   type={"submit"}
                   bg={"black"}
-                  loadingText={"Signing you in..."}
+                  loadingText={"Logging you in..."}
                   isLoading={isSubmitting}
                   width={"50%"}
                   size={'lg'}
-                  color={'#C5A939'}>Sign in</Button>
+                  color={'#C5A939'}>Log In</Button>
             </HStack>
             <HStack>
               <Text
