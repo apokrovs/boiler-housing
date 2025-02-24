@@ -17,14 +17,16 @@ import DeleteAccount from "../../components/UserSettings/DeleteAccount"
 import UserInformation from "../../components/UserSettings/UserInformation"
 import Notification from "../../components/UserSettings/Notification.tsx";
 import ProfileVisibility from "../../components/UserSettings/ProfileVisibility.tsx";
+import RenterPreferences from "../../components/UserSettings/RenterPreferences";
 
 const tabsConfig = [
-  { title: "My profile", component: UserInformation },
+  { title: "My Profile", component: UserInformation },
   { title: "Security", component: ChangePassword},
   { title: "Profile Visibility", component: ProfileVisibility },
   { title: "Notification", component: Notification },
   { title: "System Settings", component: Appearance },
   { title: "Delete Account", component: DeleteAccount },
+  { title: "Renter Preferences", component: RenterPreferences },
 ]
 
 export const Route = createFileRoute("/_layout/settings")({
@@ -35,7 +37,7 @@ function UserSettings() {
   const queryClient = useQueryClient()
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   const finalTabs = currentUser?.is_superuser
-    ? tabsConfig.slice(0, 6)
+    ? tabsConfig.slice(0, 7)
     : tabsConfig
 
   return (
