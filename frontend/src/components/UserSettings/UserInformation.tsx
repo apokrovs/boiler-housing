@@ -78,7 +78,7 @@ const UserInformation = () => {
     return (
         <>
             <Container maxW="md" mt={8}>
-                <Heading size="lg" mb={6} textDecoration="underline">
+                <Heading size="lg" mb={6}>
                     User Information
                 </Heading>
                 <Stack spacing={4} mb={6}
@@ -87,7 +87,7 @@ const UserInformation = () => {
                 >
                     <FormControl>
                         <FormLabel color={color} htmlFor="name">
-                            Full Name
+                            Full Name:
                         </FormLabel>
                         {editMode ? (
                             <Input
@@ -102,7 +102,7 @@ const UserInformation = () => {
                             <Text
                                 size="md"
                                 py={2}
-                                color={!currentUser?.full_name ? "ui.dim" : "inherit"}
+                                color={!currentUser?.full_name ? "#A0AEC0" : "inherit"}
                                 isTruncated
                                 maxWidth="250px"
                             >
@@ -112,7 +112,7 @@ const UserInformation = () => {
                     </FormControl>
                     <FormControl mt={4} isInvalid={!!errors.email}>
                         <FormLabel color={color} htmlFor="email">
-                            Email
+                            Email:
                         </FormLabel>
                         {editMode ? (
                             <Input
@@ -135,49 +135,39 @@ const UserInformation = () => {
                             <FormErrorMessage>{errors.email.message}</FormErrorMessage>
                         )}
                     </FormControl>
-                    <FormControl mt={4} isInvalid={!!errors.phone_number}>
+                    <FormControl mt={4}>
                         <FormLabel color={color} htmlFor="phone">
-                            Phone Number (Optional)
+                            Phone Number (Optional):
                         </FormLabel>
                         {editMode ? (
                             <Input
                                 id="phone"
-                                {...register("phone_number", {
-                                    pattern: {
-                                        value: /^[0-9]{10}$/, // Allows only 10-digit phone numbers
-                                        message: "Phone number must be 10 digits",
-                                    },
-                                })}
                                 placeholder="(XXX) XXX-XXXX"
                                 type="tel"
                                 size="md"
                                 w="auto"
                             />
                         ) : (
-                            <Text size="md" py={2} color={!currentUser?.phone_number ? "ui.dim" : "inherit"} isTruncated
+                            <Text size="md" py={2} color="#A0AEC0" isTruncated
                                   maxWidth="250px">
-                                {currentUser?.phone_number || "N/A"}
+                                N/A
                             </Text>
-                        )}
-                        {errors.phone_number && (
-                            <FormErrorMessage>{errors.phone_number.message}</FormErrorMessage>
                         )}
                     </FormControl>
                     <Heading size="sm" py={2}>
-                        Bio
+                        Bio:
                     </Heading>
                     {editMode ? (
                         <Textarea
                             id="bio"
-                            {...register("bio", {maxLength: 200})}
                             placeholder="Tell us about yourself..."
                             resize="none"
                             height="150px"
                             w="full"
                         />
                     ) : (
-                        <Text height="150px" width="full" color={!currentUser?.bio ? "ui.dim" : "inherit"}>
-                            {currentUser?.bio || "No bio available."}
+                        <Text height="150px" width="full" color="#A0AEC0">
+                            No bio available.
                         </Text>
                     )}
                     <FormLabel py={2}>Profile Type:</FormLabel>
