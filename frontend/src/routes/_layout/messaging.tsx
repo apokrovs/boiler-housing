@@ -13,7 +13,7 @@ import {
 import {
     createFileRoute,
 } from "@tanstack/react-router"
-import {useState} from "react";
+import {useState, useEffect, useRef} from "react";
 import {AddIcon} from "@chakra-ui/icons";
 
 export const Route = createFileRoute("/_layout/messaging")({
@@ -26,6 +26,7 @@ type MessageProps = {
     bgColor: string;
     textColor: string;
 };
+
 
 const Message = ({text, actor}: MessageProps) => {
     return (
@@ -43,10 +44,26 @@ const Message = ({text, actor}: MessageProps) => {
 };
 
 function Messaging() {
-    const [messages, setMessages] = useState<MessageProps[]>([]);
+    const [chatMessages, setChatMessages] = useState<{ [key: string]: MessageProps[] }>({
+        Alice: [],
+        Bob: [],
+        Charlie: [],
+    });
     const [inputText, setInputText] = useState('');
     const [selectedChat, setSelectedChat] = useState<string>('Alice')
     const [chats, setChats] = useState<string[]>(['Alice', 'Bob', 'Charlie']);
+
+    const containerRef = useRef<HTMLDivElement>(null);
+
+   const scrollToBottom = () => {
+       if (containerRef.current){
+           containerRef.current.scrollTop = containerRef.current.scrollHeight;
+       }
+   }
+   useEffect(() => {
+        scrollToBottom();
+    }, [chatMessages[selectedChat]]);
+
     const sendMessage = () => {
         if (inputText.trim() === '') return;
 
@@ -58,7 +75,11 @@ function Messaging() {
 
 
         };
-        setMessages([...messages, newMessage]);
+
+        setChatMessages(prevMessages => ({
+            ...prevMessages,
+            [selectedChat]: [...prevMessages[selectedChat], newMessage],
+        }))
         setInputText('');
 
         setChats(prevChats => {
@@ -71,8 +92,8 @@ function Messaging() {
             }
             return prevChats;
         });
-
     }
+
     const addChat = () => {
 
     }
@@ -80,9 +101,14 @@ function Messaging() {
     const handleChatClick = (chat: string) => {
         setSelectedChat(chat);
     };
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter' && inputText != '') {
+            sendMessage()
+        }
+    };
 
     return (
-        <Flex h="100vh" py={12} >
+        <Flex h="100vh" py={12}>
             <Flex
                 flexDirection="column"
                 w="xs"
@@ -96,14 +122,15 @@ function Messaging() {
                     <Heading size="md" borderRadius="md" textAlign="center">Chats</Heading>
                     <IconButton
                         aria-label="Add chat"
-                        icon={<AddIcon />}
+                        icon={<AddIcon/>}
                         size="sm"
                         variant="outline"
+                        onClick={addChat}
                     />
                 </HStack>
-               <Divider />
-                <VStack  align="stretch">
-                  {chats.map(chat => (
+                <Divider/>
+                <VStack align="stretch">
+                    {chats.map(chat => (
                         <Box
                             key={chat}
                             p={4}
@@ -135,11 +162,13 @@ function Messaging() {
                 </HStack>
 
                 <Stack
+                    ref={containerRef}
                     px={4}
                     py={8}
                     overflow="auto"
                     flex={1}
                     css={{
+
                         '&::-webkit-scrollbar': {
                             width: '4px',
                         },
@@ -152,7 +181,7 @@ function Messaging() {
                         },
                     }}
                 >
-                    {messages.map((message, index) => (
+                    {chatMessages[selectedChat].map((message, index) => (
                         <Message key={index} text={message.text} actor={message.actor} bgColor={message.bgColor}
                                  textColor={message.textColor}/>
                     ))}
@@ -165,6 +194,7 @@ function Messaging() {
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         color="black"
+                        onKeyPress={handleKeyPress}
                     />
                     <Button onClick={sendMessage} colorScheme="black" bg="white" color="black">
                         Send
@@ -174,5 +204,6 @@ function Messaging() {
         </Flex>
     );
 }
+
 
 export default Messaging;
