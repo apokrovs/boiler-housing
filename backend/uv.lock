@@ -56,6 +56,7 @@ dependencies = [
     { name = "sentry-sdk" },
     { name = "sqlmodel" },
     { name = "tenacity" },
+    { name = "websockets" },
 ]
 
 [package.metadata]
@@ -72,6 +73,7 @@ requires-dist = [
     { name = "sentry-sdk", specifier = ">=2.21.0" },
     { name = "sqlmodel", specifier = ">=0.0.22" },
     { name = "tenacity", specifier = ">=9.0.0" },
+    { name = "websockets", specifier = ">=15.0" },
 ]
 
 [[package]]

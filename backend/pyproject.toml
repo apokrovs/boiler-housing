@@ -17,4 +17,5 @@ dependencies = [
     "sentry-sdk>=2.21.0",
     "sqlmodel>=0.0.22",
     "tenacity>=9.0.0",
+    "websockets>=15.0",
 ]
