@@ -7,5 +7,9 @@ export default defineConfig({
   server: {
     host: true, // Allow connections from outside
     port: 5173,
+    watch: {
+      usePolling: true,
+      interval: 1000
+    }
   }
 })
