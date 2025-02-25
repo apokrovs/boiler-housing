@@ -16,30 +16,50 @@ from app.models.messages import Conversation, ConversationParticipant, Message, 
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
+        # Initialize the database
         init_db(session)
+
+        # Ensure superuser exists with correct credentials
+        from app.crud import users as user_crud
+        from app.models.users import UserCreate
+
+        # Check if superuser exists
+        superuser = user_crud.get_user_by_email(session, email=settings.FIRST_SUPERUSER)
+        if not superuser:
+            # Create superuser if it doesn't exist
+            superuser_in = UserCreate(
+                email=settings.FIRST_SUPERUSER,
+                password=settings.FIRST_SUPERUSER_PASSWORD,
+                is_superuser=True,
+            )
+            user_crud.create_user(session, user_create=superuser_in)
+        else:
+            # Update password to ensure it's correct
+            from app.core.security import get_password_hash
+            superuser.hashed_password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
+            session.add(superuser)
+            session.commit()
+
         yield session
 
-        # Must delete in the correct order to avoid foreign key violations
-        # First delete conversation participants
+        # Clean up all data
+        # Delete in correct order to avoid foreign key violations
         statement = delete(ConversationParticipant)
         session.execute(statement)
 
-        # Then delete messages and read receipts
         statement = delete(ReadReceipt)
         session.execute(statement)
+
         statement = delete(Message)
         session.execute(statement)
+
         statement = delete(Conversation)
         session.execute(statement)
 
-        # Delete items
         statement = delete(Item)
         session.execute(statement)
 
-        # Delete users except superuser
-        statement = delete(User).where(
-            User.email != settings.FIRST_SUPERUSER
-        )
+        statement = delete(User)
         session.execute(statement)
 
         session.commit()
