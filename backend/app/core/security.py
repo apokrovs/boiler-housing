@@ -25,3 +25,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    """
+    Decode and verify a JWT token
+    """
+    try:
+        # Decode the token using the SECRET_KEY and ALGORITHM
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[ALGORITHM]
+        )
+        return payload
+    except jwt.PyJWTError:
+        # If token is invalid, return empty dict
+        return {}
