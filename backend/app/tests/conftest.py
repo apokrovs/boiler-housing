@@ -24,7 +24,7 @@ def db() -> Generator[Session, None, None]:
         from app.models.users import UserCreate
 
         # Check if superuser exists
-        superuser = user_crud.get_user_by_email(session, email=settings.FIRST_SUPERUSER)
+        superuser = user_crud.get_user_by_email(session=session, email=settings.FIRST_SUPERUSER)
         if not superuser:
             # Create superuser if it doesn't exist
             superuser_in = UserCreate(
@@ -32,7 +32,7 @@ def db() -> Generator[Session, None, None]:
                 password=settings.FIRST_SUPERUSER_PASSWORD,
                 is_superuser=True,
             )
-            user_crud.create_user(session, user_create=superuser_in)
+            user_crud.create_user(session=session, user_create=superuser_in)
         else:
             # Update password to ensure it's correct
             from app.core.security import get_password_hash
