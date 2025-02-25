@@ -10,6 +10,7 @@ from app.main import app
 from app.models.users import Item, User
 from app.tests.utils.user import authentication_token_from_email
 from app.tests.utils.utils import get_superuser_token_headers
+from app.models.messages import Conversation, ConversationParticipant, Message, ReadReceipt
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -17,10 +18,30 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
+
+        # Must delete in the correct order to avoid foreign key violations
+        # First delete conversation participants
+        statement = delete(ConversationParticipant)
+        session.execute(statement)
+
+        # Then delete messages and read receipts
+        statement = delete(ReadReceipt)
+        session.execute(statement)
+        statement = delete(Message)
+        session.execute(statement)
+        statement = delete(Conversation)
+        session.execute(statement)
+
+        # Delete items
         statement = delete(Item)
         session.execute(statement)
-        statement = delete(User)
+
+        # Delete users except superuser
+        statement = delete(User).where(
+            User.email != settings.FIRST_SUPERUSER
+        )
         session.execute(statement)
+
         session.commit()
 
 
