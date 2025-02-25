@@ -6,6 +6,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.items import Item
 from app.models.messages import ConversationParticipant, Message, ReadReceipt
 
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
@@ -49,8 +50,10 @@ class User(UserBase, table=True):
 
     # Messaging relations
     conversations_link: List[ConversationParticipant] = Relationship(back_populates="user", cascade_delete=True)
-    sent_messages: List[Message] = Relationship(sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    read_receipts: List[ReadReceipt] = Relationship(sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    sent_messages: List[Message] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "overlaps": "sender"})
+    read_receipts: List[ReadReceipt] = Relationship(
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "overlaps": "user"})
 
 
 # Properties to return via API, id is always required
