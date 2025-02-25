@@ -7,7 +7,7 @@ from app.models.items import Item
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
-    phone_number: str = Field(unique=True, index=True, max_length=10)
+    phone_number: str | None = Field(default=None, max_length=10)
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
