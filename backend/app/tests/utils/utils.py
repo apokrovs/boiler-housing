@@ -19,6 +19,9 @@ def get_superuser_token_headers(client: TestClient) -> dict[str, str]:
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
+    print(f"Username: {settings.FIRST_SUPERUSER}")
+    print(f"Password: {settings.FIRST_SUPERUSER_PASSWORD}")
+    print(f"URL: {settings.API_V1_STR}/login/access-token")
     r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
     tokens = r.json()
     a_token = tokens["access_token"]
