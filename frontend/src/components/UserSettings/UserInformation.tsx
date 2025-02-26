@@ -92,6 +92,8 @@ const UserInformation = () => {
         return phoneNumber; // Return as-is if it's not a 10-digit number
     };
 
+    const bgActive = useColorModeValue("#f0eee2", "#68634a")
+
     return (
         <>
             <Container maxW="md" mt={8}>
@@ -225,9 +227,7 @@ const UserInformation = () => {
                     )}
                     <Flex mt={4} gap={3}>
                         <Button
-                            bg="#68634a"
-                            _hover={{bg: "#5a5640"}}
-                            _active={{bg: "#4e4a38"}}
+                            bg={bgActive}
                             variant="solid"
                             onClick={toggleEditMode}
                             type={editMode ? "button" : "submit"}

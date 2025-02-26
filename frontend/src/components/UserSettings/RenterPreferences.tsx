@@ -11,7 +11,7 @@ import {
     HStack,
     Input, Radio, RadioGroup,
     Stack,
-    Text
+    Text, useColorModeValue
 } from "@chakra-ui/react"
 
 const RenterPreferences = () => {
@@ -22,6 +22,8 @@ const RenterPreferences = () => {
     const [currSecurityDeposit, setSecurityDeposit] = useState("")
     const [currStartDate, setStartDate] = useState("")
     const [currEndDate, setEndDate] = useState("")
+
+     const bgActive = useColorModeValue("#f0eee2", "#68634a")
 
     return (
         <Container maxW="lg" mt={8}>
@@ -168,9 +170,7 @@ const RenterPreferences = () => {
 
                 <Button
                     mt={4}
-                    bg="#68634a"
-                    _hover={{bg: "#5a5640"}}
-                    _active={{bg: "#4e4a38"}}
+                    bg={bgActive}
                 >
                     Update Preferences
                 </Button>
