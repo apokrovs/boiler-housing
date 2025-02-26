@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react"
 import {useMutation, useQueryClient} from "@tanstack/react-query"
 import {useState} from "react"
-import {type SubmitHandler, useForm} from "react-hook-form"
+import {Controller, type SubmitHandler, useForm} from "react-hook-form"
 
 import {
     type ApiError,
@@ -37,6 +37,7 @@ const UserInformation = () => {
         handleSubmit,
         reset,
         getValues,
+        control,
         formState: {isSubmitting, errors, isDirty},
     } = useForm<UserPublic>({
         mode: "onBlur",
@@ -151,6 +152,7 @@ const UserInformation = () => {
                             <FormErrorMessage>{errors.email.message}</FormErrorMessage>
                         )}
                     </FormControl>
+
                     <FormControl mt={4}>
                         <FormLabel color={color} htmlFor="phone_number">
                             Phone Number (Optional):
@@ -158,7 +160,7 @@ const UserInformation = () => {
                         {editMode ? (
                             <Input
                                 id="phone_number"
-                                placeholder="(XXX) XXX-XXXX"
+                                placeholder="XXXXXXXXXX"
                                 {...register("phone_number", {maxLength: 10})}
                                 type="tel"
                                 size="md"
@@ -200,13 +202,20 @@ const UserInformation = () => {
 
                     <FormLabel py={2}>Profile Type:</FormLabel>
                     {editMode ? (
-                        <RadioGroup>
-                            <Stack direction="row">
-                                <Radio value="Leaser">Leaser</Radio>
-                                <Radio value="Renter">Renter</Radio>
-                                <Radio value="Both">Both</Radio>
-                            </Stack>
-                        </RadioGroup>
+                        <Controller
+                            name="profile_type"
+                            control={control}
+                            defaultValue={currentUser?.profile_type || "Leaser"} // Ensure it's always a string
+                            render={({field}) => (
+                                <RadioGroup {...field} value={field.value ?? "Leaser"}> {/* Ensure no null */}
+                                    <Stack direction="row">
+                                        <Radio value="Leaser">Leaser</Radio>
+                                        <Radio value="Renter">Renter</Radio>
+                                        <Radio value="Both">Both</Radio>
+                                    </Stack>
+                                </RadioGroup>
+                            )}
+                        />
                     ) : (
                         <Text
                             color={!currentUser?.profile_type ? "#A0AEC0" : "inherit"}
