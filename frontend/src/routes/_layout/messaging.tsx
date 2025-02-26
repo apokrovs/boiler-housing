@@ -41,7 +41,7 @@ const Message = ({text, actor}: MessageProps) => {
     return (
         <Flex
             p={4}
-            bg={"darkgrey"}
+            bg={"#dead16"}
             color={"black"}
             borderRadius="lg"
             w="fit-content"
@@ -144,7 +144,7 @@ function Messaging() {
                         size="sm"
                         variant="outline"
                         onClick={onOpen}
-                        bg={"yellow.400"}
+                        bg={"#dead16"}
                     />
                 </HStack>
                 <Divider/>
@@ -153,7 +153,7 @@ function Messaging() {
                         <Box
                             key={chat}
                             p={4}
-                            bg={selectedChat === chat ? "yellow.400" : "white"}
+                            bg={selectedChat === chat ? "#dead16" : "white"}
                             borderRadius="md"
                             shadow="sm"
                             cursor="pointer"
@@ -175,7 +175,7 @@ function Messaging() {
                 bg="white"
             >
 
-                <HStack p={4} bg="yellow.400" width="full">
+                <HStack p={4} bg="#dead16" width="full">
                     <Heading size="lg" color="black" width="full">
                         Chat with {selectedChat}
                     </Heading>
