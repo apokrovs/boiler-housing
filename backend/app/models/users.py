@@ -30,11 +30,17 @@ class UserRegister(SQLModel):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=40)
+    phone_number: str | None = Field(default=None, max_length=10)
+    bio: str | None = Field(default=None, max_length=255)
+    profile_type: str | None = Field(default=None, max_length=6)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    phone_number: str | None = Field(default=None, max_length=10)
+    bio: str | None = Field(default=None, max_length=255)
+    profile_type: str | None = Field(default=None, max_length=6)
 
 
 class UpdatePassword(SQLModel):

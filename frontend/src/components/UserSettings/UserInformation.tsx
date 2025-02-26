@@ -44,7 +44,9 @@ const UserInformation = () => {
         defaultValues: {
             full_name: currentUser?.full_name,
             email: currentUser?.email,
-            //TODO Need to update w phone#, bio, and profile type (renter/leaser)
+            phone_number: currentUser?.phone_number,
+            bio: currentUser?.bio,
+            profile_type: currentUser?.profile_type
         },
     })
 
@@ -136,13 +138,14 @@ const UserInformation = () => {
                         )}
                     </FormControl>
                     <FormControl mt={4}>
-                        <FormLabel color={color} htmlFor="phone">
+                        <FormLabel color={color} htmlFor="phone_number">
                             Phone Number (Optional):
                         </FormLabel>
                         {editMode ? (
                             <Input
-                                id="phone"
+                                id="phone_number"
                                 placeholder="(XXX) XXX-XXXX"
+                                {...register("phone_number", {maxLength: 10})}
                                 type="tel"
                                 size="md"
                                 w="auto"
@@ -150,10 +153,11 @@ const UserInformation = () => {
                         ) : (
                             <Text size="md" py={2} color="#A0AEC0" isTruncated
                                   maxWidth="250px">
-                                N/A
+                                {currentUser?.phone_number || "N/A"}
                             </Text>
                         )}
                     </FormControl>
+
                     <Heading size="sm" py={2}>
                         Bio:
                     </Heading>
@@ -161,23 +165,25 @@ const UserInformation = () => {
                         <Textarea
                             id="bio"
                             placeholder="Tell us about yourself..."
+                            {...register("bio", {maxLength: 255})}
                             resize="none"
                             height="150px"
                             w="full"
                         />
                     ) : (
                         <Text height="150px" width="full" color="#A0AEC0">
-                            No bio available.
+                            {currentUser?.bio || "No bio available."}
                         </Text>
                     )}
                     <FormLabel py={2}>Profile Type:</FormLabel>
-                    <RadioGroup defaultValue="renter">
+                    <RadioGroup>
                         <Stack direction="row">
-                            <Radio value="leaser">Leaser</Radio>
-                            <Radio value="renter">Renter</Radio>
-                            <Radio value="both">Both</Radio>
+                            <Radio value="Leaser">Leaser</Radio>
+                            <Radio value="Renter">Renter</Radio>
+                            <Radio value="Both">Both</Radio>
                         </Stack>
                     </RadioGroup>
+
                     <Flex mt={4} gap={3}>
                         <Button
                             bg="#68634a"
