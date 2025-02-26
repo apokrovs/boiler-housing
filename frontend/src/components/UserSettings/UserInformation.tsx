@@ -77,6 +77,20 @@ const UserInformation = () => {
         toggleEditMode()
     }
 
+    const formatPhoneNumber = (phoneNumber: string | null | undefined): string => {
+        if (!phoneNumber) return "N/A";
+
+        // Remove all non-numeric characters
+        const cleaned = phoneNumber.replace(/\D/g, "");
+
+        // Format the number as (XXX) XXX-XXXX
+        if (cleaned.length === 10) {
+            return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+        }
+
+        return phoneNumber; // Return as-is if it's not a 10-digit number
+    };
+
     return (
         <>
             <Container maxW="md" mt={8}>
@@ -151,9 +165,13 @@ const UserInformation = () => {
                                 w="auto"
                             />
                         ) : (
-                            <Text size="md" py={2} color="#A0AEC0" isTruncated
-                                  maxWidth="250px">
-                                {currentUser?.phone_number || "N/A"}
+                            <Text
+                                size="md"
+                                py={2}
+                                color={!currentUser?.phone_number ? "#A0AEC0" : "inherit"}
+                                isTruncated
+                                maxWidth="250px">
+                                {formatPhoneNumber(currentUser?.phone_number) || "N/A"}
                             </Text>
                         )}
                     </FormControl>
@@ -171,19 +189,31 @@ const UserInformation = () => {
                             w="full"
                         />
                     ) : (
-                        <Text height="150px" width="full" color="#A0AEC0">
+                        <Text
+                            height="150px"
+                            width="full"
+                            color={!currentUser?.bio ? "#A0AEC0" : "inherit"}
+                        >
                             {currentUser?.bio || "No bio available."}
                         </Text>
                     )}
-                    <FormLabel py={2}>Profile Type:</FormLabel>
-                    <RadioGroup>
-                        <Stack direction="row">
-                            <Radio value="Leaser">Leaser</Radio>
-                            <Radio value="Renter">Renter</Radio>
-                            <Radio value="Both">Both</Radio>
-                        </Stack>
-                    </RadioGroup>
 
+                    <FormLabel py={2}>Profile Type:</FormLabel>
+                    {editMode ? (
+                        <RadioGroup>
+                            <Stack direction="row">
+                                <Radio value="Leaser">Leaser</Radio>
+                                <Radio value="Renter">Renter</Radio>
+                                <Radio value="Both">Both</Radio>
+                            </Stack>
+                        </RadioGroup>
+                    ) : (
+                        <Text
+                            color={!currentUser?.profile_type ? "#A0AEC0" : "inherit"}
+                        >
+                            {currentUser?.profile_type || "No profile specification chosen."}
+                        </Text>
+                    )}
                     <Flex mt={4} gap={3}>
                         <Button
                             bg="#68634a"

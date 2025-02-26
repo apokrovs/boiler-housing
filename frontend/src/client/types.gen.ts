@@ -75,6 +75,9 @@ export type UserPublic = {
   is_superuser?: boolean
   full_name?: string | null
   id: string
+  phone_number?: string | null
+  bio?: string | null
+  profile_type?: string | null
 }
 
 export type UserRegister = {
@@ -94,11 +97,17 @@ export type UserUpdate = {
   is_superuser?: boolean
   full_name?: string | null
   password?: string | null
+  phone_number?: string | null
+  bio?: string | null
+  profile_type?: string | null
 }
 
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
+  phone_number?: string | null
+  bio?: string | null
+  profile_type?: string | null
 }
 
 export type ValidationError = {
