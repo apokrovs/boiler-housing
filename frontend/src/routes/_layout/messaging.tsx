@@ -8,7 +8,16 @@ import {
     Stack,
     Text,
     VStack,
-    Divider, IconButton,
+    Divider,
+    IconButton,
+    useDisclosure,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalCloseButton,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
 } from '@chakra-ui/react';
 import {
     createFileRoute,
@@ -44,6 +53,8 @@ const Message = ({text, actor}: MessageProps) => {
 };
 
 function Messaging() {
+    const [newChatName, setNewChatName] = useState("");
+    const {isOpen, onOpen, onClose} = useDisclosure();
     const [chatMessages, setChatMessages] = useState<{ [key: string]: MessageProps[] }>({
         Alice: [],
         Bob: [],
@@ -55,12 +66,12 @@ function Messaging() {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-   const scrollToBottom = () => {
-       if (containerRef.current){
-           containerRef.current.scrollTop = containerRef.current.scrollHeight;
-       }
-   }
-   useEffect(() => {
+    const scrollToBottom = () => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }
+    useEffect(() => {
         scrollToBottom();
     }, [chatMessages[selectedChat]]);
 
@@ -95,7 +106,14 @@ function Messaging() {
     }
 
     const addChat = () => {
+        if (newChatName.trim() === "" || chats.includes(newChatName)) {
+            return;
+        }
 
+        setChats(prevChats => [...prevChats, newChatName]);
+        setChatMessages(prevMessages => ({...prevMessages, [newChatName]: []}));
+        setNewChatName("");
+        onClose();
     }
 
     const handleChatClick = (chat: string) => {
@@ -116,16 +134,17 @@ function Messaging() {
                 h="full"
                 borderWidth="1px"
                 roundedTop="lg"
-                bg="white"
+                bg="gray.100"
             >
-                <HStack justifyContent="space-between" px={4} py={2}>
+                <HStack justifyContent="space-between" px={4} py={2} >
                     <Heading size="md" borderRadius="md" textAlign="center">Chats</Heading>
                     <IconButton
                         aria-label="Add chat"
                         icon={<AddIcon/>}
                         size="sm"
                         variant="outline"
-                        onClick={addChat}
+                        onClick={onOpen}
+                        bg={"yellow.400"}
                     />
                 </HStack>
                 <Divider/>
@@ -134,11 +153,12 @@ function Messaging() {
                         <Box
                             key={chat}
                             p={4}
-                            bg={selectedChat === chat ? "gray.200" : "white"}
+                            bg={selectedChat === chat ? "yellow.400" : "white"}
                             borderRadius="md"
                             shadow="sm"
                             cursor="pointer"
                             onClick={() => handleChatClick(chat)}
+
                         >
                             Chat with {chat}
                         </Box>
@@ -155,7 +175,7 @@ function Messaging() {
                 bg="white"
             >
 
-                <HStack p={4} bg="lightgrey" width="full">
+                <HStack p={4} bg="yellow.400" width="full">
                     <Heading size="lg" color="black" width="full">
                         Chat with {selectedChat}
                     </Heading>
@@ -187,7 +207,7 @@ function Messaging() {
                     ))}
                 </Stack>
 
-                <HStack p={4} bg="gray.100">
+                <HStack p={4} bg="gray.200">
                     <Input
                         bg="white"
                         placeholder="Enter your text"
@@ -196,10 +216,28 @@ function Messaging() {
                         color="black"
                         onKeyPress={handleKeyPress}
                     />
-                    <Button onClick={sendMessage} colorScheme="black" bg="white" color="black">
+                    <Button onClick={sendMessage} colorScheme="yellow" >
                         Send
                     </Button>
                 </HStack>
+                <Modal isOpen={isOpen} onClose={onClose}>
+                    <ModalOverlay/>
+                    <ModalContent>
+                        <ModalHeader>Add a New Chat</ModalHeader>
+                        <ModalCloseButton/>
+                        <ModalBody>
+                            <Input
+                                placeholder="Enter name"
+                                value={newChatName}
+                                onChange={(e) => setNewChatName(e.target.value)}
+                            />
+                        </ModalBody>
+                        <ModalFooter display="flex" justifyContent="center" >
+                            <Button colorScheme="yellow" mr={3} onClick={addChat}>Add</Button>
+                            <Button variant="ghost" bgColor= "gray.200"  _hover={{ bg: "gray.300" }} onClick={onClose}>Cancel</Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
             </Flex>
         </Flex>
     );
