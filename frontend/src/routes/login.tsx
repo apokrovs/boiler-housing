@@ -75,27 +75,30 @@ function Login() {
         <Box
             boxShadow={'md'}
             height={"100px"}
-            background={"black"}
+            //background={"black"}
             width={"100%"}>
           <HStack gap={90}>
             <Image pl={4} pt={"15px"} src={"/assets/images/BoilerHousingCropped.png"}></Image>
           </HStack>
         </Box>
-        <Center p={12} bg={'white'}>
+        <Center p={12} //bg={'white'}
+        >
           <Stack
               as = {"form"}
               onSubmit = {handleSubmit(onSubmit)}
               rounded={'lg'}
               boxShadow={'lg'}
-              bg={"white"} p={20}
+              //bg={"white"}
+              p={20}
               gap={6}>
             <Heading
                 fontSize={"3xl"}
-                color={"#373A36"}>
+                color={"#CEB888"}
+                >
               Welcome Back!
             </Heading>
             <Text
-                color={"#373A36"}
+                //color={"#373A36"}
                 fontSize={"md"}>
               Please log in with your email and password.
             </Text>
@@ -131,21 +134,21 @@ function Login() {
               <Link
                   as={RouterLink}
                   to={"/recover-password"}
-                  color={'#C5A939'} fontSize={'md'}>
+                  color={'#CEB888'} fontSize={'md'}>
                 Forgot Password?
               </Link>
               <Button
                   type={"submit"}
-                  bg={"black"}
+                  //bg={"black"}
                   loadingText={"Logging you in..."}
                   isLoading={isSubmitting}
                   width={"50%"}
                   size={'lg'}
-                  color={'#C5A939'}>Log In</Button>
+                  color={'#CEB888'}>Log In</Button>
             </HStack>
             <HStack>
               <Text
-                  color={"#373A36"}
+                  //color={"#373A36"}
                   fontSize={"md"}>
                 New here?
               </Text>
@@ -153,7 +156,7 @@ function Login() {
                   as={RouterLink}
                   to={"/signup"}
                   variant={'underline'}
-                  color={'#C5A939'}
+                  color={'#CEB888'}
                   fontSize={'md'}>
                 Create an account
               </Link>

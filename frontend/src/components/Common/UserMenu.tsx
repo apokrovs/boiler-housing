@@ -32,7 +32,7 @@ const UserMenu = () => {
           <MenuButton
             as={IconButton}
             aria-label="Options"
-            icon={<FaBars color="CEB888" fontSize="18px" />}
+            icon={<FaBars color="CEB888" fontSize="24px" />}
             bg="ui.main"
             isRound
             data-testid="user-menu"
