@@ -35,6 +35,56 @@ export type ItemUpdate = {
   description?: string | null
 }
 
+export type RenterPreferenceCreate = {
+  num_bedrooms?: string[] | null // List fields are stored as JSON
+  num_bathrooms?: string[] | null
+  address?: string | null
+  realty_company?: string | null
+  min_price?: number | null
+  max_price?: number | null
+  included_utilities?: string[] | null
+  security_deposit?: string | null
+  amenities?: string[] | null
+  lease_start_date?: string | null // Dates are sent as strings in JSON
+  lease_end_date?: string | null
+}
+
+export type RenterPreferencePublic = {
+  id: string
+  owner_id: string
+  user_id: string
+  num_bedrooms?: string[] | null // List fields are stored as JSON
+  num_bathrooms?: string[] | null
+  address?: string | null
+  realty_company?: string | null
+  min_price?: number | null
+  max_price?: number | null
+  included_utilities?: string[] | null
+  security_deposit?: string | null
+  amenities?: string[] | null
+  lease_start_date?: string | null // Dates are sent as strings in JSON
+  lease_end_date?: string | null
+}
+
+export type RenterPreferencesPublic = {
+  data: Array<RenterPreferencePublic>
+  count: number
+}
+
+export type RenterPreferenceUpdate = {
+  num_bedrooms?: string[] | null // List fields are stored as JSON
+  num_bathrooms?: string[] | null
+  address?: string | null
+  realty_company?: string | null
+  min_price?: number | null
+  max_price?: number | null
+  included_utilities?: string[] | null
+  security_deposit?: string | null
+  amenities?: string[] | null
+  lease_start_date?: string | null // Dates are sent as strings in JSON
+  lease_end_date?: string | null
+}
+
 export type Message = {
   message: string
 }
@@ -147,6 +197,13 @@ export type ItemsDeleteItemData = {
 }
 
 export type ItemsDeleteItemResponse = Message
+
+export type RenterPreferencesUpdateRenterPreferenceData = {
+  id: string
+  requestBody: RenterPreferenceUpdate
+}
+
+export type RenterPreferencesUpdateRenterPreferenceResponse = RenterPreferencePublic
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token

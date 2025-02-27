@@ -46,6 +46,8 @@ import type {
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
+  RenterPreferencesUpdateRenterPreferenceData,
+  RenterPreferencesUpdateRenterPreferenceResponse,
 } from "./types.gen"
 
 export class ItemsService {
@@ -162,6 +164,34 @@ export class ItemsService {
       path: {
         id: data.id,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
+
+export class RenterPreferencesService {
+  /**
+   * Update Renter Preference
+   * Update a renter preference.
+   * @param data The data for the request.
+   * @param data.id
+   * @param data.requestBody
+   * @returns RenterPreferencePublic Successful Response
+   * @throws ApiError
+   */
+  public static updatePreferences(
+    data: RenterPreferencesUpdateRenterPreferenceData,
+  ): CancelablePromise<RenterPreferencesUpdateRenterPreferenceResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/renter_preferences/{id}",
+      path: {
+        id: data.id,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },
