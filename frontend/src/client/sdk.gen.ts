@@ -46,8 +46,7 @@ import type {
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
-  RenterPreferencesUpdateRenterPreferenceData,
-  RenterPreferencesUpdateRenterPreferenceResponse,
+  RenterPreferencesUpdateRenterPreferenceResponse, RenterPreferenceUpdate,
 } from "./types.gen"
 
 export class ItemsService {
@@ -173,6 +172,27 @@ export class ItemsService {
 
 export class RenterPreferencesService {
   /**
+   * Create Item
+   * Create new item.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static createItem(
+    data: ItemsCreateItemData,
+  ): CancelablePromise<ItemsCreateItemResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/items/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+  /**
    * Update Renter Preference
    * Update a renter preference.
    * @param data The data for the request.
@@ -182,14 +202,11 @@ export class RenterPreferencesService {
    * @throws ApiError
    */
   public static updatePreferences(
-    data: RenterPreferencesUpdateRenterPreferenceData,
+      data: {requestBody: RenterPreferenceUpdate },
   ): CancelablePromise<RenterPreferencesUpdateRenterPreferenceResponse> {
     return __request(OpenAPI, {
-      method: "POST",
+      method: "PUT",
       url: "/api/v1/renter_preferences/{id}",
-      path: {
-        id: data.id,
-      },
       body: data.requestBody,
       mediaType: "application/json",
       errors: {

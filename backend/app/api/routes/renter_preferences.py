@@ -11,47 +11,17 @@ from app.models.utils import Message
 router = APIRouter(prefix="/renter_preferences", tags=["renter_preferences"])
 
 
-@router.get("/", response_model=RenterPreferencesPublic)
-def read_preferences(
-    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
-) -> Any:
+@router.get("/", response_model=RenterPreferencePublic)
+def read_renter_preference(session: SessionDep, current_user: CurrentUser) -> Any:
     """
-    Retrieve renter preferences.
+    Retrieve the current user's renter preference.
     """
+    statement = select(RenterPreference).where(RenterPreference.owner_id == current_user.id)
+    renter_preference = session.exec(statement).first()
 
-    if current_user.is_superuser:
-        count_statement = select(func.count()).select_from(RenterPreference)
-        count = session.exec(count_statement).one()
-        statement = select(RenterPreference).offset(skip).limit(limit)
-        renter_preferences = session.exec(statement).all()
-    else:
-        count_statement = (
-            select(func.count())
-            .select_from(RenterPreference)
-            .where(RenterPreference.owner_id == current_user.id)
-        )
-        count = session.exec(count_statement).one()
-        statement = (
-            select(RenterPreference)
-            .where(RenterPreference.owner_id == current_user.id)
-            .offset(skip)
-            .limit(limit)
-        )
-        renter_preferences = session.exec(statement).all()
-
-    return RenterPreferencesPublic(data=renter_preferences, count=count)
-
-
-@router.get("/{id}", response_model=RenterPreferencePublic)
-def read_renter_preference(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
-    """
-    Get renter preference by ID.
-    """
-    renter_preference = session.get(RenterPreference, id)
     if not renter_preference:
         raise HTTPException(status_code=404, detail="Renter preference not found")
-    if not current_user.is_superuser and (renter_preference.owner_id != current_user.id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
+
     return renter_preference
 
 
@@ -60,51 +30,63 @@ def create_renter_preference(
     *, session: SessionDep, current_user: CurrentUser, renter_preference_in: RenterPreferenceCreate
 ) -> Any:
     """
-    Create new renter preference.
+    Create a new renter preference. Each user can only have one.
     """
-    renter_preference = RenterPreference.model_validate(renter_preference_in, update={"owner_id": current_user.id})
+    # Check if the user already has a preference
+    existing_preference = session.exec(
+        select(RenterPreference).where(RenterPreference.owner_id == current_user.id)
+    ).first()
+
+    if existing_preference:
+        raise HTTPException(status_code=400, detail="User already has a renter preference")
+
+    # Create new preference
+    renter_preference = RenterPreference.model_validate(
+        renter_preference_in, update={"owner_id": current_user.id}
+    )
     session.add(renter_preference)
     session.commit()
     session.refresh(renter_preference)
     return renter_preference
 
 
-@router.put("/{id}", response_model=RenterPreferencePublic)
+@router.put("/", response_model=RenterPreferencePublic)
 def update_renter_preference(
-    *,
-    session: SessionDep,
-    current_user: CurrentUser,
-    id: uuid.UUID,
-    renter_preference_in: RenterPreferenceUpdate,
+    *, session: SessionDep, current_user: CurrentUser, renter_preference_in: RenterPreferenceUpdate
 ) -> Any:
     """
-    Update a renter preference.
+    Update the current user's renter preference.
     """
-    renter_preference = session.get(RenterPreference, id)
+    # Find the user's existing preference
+    renter_preference = session.exec(
+        select(RenterPreference).where(RenterPreference.owner_id == current_user.id)
+    ).first()
+
     if not renter_preference:
         raise HTTPException(status_code=404, detail="Renter preference not found")
-    if not current_user.is_superuser and (renter_preference.owner_id != current_user.id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # Update preference fields
     update_dict = renter_preference_in.model_dump(exclude_unset=True)
     renter_preference.sqlmodel_update(update_dict)
+
     session.add(renter_preference)
     session.commit()
     session.refresh(renter_preference)
     return renter_preference
 
 
-@router.delete("/{id}")
-def delete_renter_preference(
-    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
-) -> Message:
+@router.delete("/", response_model=Message)
+def delete_renter_preference(session: SessionDep, current_user: CurrentUser) -> Message:
     """
-    Delete a renter preference.
+    Delete the current user's renter preference.
     """
-    renter_preference = session.get(RenterPreference, id)
+    renter_preference = session.exec(
+        select(RenterPreference).where(RenterPreference.owner_id == current_user.id)
+    ).first()
+
     if not renter_preference:
         raise HTTPException(status_code=404, detail="Renter preference not found")
-    if not current_user.is_superuser and (renter_preference.owner_id != current_user.id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
+
     session.delete(renter_preference)
     session.commit()
     return Message(message="Renter preference deleted successfully")
