@@ -16,8 +16,8 @@ class RenterPreferenceBase(SQLModel):
     included_utilities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
     security_deposit: Optional[str] | None = Field(default="no")  # "yes", "no", "noPreference"
     amenities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    lease_start_date: Optional[date] | None = Field(default=None)
-    lease_end_date: Optional[date] | None = Field(default=None)
+    lease_start_date: Optional[str] | None = Field(default=None)
+    lease_end_date: Optional[str] | None = Field(default=None)
 
 class RenterPreferenceCreate(RenterPreferenceBase):
     pass
@@ -32,8 +32,8 @@ class RenterPreferenceUpdate(RenterPreferenceBase):
     included_utilities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
     security_deposit: Optional[str] | None = Field(default="no")  # "yes", "no", "noPreference"
     amenities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    lease_start_date: Optional[date] | None = Field(default=None)
-    lease_end_date: Optional[date] | None = Field(default=None)
+    lease_start_date: Optional[str] | None = Field(default=None)
+    lease_end_date: Optional[str] | None = Field(default=None)
 
 class RenterPreference(RenterPreferenceBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
