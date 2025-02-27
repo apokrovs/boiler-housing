@@ -19,7 +19,7 @@ import {
 } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
-import Logo from "/assets/images/BoilerHousingCropped.png"
+const Logo = "/assets/images/BoilerHousingCropped.png"
 import type { UserRegister } from "../client"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { confirmPasswordRules, emailPattern, passwordRules, phonePattern } from "../utils"
@@ -66,30 +66,33 @@ function SignUp() {
   return (
     <>
         <Box
-            as={"form"}
-            onSubmit = {handleSubmit(onSubmit)}
             boxShadow={'md'}
             height={"100px"}
-            background={"black"}
+            //background={"black"}
             width={"100%"}>
           <HStack gap={90}>
             <Image pl={4} pt={"15px"} src={Logo}></Image>
           </HStack>
         </Box>
-        <Center p={6} bg={'white'}>
+        <Center p={6} //bg={'white'}
+        >
         <Stack
+            as={"form"}
+            onSubmit = {handleSubmit(onSubmit)}
             rounded={'lg'}
             boxShadow={'lg'}
-            bg={"white"} p={20}
+            //bg={"white"}
+            p={20}
             gap={5}
         >
           <Heading
                 fontSize={"3xl"}
-                color={"#373A36"}>
+                color={"#CEB888"}
+          >
               Let's get to know you!
           </Heading>
           <Text
-                color={"#373A36"}
+                //color={"#373A36"}
                 fontSize={"md"}>
               Please enter your information below.
           </Text>
@@ -131,7 +134,7 @@ function SignUp() {
             </FormLabel>
             <Input
                 id={"phone_number"}
-                placeholder="Phone (Optional) XXX-XXX-XXXX"
+                placeholder="Phone XXXXXXXXXX"
               {...register("phone_number", {
                 pattern: phonePattern
               })}>
@@ -178,11 +181,11 @@ function SignUp() {
               //variant="primary"
               type={"submit"}
               isLoading={isSubmitting}
-              bg={"black"}
+              //bg={"black"}
               loadingText={"Signing you up..."}
               width={"100%"}
               size={'lg'}
-              color={'#C5A939'}>
+              color={'#CEB888'}>
             Sign Up
           </Button>
           <Text>
@@ -190,7 +193,7 @@ function SignUp() {
             <Link
                 as={RouterLink}
                 to={"/login"}
-                color={"#C5A939"}>
+                color={"#CEB888"}>
               Log In
             </Link>
           </Text>
