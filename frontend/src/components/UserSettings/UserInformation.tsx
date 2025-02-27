@@ -70,6 +70,7 @@ const UserInformation = () => {
     })
 
     const onSubmit: SubmitHandler<UserUpdateMe> = async (data) => {
+        console.log("Request payload:", data)
         mutation.mutate(data)
     }
 

@@ -15,7 +15,7 @@ import {
     type ApiError,
     type RenterPreferencePublic,
     type RenterPreferenceUpdate,
-    RenterPreferencesService,
+    RenterPreferenceService,
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import {handleError} from "../../utils"
@@ -45,11 +45,12 @@ const RenterPreferences = ({renter_preference}: EditPreferencesProps) => {
 
     const mutation = useMutation({
         mutationFn: (data: RenterPreferenceUpdate) =>
-            RenterPreferencesService.updatePreferences({id: renter_preference.id, requestBody: data}),
+            RenterPreferenceService.createRenterPreference({requestBody: data}),
         onSuccess: () => {
             showToast("Success!", "Preference updated successfully.", "success")
         },
         onError: (err: ApiError) => {
+            console.log("Error:", err)
             handleError(err, showToast)
         },
         onSettled: () => {
