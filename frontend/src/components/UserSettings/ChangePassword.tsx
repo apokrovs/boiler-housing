@@ -10,7 +10,8 @@ import {
     Stack,
     RadioGroup,
     Radio,
-    Text
+    Text,
+    Checkbox
 } from "@chakra-ui/react"
 /*
 import {useMutation} from "@tanstack/react-query"
@@ -34,6 +35,12 @@ const ChangePassword = () => {
 
     const [autoLogout, setAutoLogout] = useState("10")
 
+    const [pin, setPin] = useState("");
+    const [confirmPin, setConfirmPin] = useState("");
+
+    const [enable2FA, setEnable2FA] = useState(false)
+    const [twoFAOption, setTwoFAOption] = useState("email")
+
     const handleChangePassword = () => {
         console.log("Current Password: ", currPassword)
         console.log("New Password: ", newPassword)
@@ -50,6 +57,20 @@ const ChangePassword = () => {
     const handleUpdateLogout = () => {
         console.log("Auto logout time: ", autoLogout)
         alert("Automatic logout time updated!")
+    }
+
+    const handleSetPin = () => {
+        if (pin.length === 4 && pin === confirmPin) {
+            alert("PIN successfully set!");
+        } else {
+            alert("PINs do not match or are not 4 digits.");
+        }
+    };
+
+    const handleUpdate2FA = () => {
+        console.log("2FA Enabled: ", enable2FA)
+        console.log("2FA Method: ", twoFAOption)
+        alert("Two-factor authentication settings updated!")
     }
 
     return (
@@ -116,6 +137,39 @@ const ChangePassword = () => {
 
                 <Button colorScheme="blue" onClick={handleUpdateRecovery}>
                     Update Recovery Info
+                </Button>
+            </Stack>
+            <Heading size="md" mb={4}>Login Via PIN</Heading>
+            <Stack spacing={4} mb={4}>
+                <FormControl>
+                    <FormLabel>Enter 4-digit PIN</FormLabel>
+                    <Input type="number" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value)}/>
+                </FormControl>
+                <FormControl>
+                    <FormLabel>Confirm PIN</FormLabel>
+                    <Input type="number" maxLength={4} value={confirmPin}
+                           onChange={(e) => setConfirmPin(e.target.value)}/>
+                </FormControl>
+                <Button colorScheme="blue" onClick={handleSetPin}>Set PIN</Button>
+            </Stack>
+
+            <Heading size="md" mb={4}>
+                Two-Factor Authentication
+            </Heading>
+            <Stack spacing={4} mb={6}>
+                <Checkbox isChecked={enable2FA} onChange={(e) => setEnable2FA(e.target.checked)}>
+                    Enable Two-Factor Authentication
+                </Checkbox>
+                {enable2FA && (
+                    <RadioGroup onChange={setTwoFAOption} value={twoFAOption}>
+                        <Stack direction="row" spacing={6}>
+                            <Radio value="email">Email</Radio>
+                            <Radio value="text">Text</Radio>
+                        </Stack>
+                    </RadioGroup>
+                )}
+                <Button colorScheme="blue" onClick={handleUpdate2FA}>
+                    Update 2FA Settings
                 </Button>
             </Stack>
 
