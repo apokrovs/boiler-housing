@@ -7,33 +7,33 @@ from sqlmodel import Field, Relationship, SQLModel
 
 class RenterPreferenceBase(SQLModel):
     user_id: uuid.UUID
-    num_bedrooms: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    num_bathrooms: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    address: Optional[str] = Field(default=None, max_length=255)
-    realty_company: Optional[str] = Field(default=None, max_length=255)
-    min_price: Optional[float] = Field(default=None, ge=0)
-    max_price: Optional[float] = Field(default=None, ge=0)
-    included_utilities: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    security_deposit: Optional[str] = Field(default="no")  # "yes", "no", "noPreference"
-    amenities: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    lease_start_date: Optional[date] = Field(default=None)
-    lease_end_date: Optional[date] = Field(default=None)
+    num_bedrooms: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    num_bathrooms: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    address: Optional[str] | None = Field(default=None, max_length=255)
+    realty_company: Optional[str] | None = Field(default=None, max_length=255)
+    min_price: Optional[float] | None = Field(default=None, ge=0)
+    max_price: Optional[float] | None = Field(default=None, ge=0)
+    included_utilities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    security_deposit: Optional[str] | None = Field(default="no")  # "yes", "no", "noPreference"
+    amenities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    lease_start_date: Optional[date] | None = Field(default=None)
+    lease_end_date: Optional[date] | None = Field(default=None)
 
 class RenterPreferenceCreate(RenterPreferenceBase):
     pass
 
 class RenterPreferenceUpdate(RenterPreferenceBase):
-    num_bedrooms: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    num_bathrooms: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    address: Optional[str] = Field(default=None, max_length=255)
-    realty_company: Optional[str] = Field(default=None, max_length=255)
-    min_price: Optional[float] = Field(default=None, ge=0)
-    max_price: Optional[float] = Field(default=None, ge=0)
-    included_utilities: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    security_deposit: Optional[str] = Field(default="no")  # "yes", "no", "noPreference"
-    amenities: Optional[List[str]] = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
-    lease_start_date: Optional[date] = Field(default=None)
-    lease_end_date: Optional[date] = Field(default=None)
+    num_bedrooms: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    num_bathrooms: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    address: Optional[str] | None = Field(default=None, max_length=255)
+    realty_company: Optional[str] | None = Field(default=None, max_length=255)
+    min_price: Optional[float] | None = Field(default=None, ge=0)
+    max_price: Optional[float] | None = Field(default=None, ge=0)
+    included_utilities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    security_deposit: Optional[str] | None = Field(default="no")  # "yes", "no", "noPreference"
+    amenities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))  # ✅ JSONB
+    lease_start_date: Optional[date] | None = Field(default=None)
+    lease_end_date: Optional[date] | None = Field(default=None)
 
 class RenterPreference(RenterPreferenceBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
