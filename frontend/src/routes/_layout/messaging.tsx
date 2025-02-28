@@ -55,14 +55,10 @@ const Message = ({text, actor}: MessageProps) => {
 function Messaging() {
     const [newChatName, setNewChatName] = useState("");
     const {isOpen, onOpen, onClose} = useDisclosure();
-    const [chatMessages, setChatMessages] = useState<{ [key: string]: MessageProps[] }>({
-        Alice: [],
-        Bob: [],
-        Charlie: [],
-    });
+    const [chatMessages, setChatMessages] = useState<{ [key: string]: MessageProps[] }>({});
     const [inputText, setInputText] = useState('');
-    const [selectedChat, setSelectedChat] = useState<string>('Alice')
-    const [chats, setChats] = useState<string[]>(['Alice', 'Bob', 'Charlie']);
+    const [selectedChat, setSelectedChat] = useState<string>('')
+    const [chats, setChats] = useState<string[]>([]);
 
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -110,8 +106,16 @@ function Messaging() {
             return;
         }
 
-        setChats(prevChats => [...prevChats, newChatName]);
-        setChatMessages(prevMessages => ({...prevMessages, [newChatName]: []}));
+        if (newChatName.includes(",")) {
+            const groupChatName = newChatName.split(",").map(name => name.trim()).join(", ")
+            if (!chats.includes(groupChatName)) {
+                setChats(prevChats => [...prevChats, groupChatName]);
+                setChatMessages(prevMessages => ({...prevMessages, [groupChatName]: []}))
+            }
+        } else {
+            setChats(prevChats => [...prevChats, newChatName]);
+            setChatMessages(prevMessages => ({...prevMessages, [newChatName]: []}));
+        }
         setNewChatName("");
         onClose();
     }
@@ -119,7 +123,7 @@ function Messaging() {
     const handleChatClick = (chat: string) => {
         setSelectedChat(chat);
     };
-    const handleKeyPress = (event) => {
+    const handleKeyPress = (event: any) => {
         if (event.key === 'Enter' && inputText != '') {
             sendMessage()
         }
@@ -136,7 +140,7 @@ function Messaging() {
                 roundedTop="lg"
                 bg="gray.100"
             >
-                <HStack justifyContent="space-between" px={4} py={2} >
+                <HStack justifyContent="space-between" px={4} py={2}>
                     <Heading size="md" borderRadius="md" textAlign="center">Chats</Heading>
                     <IconButton
                         aria-label="Add chat"
@@ -176,9 +180,16 @@ function Messaging() {
             >
 
                 <HStack p={4} bg="#dead16" width="full">
-                    <Heading size="lg" color="black" width="full">
-                        Chat with {selectedChat}
-                    </Heading>
+                    {chats.length > 0 ? (<Heading size="lg" color="black" width="full">
+                                Chat with {selectedChat}
+                            </Heading>
+                        )
+                        :
+                        (
+                            <Heading size="lg" color="black" width="full">
+                                Select or create a chat
+                            </Heading>
+                        )}
                 </HStack>
 
                 <Stack
@@ -201,7 +212,7 @@ function Messaging() {
                         },
                     }}
                 >
-                    {chatMessages[selectedChat].map((message, index) => (
+                    {(chatMessages[selectedChat] || []).map((message, index) => (
                         <Message key={index} text={message.text} actor={message.actor} bgColor={message.bgColor}
                                  textColor={message.textColor}/>
                     ))}
@@ -216,7 +227,7 @@ function Messaging() {
                         color="black"
                         onKeyPress={handleKeyPress}
                     />
-                    <Button onClick={sendMessage} colorScheme="yellow" >
+                    <Button onClick={sendMessage} bg="#dead16">
                         Send
                     </Button>
                 </HStack>
@@ -224,17 +235,19 @@ function Messaging() {
                     <ModalOverlay/>
                     <ModalContent>
                         <ModalHeader>Add a New Chat</ModalHeader>
+                        <Text ml={7}>When making a group chat, use commas.</Text>
                         <ModalCloseButton/>
                         <ModalBody>
                             <Input
-                                placeholder="Enter name"
+                                placeholder="Enter name/names"
                                 value={newChatName}
                                 onChange={(e) => setNewChatName(e.target.value)}
                             />
                         </ModalBody>
-                        <ModalFooter display="flex" justifyContent="center" >
-                            <Button colorScheme="yellow" mr={3} onClick={addChat}>Add</Button>
-                            <Button variant="ghost" bgColor= "gray.200"  _hover={{ bg: "gray.300" }} onClick={onClose}>Cancel</Button>
+                        <ModalFooter display="flex" justifyContent="center">
+                            <Button bg="#dead16" mr={3} onClick={addChat}>Add</Button>
+                            <Button variant="ghost" bgColor="gray.200" _hover={{bg: "gray.300"}}
+                                    onClick={onClose}>Cancel</Button>
                         </ModalFooter>
                     </ModalContent>
                 </Modal>
