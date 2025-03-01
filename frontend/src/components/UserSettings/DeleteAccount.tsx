@@ -7,10 +7,13 @@ import {
 } from "@chakra-ui/react"
 
 import DeleteConfirmation from "./DeleteConfirmation"
+import {useQueryClient} from "@tanstack/react-query";
+import type {UserPublic} from "../../client";
 
 const DeleteAccount = () => {
   const confirmationModal = useDisclosure()
-
+  const queryClient = useQueryClient()
+  const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   return (
     <>
       <Container maxW="full">
@@ -27,10 +30,10 @@ const DeleteAccount = () => {
         <Stack>
           <Text mt={4}> Delete Individual Profiles</Text>
           <HStack>
-            <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen}>
+            <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen} isDisabled={currentUser?.profile_type !== "Leaser"}>
               Delete Renter Profile
             </Button>
-            <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen}>
+            <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen} isDisabled={currentUser?.profile_type !== "Renter"}>
               Delete Leaser Profile
             </Button>
          </HStack>
