@@ -45,7 +45,7 @@ import type {
   UsersDeleteUserResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
-  UtilsHealthCheckResponse,
+  UtilsHealthCheckResponse, UsersCreatePinData, UsersCreatePinResponse,
 } from "./types.gen"
 
 export class ItemsService {
@@ -415,6 +415,28 @@ export class UsersService {
       },
     })
   }
+
+  /**
+ * Create Pin
+ * Create or update a pin for the current user.
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns PinPublic Successful Response
+ * @throws ApiError
+ */
+public static createOrUpdatePin(
+  data: UsersCreatePinData,
+): CancelablePromise<UsersCreatePinResponse> {
+  return __request(OpenAPI, {
+    method: "POST",
+    url: "/api/v1/users/me/pin",
+    body: data.requestBody,
+    mediaType: "application/json",
+    errors: {
+      422: "Validation Error",
+    },
+  })
+}
 
   /**
    * Register User

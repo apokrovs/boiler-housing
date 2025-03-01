@@ -11,8 +11,13 @@ import {
     RadioGroup,
     Radio,
     Text,
-    Checkbox
+    Checkbox, FormErrorMessage,
 } from "@chakra-ui/react"
+import useCustomToast from "../../hooks/useCustomToast.ts";
+import {useMutation} from "@tanstack/react-query";
+import {handleError} from "../../utils.ts";
+import {ApiError, UpdatePin, UsersService} from "../../client";
+import {type SubmitHandler, useForm} from "react-hook-form"
 /*
 import {useMutation} from "@tanstack/react-query"
 import {type SubmitHandler, useForm} from "react-hook-form"
@@ -35,8 +40,8 @@ const ChangePassword = () => {
 
     const [autoLogout, setAutoLogout] = useState("10")
 
-    const [pin, setPin] = useState("");
-    const [confirmPin, setConfirmPin] = useState("");
+    /*const [pin, setPin] = useState("");
+    const [confirmPin, setConfirmPin] = useState("");*/
 
     const [enable2FA, setEnable2FA] = useState(false)
     const [twoFAOption, setTwoFAOption] = useState("email")
@@ -59,18 +64,47 @@ const ChangePassword = () => {
         alert("Automatic logout time updated!")
     }
 
-    const handleSetPin = () => {
+    /*const handleSetPin = () => {
         if (pin.length === 4 && pin === confirmPin) {
             alert("PIN successfully set!");
         } else {
             alert("PINs do not match or are not 4 digits.");
         }
-    };
+    };*/
 
     const handleUpdate2FA = () => {
         console.log("2FA Enabled: ", enable2FA)
         console.log("2FA Method: ", twoFAOption)
         alert("Two-factor authentication settings updated!")
+    }
+
+    const showToast = useCustomToast()
+    const {
+        register,
+        handleSubmit,
+        reset,
+        watch,
+        formState: {errors, isSubmitting},
+    } = useForm<UpdatePin>({
+        mode: "onBlur",
+        criteriaMode: "all",
+    })
+
+    const mutation = useMutation({
+        mutationFn: (data: UpdatePin) =>
+            UsersService.createOrUpdatePin({requestBody: data}),
+        onSuccess: () => {
+            showToast("Success!", "Pin updated successfully.", "success")
+            reset()
+        },
+        onError: (err: ApiError) => {
+            handleError(err, showToast)
+        },
+    })
+
+    const onSubmit: SubmitHandler<UpdatePin> = async (data) => {
+        console.log(data)
+        mutation.mutate(data)
     }
 
     return (
@@ -139,18 +173,48 @@ const ChangePassword = () => {
                     Update Recovery Info
                 </Button>
             </Stack>
+
             <Heading size="md" mb={4}>Login Via PIN</Heading>
-            <Stack spacing={4} mb={4}>
-                <FormControl>
+            <Stack spacing={4} mb={4} as="form" onSubmit={handleSubmit(onSubmit)}>
+                <FormControl isInvalid={!!errors.current_pin}>
                     <FormLabel>Enter 4-digit PIN</FormLabel>
-                    <Input type="number" maxLength={4} value={pin} onChange={(e) => setPin(e.target.value)}/>
+                    <Input
+                        id="current_pin"
+                        {...register("current_pin", {
+                            required: "PIN is required",
+                            minLength: {value: 4, message: "PIN must be exactly 4 digits"},
+                            maxLength: {value: 4, message: "PIN must be exactly 4 digits"},
+                            pattern: {value: /^\d{4}$/, message: "PIN must be numeric"},
+                        })}
+                        type="password"
+                        maxLength={4}
+                    />
+                    <FormErrorMessage>{errors.current_pin?.message}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={!!errors.new_pin}>
                     <FormLabel>Confirm PIN</FormLabel>
-                    <Input type="number" maxLength={4} value={confirmPin}
-                           onChange={(e) => setConfirmPin(e.target.value)}/>
+                    <Input
+                        id="new_pin"
+                        {...register("new_pin", {
+                            required: "Confirm PIN is required",
+                            validate: (value) => {
+                                const currentPin = watch("current_pin");
+                                return currentPin === value || "PINs do not match";
+                            },
+                        })}
+                        type="password"
+                        maxLength={4}
+                    />
+                    <FormErrorMessage>{errors.new_pin?.message}</FormErrorMessage>
+
                 </FormControl>
-                <Button colorScheme="blue" onClick={handleSetPin}>Set PIN</Button>
+                <Button
+                    type="submit"
+                    colorScheme="blue"
+                    isLoading={isSubmitting}
+                >
+                    Set PIN
+                </Button>
             </Stack>
 
             <Heading size="md" mb={4}>

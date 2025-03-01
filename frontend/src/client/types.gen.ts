@@ -61,6 +61,17 @@ export type UpdatePassword = {
   new_password: string
 }
 
+export type UpdatePin = {
+  current_pin: string
+  new_pin: string
+}
+
+export type UsersCreatePinData = {  // Rename for clarity if needed
+  requestBody: UpdatePin
+}
+
+export type UsersCreatePinResponse = Message
+
 export type UserCreate = {
   email: string
   is_active?: boolean
@@ -94,6 +105,7 @@ export type UserUpdate = {
   is_superuser?: boolean
   full_name?: string | null
   password?: string | null
+  pin?: string | null
 }
 
 export type UserUpdateMe = {

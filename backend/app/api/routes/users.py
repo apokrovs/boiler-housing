@@ -22,7 +22,7 @@ from app.models.users import (
     UserRegister,
     UsersPublic,
     UserUpdate,
-    UserUpdateMe,
+    UserUpdateMe, UpdatePin,
 )
 
 from app.models.utils import Message
@@ -117,6 +117,39 @@ def update_password_me(
     session.add(current_user)
     session.commit()
     return Message(message="Password updated successfully")
+
+@router.post("/me/pin", response_model=Message)
+def update_user_pin(
+    *, session: SessionDep, body: UpdatePin, current_user: CurrentUser
+) -> Any:
+    """
+    Set or update the user's PIN.
+    """
+    if not body.new_pin.isdigit() or len(body.new_pin) != 4:
+        raise HTTPException(
+            status_code=400, detail="PIN must be a 4-digit number"
+        )
+
+    hashed_pin = get_password_hash(body.new_pin)
+    current_user.hashed_pin = hashed_pin
+    session.add(current_user)
+    session.commit()
+    return Message(message="PIN updated successfully")
+
+@router.post("/me/verify-pin", response_model=Message)
+def verify_user_pin(
+    *, session: SessionDep, pin: str, current_user: CurrentUser
+) -> Any:
+    """
+    Verify the user's PIN.
+    """
+    if not current_user.hashed_pin:
+        raise HTTPException(status_code=400, detail="PIN not set")
+
+    if not verify_password(pin, current_user.hashed_pin):
+        raise HTTPException(status_code=401, detail="Incorrect PIN")
+
+    return Message(message="PIN verified successfully")
 
 
 @router.get("/me", response_model=UserPublic)

@@ -41,6 +41,9 @@ class UpdatePassword(SQLModel):
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
 
+class UpdatePin(SQLModel):
+    current_pin: str = Field(min_length=4, max_length=4)
+    new_pin: str = Field(min_length=4, max_length=4)
 
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
