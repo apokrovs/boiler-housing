@@ -15,62 +15,92 @@ import {
     type ApiError,
     type RenterPreferencePublic,
     type RenterPreferenceUpdate,
-    RenterPreferenceService,
+    RenterPreferenceService, RenterPreferenceCreate,
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import {handleError} from "../../utils"
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {Controller, type SubmitHandler, useForm} from "react-hook-form";
+import {useEffect, useState} from "react";
 
-interface EditPreferencesProps {
-    renter_preference: RenterPreferencePublic
-    isOpen: boolean
-    onClose: () => void
+interface PreferencesProps {
+    renter_preference?: RenterPreferencePublic;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
-const RenterPreferences = ({renter_preference}: EditPreferencesProps) => {
+const RenterPreferences = ({ renter_preference }: PreferencesProps) => {
     const bgActive = useColorModeValue("#f0eee2", "#68634a")
     const queryClient = useQueryClient()
     const showToast = useCustomToast()
+    const [updateMode, setUpdateMode] = useState(false)
+
     const {
         register,
         handleSubmit,
         control,
-        formState: {isSubmitting, isDirty},
-    } = useForm<RenterPreferenceUpdate>({
+        reset,
+        formState: { isSubmitting, isDirty },
+    } = useForm<RenterPreferenceCreate | RenterPreferenceUpdate>({
         mode: "onBlur",
         criteriaMode: "all",
-        defaultValues: renter_preference,
-    })
+        defaultValues: renter_preference ?? {},
+    });
+
+    useEffect(() => {
+        const fetchPreferences = async () => {
+            try {
+                const response = await RenterPreferenceService.readRenterPreferences({
+                    skip: 0,
+                    limit: 1, // Only need to check if one exists
+                });
+
+                if (response && response.id) {
+                    console.log("Setting update mode to true")
+                    setUpdateMode(true); // Preference exists, enter update mode
+                    reset(response)
+                }
+            } catch (error) {
+                console.error("Error fetching preferences:", error);
+            }
+        };
+
+        fetchPreferences();
+    }, []);
 
     const mutation = useMutation({
-        mutationFn: (data: RenterPreferenceUpdate) =>
-            RenterPreferenceService.createRenterPreference({requestBody: data}),
+        mutationFn: async (data: RenterPreferenceCreate | RenterPreferenceUpdate) => {
+            return updateMode
+                ? RenterPreferenceService.updateRenterPreference({ requestBody: data as RenterPreferenceUpdate })
+                : RenterPreferenceService.createRenterPreference({ requestBody: data as RenterPreferenceCreate });
+        },
         onSuccess: () => {
-            showToast("Success!", "Preference updated successfully.", "success")
+            showToast("Success!", `Preference ${updateMode ? "updated" : "created"} successfully.`, "success");
+            setUpdateMode(true)
         },
         onError: (err: ApiError) => {
-            console.log("Error:", err)
-            handleError(err, showToast)
+            console.log("Error:", err);
+            handleError(err, showToast);
         },
         onSettled: () => {
-            queryClient.invalidateQueries({queryKey: ["renter_preferences"]})
+            queryClient.invalidateQueries({ queryKey: ["renter_preferences"] });
         },
-    })
+    });
 
-    const onSubmit: SubmitHandler<RenterPreferenceUpdate> = async (data) => {
-        console.log("Request payload:", data)
-        mutation.mutate(data)
-    }
+    const onSubmit: SubmitHandler<RenterPreferenceCreate | RenterPreferenceUpdate> = async (data) => {
+        console.log("Request payload:", data);
+        mutation.mutate(data);
+        //setUpdateMode(true)
+    };
 
     return (
         <Container maxW="lg" mt={8}>
             <Heading textAlign="center" size="lg" mb={6}>
-                Apartment Search Preferences
+                {updateMode ? "Update Your Preferences" : "Create Your Preferences"}
             </Heading>
             <Text textAlign="center" fontSize="md" color="#9c956a">
-                Here you can specify your search preferences that will automatically update your search! Update your
-                notification settings to get notified when a new listing matching these criteria gets posted!
+                 Here you can {updateMode ? "update" : "set up"} your apartment search preferences. These preferences
+                 help tailor your search experience!
             </Text>
             <Stack spacing={5} mt={4} mb={6} as="form" onSubmit={handleSubmit(onSubmit)}>
                 <FormControl>
@@ -164,7 +194,7 @@ const RenterPreferences = ({renter_preference}: EditPreferencesProps) => {
                         <Input
                             id="min_price"
                             {...register("min_price", {
-                                setValueAs: (value) => parseFloat(value) || -1, // Convert to float
+                                setValueAs: (value) => parseFloat(value) || 0, // Convert to float
                             })}
                             type="number"
                             placeholder="Min Price"
@@ -174,7 +204,7 @@ const RenterPreferences = ({renter_preference}: EditPreferencesProps) => {
                         <Input
                             id={"max_price"}
                             {...register("max_price", {
-                                setValueAs: (value) => parseFloat(value) || -1, // Convert to float
+                                setValueAs: (value) => parseFloat(value) || 0, // Convert to float
                             })}
                             type="number"
                             placeholder="Max Price"
@@ -300,7 +330,7 @@ const RenterPreferences = ({renter_preference}: EditPreferencesProps) => {
                     isLoading={isSubmitting}
                     isDisabled={!isDirty}
                 >
-                    Update Preferences
+                     {updateMode ? "Update Preferences" : "Create Preferences"}
                 </Button>
             </Stack>
         </Container>

@@ -191,7 +191,7 @@ export class RenterPreferenceService {
     ): CancelablePromise<RenterPreferenceReadResponse> {
         return __request(OpenAPI, {
             method: "GET",
-            url: "/api/v1/renter-preferences/",
+            url: "/api/v1/renter_preferences/",
             query: {
                 skip: data.skip,
                 limit: data.limit,
@@ -215,7 +215,7 @@ export class RenterPreferenceService {
     ): CancelablePromise<RenterPreferenceCreateResponse> {
         return __request(OpenAPI, {
             method: "POST",
-            url: "/api/v1/renter-preferences/",
+            url: "/api/v1/renter_preferences/",
             body: data.requestBody,
             mediaType: "application/json",
             errors: {
@@ -238,7 +238,7 @@ export class RenterPreferenceService {
     ): CancelablePromise<RenterPreferenceUpdateResponse> {
         return __request(OpenAPI, {
             method: "PUT",
-            url: "/api/v1/renter-preferences/",
+            url: "/api/v1/renter_preferences/",
             body: data.requestBody,
             mediaType: "application/json",
             errors: {
@@ -258,7 +258,7 @@ export class RenterPreferenceService {
     public static deleteRenterPreference(): CancelablePromise<RenterPreferenceDeleteResponse> {
         return __request(OpenAPI, {
             method: "DELETE",
-            url: "/api/v1/renter-preferences/",
+            url: "/api/v1/renter_preferences/",
             errors: {
                 422: "Validation Error",
             },
