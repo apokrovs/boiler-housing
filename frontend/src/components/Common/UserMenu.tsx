@@ -42,7 +42,7 @@ const UserMenu = () => {
             <MenuItem icon={<FiUser fontSize="18px" />} as={Link} to="settings">
               My profile
             </MenuItem>
-            <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} as={Link} to="settings">
+            <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} as={Link} to="./">
               Change roles
             </MenuItem>
             <MenuItem
