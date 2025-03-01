@@ -11,6 +11,7 @@ import { FaUserAstronaut } from "react-icons/fa"
 import { FiLogOut, FiUser } from "react-icons/fi"
 
 import useAuth from "../../hooks/useAuth"
+import {PiUserSwitchDuotone} from "react-icons/pi";
 
 const UserMenu = () => {
   const { logout } = useAuth()
@@ -40,6 +41,9 @@ const UserMenu = () => {
           <MenuList>
             <MenuItem icon={<FiUser fontSize="18px" />} as={Link} to="settings">
               My profile
+            </MenuItem>
+            <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} as={Link} to="settings">
+              Change roles
             </MenuItem>
             <MenuItem
               icon={<FiLogOut fontSize="18px" />}
