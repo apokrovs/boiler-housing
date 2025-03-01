@@ -28,15 +28,16 @@ const DeleteAccount = () => {
            Delete Account
          </Button>
         <Stack>
-          <Text mt={4}> Delete Individual Profiles</Text>
-          <HStack>
-            <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen} isDisabled={currentUser?.profile_type !== "Leaser"}>
-              Delete Renter Profile
-            </Button>
-            <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen} isDisabled={currentUser?.profile_type !== "Renter"}>
-              Delete Leaser Profile
-            </Button>
-         </HStack>
+          { currentUser?.profile_type == "Both" && (
+              <><Text mt={4}> Delete Individual Profiles</Text><HStack>
+                <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen}>
+                  Delete Renter Profile
+                </Button>
+                <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen}>
+                  Delete Leaser Profile
+                </Button>
+              </HStack></>
+          )}
         </Stack>
         <DeleteConfirmation
           isOpen={confirmationModal.isOpen}
