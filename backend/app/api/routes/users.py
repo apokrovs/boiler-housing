@@ -126,6 +126,33 @@ def read_user_me(current_user: CurrentUser) -> Any:
     """
     return current_user
 
+@router.delete("/me", response_model=Message)
+def delete_renter_me(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Delete own renter profile
+    """
+    if current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+    current_user.profile_type = "Leaser"
+    session.add(current_user)
+    session.commit()
+    return Message(message="Renter profile deleted successfully")
+
+@router.delete("/me", response_model=Message)
+def delete_leaser_me(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Delete own leaser profile
+    """
+    if current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+    current_user.profile_type = "Renter"
+    session.add(current_user)
+    session.commit()
+    return Message(message="Leaser profile deleted successfully")
 
 @router.delete("/me", response_model=Message)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
