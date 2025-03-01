@@ -12,6 +12,8 @@ import { FiLogOut, FiUser } from "react-icons/fi"
 
 import useAuth from "../../hooks/useAuth"
 import {PiUserSwitchDuotone} from "react-icons/pi";
+import {useQueryClient} from "@tanstack/react-query";
+import type {UserPublic} from "../../client";
 
 const UserMenu = () => {
   const { logout } = useAuth()
@@ -19,6 +21,9 @@ const UserMenu = () => {
   const handleLogout = async () => {
     logout()
   }
+
+  const queryClient = useQueryClient()
+  const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
 
   return (
     <>
@@ -42,9 +47,12 @@ const UserMenu = () => {
             <MenuItem icon={<FiUser fontSize="18px" />} as={Link} to="settings">
               My profile
             </MenuItem>
-            <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} as={Link} to="./">
-              Change roles
-            </MenuItem>
+
+            {currentUser?.profile_type === "Both" && (
+                <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} as={Link} to="./">
+                Change roles
+                </MenuItem>
+            )}
             <MenuItem
               icon={<FiLogOut fontSize="18px" />}
               onClick={handleLogout}
