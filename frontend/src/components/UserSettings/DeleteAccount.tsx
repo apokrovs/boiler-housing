@@ -28,7 +28,7 @@ const DeleteAccount = () => {
            Delete Account
          </Button>
         <Stack>
-          { currentUser?.profile_type == "Both" && (
+          { currentUser?.profile_type === "Both" && (
               <><Text mt={4}> Delete Individual Profiles</Text><HStack>
                 <Button background={"#cc0b04"} color={"#FAFAFA"} variant="danger" mt={4} onClick={confirmationModal.onOpen}>
                   Delete Renter Profile
