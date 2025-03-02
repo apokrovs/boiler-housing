@@ -18,6 +18,10 @@ import {
     ModalBody,
     ModalFooter,
     ModalHeader,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem
 } from '@chakra-ui/react';
 import {
     createFileRoute,
@@ -37,9 +41,10 @@ type MessageProps = {
 };
 
 
-const Message = ({text, actor}: MessageProps) => {
+const Message = ({text, actor, onEdit, onDelete}: MessageProps) => {
     return (
-        <Flex
+      <Menu>
+                <MenuButton as={Button} size="xs" ml={2}
             p={4}
             bg={"#dead16"}
             color={"black"}
@@ -47,8 +52,14 @@ const Message = ({text, actor}: MessageProps) => {
             w="fit-content"
             alignSelf={actor === 'user' ? 'flex-end' : 'flex-start'}
         >
-            <Text>{text}</Text>
-        </Flex>
+
+                    <Text>{text}</Text>
+                </MenuButton>
+                <MenuList>
+                    <MenuItem onClick={onEdit}>Edit</MenuItem>
+                    <MenuItem onClick={onDelete}>Delete</MenuItem>
+                </MenuList>
+            </Menu>
     );
 };
 
@@ -180,7 +191,7 @@ function Messaging() {
             >
 
                 <HStack p={4} bg="#dead16" width="full">
-                    {chats.length > 0 ? (<Heading size="lg" color="black" width="full">
+                    {selectedChat !== '' ? (<Heading size="lg" color="black" width="full">
                                 Chat with {selectedChat}
                             </Heading>
                         )
