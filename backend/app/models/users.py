@@ -53,6 +53,14 @@ class User(UserBase, table=True):
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
+class PinLogin(SQLModel):
+    email: EmailStr = Field(max_length=255)
+    pin: str = Field(min_length=4, max_length=4)
+
+class UserCreateWithPin(UserCreate):
+    pin: str | None = Field(default=None, min_length=4, max_length=4)
+
+
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
