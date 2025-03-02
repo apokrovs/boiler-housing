@@ -15,6 +15,7 @@ class UserBase(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=6)
+    profile_visibility: bool | None = Field(default=None)
 
 
 # Properties to receive via API on creation
