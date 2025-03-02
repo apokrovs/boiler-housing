@@ -66,14 +66,9 @@ export type UpdatePin = {
   new_pin: string
 }
 
-export type UsersCreatePinData = {  // Rename for clarity if needed
-  requestBody: UpdatePin
-}
-
-export type UsersCreatePinResponse = Message
-
 export type UserCreate = {
   email: string
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
@@ -82,6 +77,7 @@ export type UserCreate = {
 
 export type UserPublic = {
   email: string
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
@@ -90,6 +86,7 @@ export type UserPublic = {
 
 export type UserRegister = {
   email: string
+  phone_number: string | null
   password: string
   full_name?: string | null
 }
@@ -101,6 +98,7 @@ export type UsersPublic = {
 
 export type UserUpdate = {
   email?: string | null
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
@@ -157,6 +155,13 @@ export type LoginLoginAccessTokenData = {
 
 export type LoginLoginAccessTokenResponse = Token
 
+export type LoginLoginAccessTokenPinData = {
+  email: string
+  pin: string
+}
+
+export type LoginLoginAccessTokenPinResponse = Token
+
 export type LoginTestTokenResponse = UserPublic
 
 export type LoginRecoverPasswordData = {
@@ -211,6 +216,18 @@ export type UsersUpdatePasswordMeData = {
 }
 
 export type UsersUpdatePasswordMeResponse = Message
+
+export type UsersUpdateUserPinData = {
+  requestBody: UpdatePin
+}
+
+export type UsersUpdateUserPinResponse = Message
+
+export type UsersVerifyUserPinData = {
+  pin: string
+}
+
+export type UsersVerifyUserPinResponse = Message
 
 export type UsersRegisterUserData = {
   requestBody: UserRegister

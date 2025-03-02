@@ -16,6 +16,8 @@ import type {
   ItemsDeleteItemResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
+  LoginLoginAccessTokenPinData,
+  LoginLoginAccessTokenPinResponse,
   LoginTestTokenResponse,
   LoginRecoverPasswordData,
   LoginRecoverPasswordResponse,
@@ -35,6 +37,10 @@ import type {
   UsersUpdateUserMeResponse,
   UsersUpdatePasswordMeData,
   UsersUpdatePasswordMeResponse,
+  UsersUpdateUserPinData,
+  UsersUpdateUserPinResponse,
+  UsersVerifyUserPinData,
+  UsersVerifyUserPinResponse,
   UsersRegisterUserData,
   UsersRegisterUserResponse,
   UsersReadUserByIdData,
@@ -45,7 +51,7 @@ import type {
   UsersDeleteUserResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
-  UtilsHealthCheckResponse, UsersCreatePinData, UsersCreatePinResponse,
+  UtilsHealthCheckResponse,
 } from "./types.gen"
 
 export class ItemsService {
@@ -186,6 +192,31 @@ export class LoginService {
       url: "/api/v1/login/access-token",
       formData: data.formData,
       mediaType: "application/x-www-form-urlencoded",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Login Access Token Pin
+   * PIN-based login, get an access token for future requests
+   * @param data The data for the request.
+   * @param data.email
+   * @param data.pin
+   * @returns Token Successful Response
+   * @throws ApiError
+   */
+  public static loginAccessTokenPin(
+    data: LoginLoginAccessTokenPinData,
+  ): CancelablePromise<LoginLoginAccessTokenPinResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/login/access-token-pin",
+      query: {
+        email: data.email,
+        pin: data.pin,
+      },
       errors: {
         422: "Validation Error",
       },
@@ -417,26 +448,49 @@ export class UsersService {
   }
 
   /**
- * Create Pin
- * Create or update a pin for the current user.
- * @param data The data for the request.
- * @param data.requestBody
- * @returns PinPublic Successful Response
- * @throws ApiError
- */
-public static createOrUpdatePin(
-  data: UsersCreatePinData,
-): CancelablePromise<UsersCreatePinResponse> {
-  return __request(OpenAPI, {
-    method: "POST",
-    url: "/api/v1/users/me/pin",
-    body: data.requestBody,
-    mediaType: "application/json",
-    errors: {
-      422: "Validation Error",
-    },
-  })
-}
+   * Update User Pin
+   * Set or update the user's PIN.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static updateUserPin(
+    data: UsersUpdateUserPinData,
+  ): CancelablePromise<UsersUpdateUserPinResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/me/pin",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Verify User Pin
+   * Verify the user's PIN.
+   * @param data The data for the request.
+   * @param data.pin
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static verifyUserPin(
+    data: UsersVerifyUserPinData,
+  ): CancelablePromise<UsersVerifyUserPinResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/me/verify-pin",
+      query: {
+        pin: data.pin,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
 
   /**
    * Register User
