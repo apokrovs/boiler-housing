@@ -1,14 +1,15 @@
 import {
-  Button,
+  Box,
+  Button, Center,
   Container,
   FormControl,
   FormErrorMessage,
-  Heading,
-  Input,
+  Heading, HStack, Image,
+  Input, Link,
   Text,
 } from "@chakra-ui/react"
 import { useMutation } from "@tanstack/react-query"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import {createFileRoute, Link as RouterLink, redirect} from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import { type ApiError, LoginService } from "../client"
@@ -66,17 +67,26 @@ function RecoverPassword() {
   }
 
   return (
+      <>
+        <Box
+            boxShadow={'md'}
+            height={"100px"}
+            width={"100%"}>
+          <HStack gap={90}>
+            <Image pl={4} pt={"15px"} src={"/assets/images/BoilerHousingCropped.png"}></Image>
+          </HStack>
+        </Box>
     <Container
       as="form"
       onSubmit={handleSubmit(onSubmit)}
-      h="100vh"
+      h="75vh"
       maxW="sm"
       alignItems="stretch"
       justifyContent="center"
       gap={4}
       centerContent
     >
-      <Heading size="xl" color="ui.main" textAlign="center" mb={2}>
+      <Heading size="xl" color={"#CEB888"}textAlign="center" mb={2}>
         Password Recovery
       </Heading>
       <Text align="center">
@@ -99,6 +109,17 @@ function RecoverPassword() {
       <Button variant="primary" type="submit" isLoading={isSubmitting}>
         Continue
       </Button>
+      <Center>
+        <Link
+            as={RouterLink}
+            to={"/login"}
+            variant={'underline'}
+            color={'#CEB888'}
+            fontSize={'md'}>
+          Remembered password?
+        </Link>
+      </Center>
     </Container>
+        </>
   )
 }
