@@ -35,13 +35,13 @@ export const Route = createFileRoute("/_layout/messaging")({
 
 type MessageProps = {
     text: string;
-    actor: 'user' | 'user2';
+    actor: 'user';
     bgColor: string;
     textColor: string;
 };
 
 
-const Message = ({text, actor, onEdit, onDelete}: MessageProps) => {
+const Message = ({text, actor, onEdit, onDelete}: { text: string, actor:'user', onEdit: () => void, onDelete: () => void }) => {
     return (
       <Menu>
                 <MenuButton as={Button} size="xs" ml={2}
@@ -70,9 +70,8 @@ function Messaging() {
     const [inputText, setInputText] = useState('');
     const [selectedChat, setSelectedChat] = useState<string>('')
     const [chats, setChats] = useState<string[]>([]);
-
     const containerRef = useRef<HTMLDivElement>(null);
-
+const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (null)
     const scrollToBottom = () => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -94,10 +93,22 @@ function Messaging() {
 
         };
 
-        setChatMessages(prevMessages => ({
-            ...prevMessages,
-            [selectedChat]: [...prevMessages[selectedChat], newMessage],
-        }))
+       if (editingMessageIndex !== null) {
+            setChatMessages(prevMessages => {
+                const updatedMessages = [...prevMessages[selectedChat]];
+                updatedMessages[editingMessageIndex] = newMessage;
+                return {
+                    ...prevMessages,
+                    [selectedChat]: updatedMessages,
+                };
+            });
+            setEditingMessageIndex(null);
+        } else {
+            setChatMessages(prevMessages => ({
+                ...prevMessages,
+                [selectedChat]: [...prevMessages[selectedChat], newMessage],
+            }));
+        }
         setInputText('');
 
         setChats(prevChats => {
@@ -139,6 +150,22 @@ function Messaging() {
             sendMessage()
         }
     };
+
+    const handleEditMessage = (index: number) => {
+        setEditingMessageIndex(index);
+        setInputText(chatMessages[selectedChat][index].text);
+    }
+
+    const handleDeleteMessage= (index: number) => {
+            setChatMessages(prevMessages => {
+            const updatedMessages = [...prevMessages[selectedChat]];
+            updatedMessages.splice(index, 1);
+            return {
+                ...prevMessages,
+                [selectedChat]: updatedMessages,
+            };
+        });
+    }
 
     return (
         <Flex h="100vh" py={12}>
@@ -225,23 +252,25 @@ function Messaging() {
                 >
                     {(chatMessages[selectedChat] || []).map((message, index) => (
                         <Message key={index} text={message.text} actor={message.actor} bgColor={message.bgColor}
-                                 textColor={message.textColor}/>
+                                 textColor={message.textColor} onEdit={()=>handleEditMessage(index)} onDelete={()=>handleDeleteMessage(index)}/>
                     ))}
                 </Stack>
 
-                <HStack p={4} bg="gray.200">
-                    <Input
-                        bg="white"
-                        placeholder="Enter your text"
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        color="black"
-                        onKeyPress={handleKeyPress}
-                    />
-                    <Button onClick={sendMessage} bg="#dead16">
-                        Send
-                    </Button>
-                </HStack>
+                {selectedChat !== '' && (
+                    <HStack p={4} bg="gray.200">
+                        <Input
+                            bg="white"
+                            placeholder="Enter your text"
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            color="black"
+                            onKeyPress={handleKeyPress}
+                        />
+                        <Button onClick={sendMessage} bg="#dead16">
+                            {editingMessageIndex !== null ? 'Update' : 'Send'}
+                        </Button>
+                    </HStack>
+                )}
                 <Modal isOpen={isOpen} onClose={onClose}>
                     <ModalOverlay/>
                     <ModalContent>
