@@ -4,6 +4,16 @@ import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
 import type {
+  ChatGetUserConversationsData,
+  ChatGetUserConversationsResponse,
+  ChatCreateNewConversationData,
+  ChatCreateNewConversationResponse,
+  ChatReadConversationData,
+  ChatReadConversationResponse,
+  ChatReadConversationMessagesData,
+  ChatReadConversationMessagesResponse,
+  ChatToggleReadReceiptsEndpointData,
+  ChatToggleReadReceiptsEndpointResponse,
   ItemsReadItemsData,
   ItemsReadItemsResponse,
   ItemsCreateItemData,
@@ -47,6 +57,134 @@ import type {
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
 } from "./types.gen"
+
+export class ChatService {
+  /**
+   * Get User Conversations
+   * Get all conversations for the current user
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns ConversationRead Successful Response
+   * @throws ApiError
+   */
+  public static getUserConversations(
+    data: ChatGetUserConversationsData = {},
+  ): CancelablePromise<ChatGetUserConversationsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/chat/conversations",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create New Conversation
+   * Create a new conversation
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns ConversationRead Successful Response
+   * @throws ApiError
+   */
+  public static createNewConversation(
+    data: ChatCreateNewConversationData,
+  ): CancelablePromise<ChatCreateNewConversationResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/chat/conversations",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Conversation
+   * Get a specific conversation
+   * @param data The data for the request.
+   * @param data.conversationId
+   * @returns ConversationRead Successful Response
+   * @throws ApiError
+   */
+  public static readConversation(
+    data: ChatReadConversationData,
+  ): CancelablePromise<ChatReadConversationResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/chat/conversations/{conversation_id}",
+      path: {
+        conversation_id: data.conversationId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Conversation Messages
+   * Get messages for a specific conversation
+   * @param data The data for the request.
+   * @param data.conversationId
+   * @param data.skip
+   * @param data.limit
+   * @returns MessageRead Successful Response
+   * @throws ApiError
+   */
+  public static readConversationMessages(
+    data: ChatReadConversationMessagesData,
+  ): CancelablePromise<ChatReadConversationMessagesResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/chat/conversations/{conversation_id}/messages",
+      path: {
+        conversation_id: data.conversationId,
+      },
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Toggle Read Receipts Endpoint
+   * Toggle read receipts for current user in a conversation
+   * @param data The data for the request.
+   * @param data.conversationId
+   * @param data.enable
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static toggleReadReceiptsEndpoint(
+    data: ChatToggleReadReceiptsEndpointData,
+  ): CancelablePromise<ChatToggleReadReceiptsEndpointResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/chat/conversations/{conversation_id}/toggle-read-receipts",
+      path: {
+        conversation_id: data.conversationId,
+      },
+      query: {
+        enable: data.enable,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
 
 export class ItemsService {
   /**

@@ -177,7 +177,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str, db: Session = Dep
                 message = db.get(Message, message_id)
                 if message and message.conversation_id == conversation_id:
                     # Create read receipt
-                    receipt = create_read_receipt(db, message_id, user.id)
+                    receipt = create_read_receipt(db=db, message_id=message_id, user_id=user.id)
 
                     # Check if read receipts are enabled for this user
                     stmt = select(ConversationParticipant).where(

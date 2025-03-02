@@ -9,6 +9,21 @@ export type Body_login_login_access_token = {
   client_secret?: string | null
 }
 
+export type ConversationCreate = {
+  name?: string | null
+  is_group?: boolean
+  participant_ids: Array<string>
+}
+
+export type ConversationRead = {
+  name?: string | null
+  is_group?: boolean
+  id: string
+  created_at: string
+  updated_at: string
+  participant_count: number
+}
+
 export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
@@ -37,6 +52,15 @@ export type ItemUpdate = {
 
 export type Message = {
   message: string
+}
+
+export type MessageRead = {
+  content: string
+  id: string
+  conversation_id: string
+  sender_id: string
+  sent_at: string
+  read_by?: Array<string>
 }
 
 export type NewPassword = {
@@ -106,6 +130,40 @@ export type ValidationError = {
   msg: string
   type: string
 }
+
+export type ChatGetUserConversationsData = {
+  limit?: number
+  skip?: number
+}
+
+export type ChatGetUserConversationsResponse = Array<ConversationRead>
+
+export type ChatCreateNewConversationData = {
+  requestBody: ConversationCreate
+}
+
+export type ChatCreateNewConversationResponse = ConversationRead
+
+export type ChatReadConversationData = {
+  conversationId: string
+}
+
+export type ChatReadConversationResponse = ConversationRead
+
+export type ChatReadConversationMessagesData = {
+  conversationId: string
+  limit?: number
+  skip?: number
+}
+
+export type ChatReadConversationMessagesResponse = Array<MessageRead>
+
+export type ChatToggleReadReceiptsEndpointData = {
+  conversationId: string
+  enable: boolean
+}
+
+export type ChatToggleReadReceiptsEndpointResponse = unknown
 
 export type ItemsReadItemsData = {
   limit?: number
