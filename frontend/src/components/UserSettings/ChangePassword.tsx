@@ -92,7 +92,7 @@ const ChangePassword = () => {
 
     const mutation = useMutation({
         mutationFn: (data: UpdatePin) =>
-            UsersService.createOrUpdatePin({requestBody: data}),
+            UsersService.updateUserPin({requestBody: data}),
         onSuccess: () => {
             showToast("Success!", "Pin updated successfully.", "success")
             reset()
