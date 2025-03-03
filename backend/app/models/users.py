@@ -11,6 +11,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    auto_logout: int = Field(default=30, nullable=True)
 
 
 # Properties to receive via API on creation
@@ -23,17 +24,20 @@ class UserRegister(SQLModel):
     phone_number: str | None = Field(unique=True, max_length=10)
     password: str = Field(min_length=8, max_length=40)
     full_name: str | None = Field(default=None, max_length=255)
+    auto_logout: int = Field(default=30)
 
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=40)
+    auto_logout: int | None  = Field(default=30)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    auto_logout: int | None = Field(default=30)
 
 
 class UpdatePassword(SQLModel):
