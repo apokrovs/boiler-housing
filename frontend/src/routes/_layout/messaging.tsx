@@ -41,25 +41,32 @@ type MessageProps = {
 };
 
 
-const Message = ({text, actor, onEdit, onDelete}: { text: string, actor:'user', onEdit: () => void, onDelete: () => void }) => {
+const Message = ({text, actor, onEdit, onDelete}: {
+    text: string,
+    actor: 'user',
+    bgColor: string,
+    textColor: string,
+    onEdit: () => void,
+    onDelete: () => void
+}) => {
     return (
-      <Menu>
-                <MenuButton as={Button} size="xs" ml={2}
-            p={4}
-            bg={"#dead16"}
-            color={"black"}
-            borderRadius="lg"
-            w="fit-content"
-            alignSelf={actor === 'user' ? 'flex-end' : 'flex-start'}
-        >
+        <Menu>
+            <MenuButton as={Button} size="xs" ml={2}
+                        p={4}
+                        bg={"#dead16"}
+                        color={"black"}
+                        borderRadius="lg"
+                        w="fit-content"
+                        alignSelf={actor === 'user' ? 'flex-end' : 'flex-start'}
+            >
 
-                    <Text>{text}</Text>
-                </MenuButton>
-                <MenuList>
-                    <MenuItem onClick={onEdit}>Edit</MenuItem>
-                    <MenuItem onClick={onDelete}>Delete</MenuItem>
-                </MenuList>
-            </Menu>
+                <Text>{text}</Text>
+            </MenuButton>
+            <MenuList>
+                <MenuItem onClick={onEdit}>Edit</MenuItem>
+                <MenuItem onClick={onDelete}>Delete</MenuItem>
+            </MenuList>
+        </Menu>
     );
 };
 
@@ -71,7 +78,7 @@ function Messaging() {
     const [selectedChat, setSelectedChat] = useState<string>('')
     const [chats, setChats] = useState<string[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
-const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (null)
+    const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null)
     const scrollToBottom = () => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -93,7 +100,7 @@ const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (nu
 
         };
 
-       if (editingMessageIndex !== null) {
+        if (editingMessageIndex !== null) {
             setChatMessages(prevMessages => {
                 const updatedMessages = [...prevMessages[selectedChat]];
                 updatedMessages[editingMessageIndex] = newMessage;
@@ -156,8 +163,8 @@ const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (nu
         setInputText(chatMessages[selectedChat][index].text);
     }
 
-    const handleDeleteMessage= (index: number) => {
-            setChatMessages(prevMessages => {
+    const handleDeleteMessage = (index: number) => {
+        setChatMessages(prevMessages => {
             const updatedMessages = [...prevMessages[selectedChat]];
             updatedMessages.splice(index, 1);
             return {
@@ -166,6 +173,17 @@ const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (nu
             };
         });
     }
+
+     const handleDeleteChat = () => {
+        setChats(prevChats => prevChats.filter(chat => chat !== selectedChat));
+        setChatMessages(prevMessages => {
+            const updatedMessages = {...prevMessages};
+            delete updatedMessages[selectedChat];
+            return updatedMessages;
+        });
+        setSelectedChat('');
+    }
+
 
     return (
         <Flex h="100vh" py={12}>
@@ -218,9 +236,12 @@ const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (nu
             >
 
                 <HStack p={4} bg="#dead16" width="full">
-                    {selectedChat !== '' ? (<Heading size="lg" color="black" width="full">
+                    {selectedChat !== '' ? (<><Heading size="lg" color="black" width="full">
                                 Chat with {selectedChat}
-                            </Heading>
+
+
+                            </Heading><Button color="balck" colorScheme="red" onClick={handleDeleteChat}>Delete
+                                Chat</Button></>
                         )
                         :
                         (
@@ -252,7 +273,8 @@ const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (nu
                 >
                     {(chatMessages[selectedChat] || []).map((message, index) => (
                         <Message key={index} text={message.text} actor={message.actor} bgColor={message.bgColor}
-                                 textColor={message.textColor} onEdit={()=>handleEditMessage(index)} onDelete={()=>handleDeleteMessage(index)}/>
+                                 textColor={message.textColor} onEdit={() => handleEditMessage(index)}
+                                 onDelete={() => handleDeleteMessage(index)}/>
                     ))}
                 </Stack>
 
@@ -265,6 +287,7 @@ const [editingMessageIndex, setEditingMessageIndex] =useState<number | null> (nu
                             onChange={(e) => setInputText(e.target.value)}
                             color="black"
                             onKeyPress={handleKeyPress}
+                            _focus={{boxShadow: '0 0 0 3px #dead16'}}
                         />
                         <Button onClick={sendMessage} bg="#dead16">
                             {editingMessageIndex !== null ? 'Update' : 'Send'}
