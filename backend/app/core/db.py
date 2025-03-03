@@ -4,7 +4,14 @@ from app.crud import users as crud_users
 from app.core.config import settings
 from app.models.users import User, UserCreate
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+engine = create_engine(
+    str(settings.SQLALCHEMY_DATABASE_URI),
+    pool_size=20,
+    max_overflow=20,
+    pool_timeout=60,
+    pool_pre_ping=True,
+    pool_recycle=3600
+)
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
@@ -27,6 +34,7 @@ def init_db(session: Session) -> None:
     if not user:
         user_in = UserCreate(
             email=settings.FIRST_SUPERUSER,
+            phone_number="1234567890",
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
         )

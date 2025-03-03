@@ -9,6 +9,21 @@ export type Body_login_login_access_token = {
   client_secret?: string | null
 }
 
+export type Conversation = {
+  id: string
+  name?: string | null
+  is_group: boolean
+  last_message?: string | null
+  last_message_time?: string | null
+  unread_count: number
+  participants: Array<string>
+}
+
+export type ConversationsPublic = {
+  data: Array<Conversation>
+  count: number
+}
+
 export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
@@ -39,6 +54,27 @@ export type Message = {
   message: string
 }
 
+export type MessageCreate = {
+  content: string
+  is_group_chat?: boolean
+  receiver_ids: Array<string>
+}
+
+export type MessagePublic = {
+  content: string
+  is_group_chat?: boolean
+  id: string
+  sender_id: string
+  receiver_ids: Array<string>
+  created_at: string
+  read_by?: Array<ReadReceipt>
+}
+
+export type MessagesPublic = {
+  data: Array<MessagePublic>
+  count: number
+}
+
 export type NewPassword = {
   token: string
   new_password: string
@@ -49,6 +85,12 @@ export type PrivateUserCreate = {
   password: string
   full_name: string
   is_verified?: boolean
+}
+
+export type ReadReceipt = {
+  message_id: string
+  user_id: string
+  read_at: string
 }
 
 export type Token = {
@@ -164,6 +206,43 @@ export type LoginRecoverPasswordHtmlContentData = {
 }
 
 export type LoginRecoverPasswordHtmlContentResponse = string
+
+export type MessagesCreateMessageData = {
+  requestBody: MessageCreate
+}
+
+export type MessagesCreateMessageResponse = MessagePublic
+
+export type MessagesGetConversationsData = {
+  limit?: number
+  skip?: number
+}
+
+export type MessagesGetConversationsResponse = ConversationsPublic
+
+export type MessagesGetConversationMessagesData = {
+  conversationId: string
+  isGroup?: boolean
+  limit?: number
+  skip?: number
+}
+
+export type MessagesGetConversationMessagesResponse = MessagesPublic
+
+export type MessagesGetUnreadCountData = {
+  /**
+   * Filter by sender
+   */
+  fromUser?: string
+}
+
+export type MessagesGetUnreadCountResponse = number
+
+export type MessagesMarkMessageReadData = {
+  messageId: string
+}
+
+export type MessagesMarkMessageReadResponse = boolean
 
 export type PrivateCreateUserData = {
   requestBody: PrivateUserCreate
