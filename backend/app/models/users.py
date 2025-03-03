@@ -36,6 +36,7 @@ class UserUpdate(UserBase):
     phone_number: str | None = Field(default=None, max_length=10)
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=6)
+    profile_visibility: bool | None = Field(default=None)
 
 
 class UserUpdateMe(SQLModel):
@@ -44,6 +45,7 @@ class UserUpdateMe(SQLModel):
     phone_number: str | None = Field(default=None, max_length=10)
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=6)
+    profile_visibility: bool | None = Field(default=None)
 
 
 class UpdatePassword(SQLModel):
