@@ -1,76 +1,89 @@
-import {useState} from 'react'
+import { useState, useEffect } from "react"
 import {
-    Container,
-    Heading,
-    Stack,
-    FormControl,
-    FormLabel,
-    Switch,
-    Button
+  Container,
+  Heading,
+  Stack,
+  FormControl,
+  FormLabel,
+  Switch,
+  Button,
+  Text
 } from "@chakra-ui/react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+
+import useAuth from "../../hooks/useAuth"
+import useCustomToast from "../../hooks/useCustomToast"
+import { UsersService, ApiError } from "../../client"
+import { handleError } from "../../utils"
 
 const ProfileVisibility = () => {
-    const [showName, setShowName] = useState(true)
-    const [showEmail, setShowEmail] = useState(true)
-    const [showPhone, setShowPhone] = useState(true)
-    const [showBio, setShowBio] = useState(true)
+  const queryClient = useQueryClient()
+  const showToast = useCustomToast()
+  const { user: currentUser } = useAuth()
 
-    const handleUpdateVisibility = () => {
-        alert("Visibility settings updated")
+  // Local state tracks whether your profile is shown
+  const [showProfile, setShowProfile] = useState<boolean>(
+    currentUser?.profile_visibility ?? true
+  )
+
+  useEffect(() => {
+    if (typeof currentUser?.profile_visibility === "boolean") {
+    setShowProfile(currentUser.profile_visibility)
+  }
+  }, [currentUser])
+
+  const mutation = useMutation({
+    mutationFn: (profile_visibility: boolean) =>
+      UsersService.updateUserMe({ requestBody: { profile_visibility } }),
+    onSuccess: () => {
+      showToast("Success!", "Profile visibility updated successfully.", "success")
+      queryClient.invalidateQueries()
+    },
+    onError: (err: ApiError) => {
+      handleError(err, showToast)
     }
+  })
 
-    return (
-        <Container maxW="md">
-            <Heading size="lg" mb={6}>
-                Profile Visibility
-            </Heading>
+  const handleUpdateVisibility = () => {
+    mutation.mutate(showProfile)
+  }
 
-            <Stack spacing={4} mb={6}>
-                //Name
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-name" mb="0">
-                        Hide Name:
-                    </FormLabel>
-                    <Switch id="show-name" onChange={() => setShowName(!showName)}/>
-                </FormControl>
+  return (
+    <Container maxW="md">
+      <Heading size="lg" mb={6}>
+        Profile Visibility
+      </Heading>
 
-                //Email
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-email" mb="0">
-                        Hide Email:
-                    </FormLabel>
-                    <Switch id="show-email" onChange={() => setShowEmail(!showEmail)}/>
-                </FormControl>
+      <Stack spacing={4} mb={6}>
+        <FormControl display="flex" alignItems="center">
+          <FormLabel htmlFor="show-name" mb="0">
+            Hide Profile:
+          </FormLabel>
+          {}
+          <Switch
+            id="show-name"
+            isChecked={!showProfile}
+            onChange={() => setShowProfile((prev) => !prev)}
+          />
+        </FormControl>
 
-                //Phone Number
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-phone" mb="0">
-                        Hide Phone Number:
-                    </FormLabel>
-                    <Switch id="show-phone" onChange={() => setShowPhone(!showPhone)}/>
-                </FormControl>
+        <Button
+          colorScheme="blue"
+          onClick={handleUpdateVisibility}
+          //isLoading={mutation.isLoading}
+        >
+          Update Visibility
+        </Button>
+      </Stack>
 
-                //Bio
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-bio" mb="0">
-                        Hide Bio:
-                    </FormLabel>
-                    <Switch id="show-bio" onChange={() => setShowBio(!showBio)}/>
-                </FormControl>
-
-                <Button colorScheme="blue" onClick={handleUpdateVisibility}>
-                    Update Visibility
-                </Button>
-            </Stack>
-
-            <Heading size="md" mb={4}>
-                Current Settings:
-            </Heading>
-            <p>Name is {showName ? 'visible' : 'hidden'}</p>
-            <p>Email is {showEmail ? 'visible' : 'hidden'}</p>
-            <p>Phone is {showPhone ? 'visible' : 'hidden'}</p>
-            <p>Bio is {showBio ? 'visible' : 'hidden'}</p>
-        </Container>
-    )
+      <Heading size="md" mb={4}>
+        Current Settings:
+      </Heading>
+      <Text>
+        Profile is {showProfile ? "visible" : "hidden"}
+      </Text>
+    </Container>
+  )
 }
+
 export default ProfileVisibility
