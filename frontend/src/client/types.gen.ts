@@ -101,6 +101,8 @@ export type Token = {
 }
 
 export type UpdatePassword = {
+  recovery_email?: string | null
+  recovery_phone_number?: string | null
   current_password: string
   new_password: string
 }
@@ -114,6 +116,8 @@ export type UserCreate = {
   bio?: string | null
   profile_type?: string | null
   profile_visibility?: boolean | null
+  recovery_email?: string | null
+  recovery_phone_number?: string | null
   password: string
 }
 
@@ -126,6 +130,8 @@ export type UserPublic = {
   bio?: string | null
   profile_type?: string | null
   profile_visibility?: boolean | null
+  recovery_email?: string | null
+  recovery_phone_number?: string | null
   id: string
 }
 
@@ -149,6 +155,8 @@ export type UserUpdate = {
   bio?: string | null
   profile_type?: string | null
   profile_visibility?: boolean | null
+  recovery_email?: string | null
+  recovery_phone_number?: string | null
   password?: string | null
 }
 
@@ -159,6 +167,8 @@ export type UserUpdateMe = {
   bio?: string | null
   profile_type?: string | null
   profile_visibility?: boolean | null
+  recovery_email?: string | null
+  recovery_phone_number?: string | null
 }
 
 export type ValidationError = {
@@ -278,6 +288,10 @@ export type UsersUpdatePasswordMeData = {
 }
 
 export type UsersUpdatePasswordMeResponse = Message
+
+export type UsersDeleteRenterMeResponse = Message
+
+export type UsersDeleteLeaserMeResponse = Message
 
 export type UsersRegisterUserData = {
   requestBody: UserRegister

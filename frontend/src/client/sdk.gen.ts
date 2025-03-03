@@ -41,6 +41,8 @@ import type {
   UsersUpdateUserMeResponse,
   UsersUpdatePasswordMeData,
   UsersUpdatePasswordMeResponse,
+  UsersDeleteRenterMeResponse,
+  UsersDeleteLeaserMeResponse,
   UsersRegisterUserData,
   UsersRegisterUserResponse,
   UsersReadUserByIdData,
@@ -491,6 +493,32 @@ export class UsersService {
       errors: {
         422: "Validation Error",
       },
+    })
+  }
+
+  /**
+   * Delete Renter Me
+   * Delete own renter profile
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteRenterMe(): CancelablePromise<UsersDeleteRenterMeResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/renter",
+    })
+  }
+
+  /**
+   * Delete Leaser Me
+   * Delete own leaser profile
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteLeaserMe(): CancelablePromise<UsersDeleteLeaserMeResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/leaser",
     })
   }
 
