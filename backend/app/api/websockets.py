@@ -24,6 +24,14 @@ class ConnectionManager:
         await websocket.accept()
         async with self._lock:
             # Store the connection
+            if user_id in self.active_connections:
+                # If there's an existing connection, close it first
+                try:
+                    await self.active_connections[user_id].close()
+                    logger.warning(f"Closed existing connection for user {user_id}")
+                except Exception:
+                    pass
+
             self.active_connections[user_id] = websocket
             if user_id not in self.open_conversations:
                 self.open_conversations[user_id] = set()

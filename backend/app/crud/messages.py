@@ -54,7 +54,8 @@ def get_message_recipients(session: Session, message_id: UUID) -> List[UUID]:
     query = select(MessageRecipient.user_id).where(
         MessageRecipient.message_id == message_id
     )
-    return [user_id for user_id, in session.exec(query)]
+
+    return [user_id for user_id in session.exec(query)]
 
 
 def get_message_with_read_status(session: Session, message_id: UUID) -> Tuple[Optional[Message], List[ReadReceipt]]:
