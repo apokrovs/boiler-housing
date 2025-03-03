@@ -27,19 +27,16 @@ const ProfileVisibility = () => {
   )
 
   useEffect(() => {
-    // If user data changes, sync local state
-    if (currentUser?.profile_visibility !== undefined) {
-      setShowProfile(currentUser.profile_visibility)
-    }
+    if (typeof currentUser?.profile_visibility === "boolean") {
+    setShowProfile(currentUser.profile_visibility)
+  }
   }, [currentUser])
 
-  // Mutation to update only the profile_visibility field
   const mutation = useMutation({
     mutationFn: (profile_visibility: boolean) =>
       UsersService.updateUserMe({ requestBody: { profile_visibility } }),
     onSuccess: () => {
       showToast("Success!", "Profile visibility updated successfully.", "success")
-      // Force-refetch user data so the UI is up to date
       queryClient.invalidateQueries()
     },
     onError: (err: ApiError) => {
@@ -48,7 +45,6 @@ const ProfileVisibility = () => {
   })
 
   const handleUpdateVisibility = () => {
-    // Call mutate with the updated state
     mutation.mutate(showProfile)
   }
 
@@ -63,10 +59,7 @@ const ProfileVisibility = () => {
           <FormLabel htmlFor="show-name" mb="0">
             Hide Profile:
           </FormLabel>
-          {/*
-            If isChecked = true, that means "Hide Profile" is ON =>
-            showProfile is false. So we invert showProfile here.
-          */}
+          {}
           <Switch
             id="show-name"
             isChecked={!showProfile}

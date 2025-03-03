@@ -16,6 +16,8 @@ class UserBase(SQLModel):
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=6)
     profile_visibility: bool | None = Field(default=None)
+    recovery_email: EmailStr | None = Field(default=None, max_length=255)
+    recovery_phone_number: str | None = Field(default=None, max_length=10)
 
 
 # Properties to receive via API on creation
@@ -37,6 +39,8 @@ class UserUpdate(UserBase):
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=6)
     profile_visibility: bool | None = Field(default=None)
+    recovery_email: EmailStr | None = Field(default=None, max_length=255)
+    recovery_phone_number: str | None = Field(default=None, max_length=10)
 
 
 class UserUpdateMe(SQLModel):
@@ -46,9 +50,13 @@ class UserUpdateMe(SQLModel):
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=6)
     profile_visibility: bool | None = Field(default=None)
+    recovery_email: EmailStr | None = Field(default=None, max_length=255)
+    recovery_phone_number: str | None = Field(default=None, max_length=10)
 
 
 class UpdatePassword(SQLModel):
+    recovery_email: EmailStr | None = Field(default=None, max_length=255)
+    recovery_phone_number: str | None = Field(default=None, max_length=10)
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
 
