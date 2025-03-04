@@ -67,6 +67,7 @@ export type UserCreate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  auto_logout?: number
   password: string
 }
 
@@ -76,6 +77,7 @@ export type UserPublic = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  auto_logout?: number
   id: string
 }
 
@@ -84,6 +86,7 @@ export type UserRegister = {
   phone_number: string | null
   password: string
   full_name?: string | null
+  auto_logout?: number
 }
 
 export type UsersPublic = {
@@ -97,12 +100,14 @@ export type UserUpdate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  auto_logout?: number | null
   password?: string | null
 }
 
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
+  auto_logout?: number | null
 }
 
 export type ValidationError = {

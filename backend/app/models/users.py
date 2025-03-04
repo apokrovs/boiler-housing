@@ -11,7 +11,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
-    auto_logout: int = Field(default=30, nullable=True)
+    auto_logout: int = Field(default=30)
 
 
 # Properties to receive via API on creation
