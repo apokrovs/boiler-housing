@@ -19,7 +19,6 @@ class UserBase(SQLModel):
     recovery_email: EmailStr | None = Field(default=None, max_length=255)
     recovery_phone_number: str | None = Field(default=None, max_length=10)
 
-
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)
