@@ -278,7 +278,7 @@ def send_otp(*, session: SessionDep, email: str) -> Any:
         raise HTTPException(status_code=404, detail="User not found")
 
     otp = generate_otp()
-    user.otp_code = otp
+    user.latest_otp = otp
     user.otp_expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
 
     session.add(user)
@@ -302,15 +302,28 @@ def verify_otp(*, session: SessionDep, email: str, otp: str) -> Any:
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not user.otp_code or user.otp_code != otp:
+    if not user.otp_code or user.latest_otp != otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
     if user.otp_expires_at and user.otp_expires_at < datetime.datetime.utcnow():
         raise HTTPException(status_code=400, detail="OTP expired")
 
-    user.otp_code = None
+    user.latest_otp = None
     user.otp_expires_at = None
     session.add(user)
     session.commit()
 
     return Message(message="OTP verified successfully")
+
+@router.patch("/me/2fa", response_model=UserPublic)
+def update_2fa_status(
+    *, session: SessionDep, current_user: CurrentUser, enabled: bool
+) -> Any:
+    """
+    Enable or disable two-factor authentication for the current user.
+    """
+    current_user.is_2fa_enabled = enabled
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user

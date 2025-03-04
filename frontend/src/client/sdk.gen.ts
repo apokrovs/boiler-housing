@@ -53,6 +53,8 @@ import type {
   UsersSendOtpResponse,
   UsersVerifyOtpData,
   UsersVerifyOtpResponse,
+  UsersUpdate2FaStatusData,
+  UsersUpdate2FaStatusResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
@@ -631,6 +633,29 @@ export class UsersService {
       query: {
         email: data.email,
         otp: data.otp,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update 2Fa Status
+   * Enable or disable two-factor authentication for the current user.
+   * @param data The data for the request.
+   * @param data.enabled
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static update2FaStatus(
+    data: UsersUpdate2FaStatusData,
+  ): CancelablePromise<UsersUpdate2FaStatusResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/2fa",
+      query: {
+        enabled: data.enabled,
       },
       errors: {
         422: "Validation Error",

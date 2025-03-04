@@ -11,12 +11,12 @@ import {
     RadioGroup,
     Radio,
     Text,
-    Checkbox, FormErrorMessage,
+    FormErrorMessage, Switch,
 } from "@chakra-ui/react"
 import useCustomToast from "../../hooks/useCustomToast.ts";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {handleError} from "../../utils.ts";
-import {ApiError, UpdatePin, UsersService} from "../../client";
+import {ApiError, UpdatePin, UserPublic, UsersService, type UsersUpdate2FaStatusData} from "../../client";
 import {type SubmitHandler, useForm} from "react-hook-form"
 /*
 import {useMutation} from "@tanstack/react-query"
@@ -31,6 +31,8 @@ interface UpdatePasswordForm extends UpdatePassword {
 }*/
 
 const ChangePassword = () => {
+    const queryClient = useQueryClient()
+    const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
     const [currPassword, setCurrPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -40,11 +42,7 @@ const ChangePassword = () => {
 
     const [autoLogout, setAutoLogout] = useState("10")
 
-    /*const [pin, setPin] = useState("");
-    const [confirmPin, setConfirmPin] = useState("");*/
-
-    const [enable2FA, setEnable2FA] = useState(false)
-    const [twoFAOption, setTwoFAOption] = useState("email")
+    const [isEnabled, setIsEnabled] = useState(currentUser?.is_2fa_enabled);
 
     const handleChangePassword = () => {
         console.log("Current Password: ", currPassword)
@@ -72,12 +70,6 @@ const ChangePassword = () => {
         }
     };*/
 
-    const handleUpdate2FA = () => {
-        console.log("2FA Enabled: ", enable2FA)
-        console.log("2FA Method: ", twoFAOption)
-        alert("Two-factor authentication settings updated!")
-    }
-
     const showToast = useCustomToast()
     const {
         register,
@@ -89,6 +81,24 @@ const ChangePassword = () => {
         mode: "onBlur",
         criteriaMode: "all",
     })
+
+    const update2fa = useMutation({
+        mutationFn: (data: UsersUpdate2FaStatusData) =>
+            UsersService.update2FaStatus({enabled: data.enabled}),
+        onSuccess: () => {
+            showToast("Success!", "2FA status updated successfully.", "success")
+            reset()
+        },
+        onError: (err: ApiError) => {
+            handleError(err, showToast)
+        },
+    })
+
+    const handleToggle = () => {
+        const newEnabled = !isEnabled;
+        setIsEnabled(newEnabled);
+        update2fa.mutate({enabled: newEnabled});
+    };
 
     const mutation = useMutation({
         mutationFn: (data: UpdatePin) =>
@@ -217,25 +227,18 @@ const ChangePassword = () => {
                 </Button>
             </Stack>
 
-            <Heading size="md" mb={4}>
+            <Heading size="md" mb={4} pt={4}>
                 Two-Factor Authentication
             </Heading>
-            <Stack spacing={4} mb={6}>
-                <Checkbox isChecked={enable2FA} onChange={(e) => setEnable2FA(e.target.checked)}>
-                    Enable Two-Factor Authentication
-                </Checkbox>
-                {enable2FA && (
-                    <RadioGroup onChange={setTwoFAOption} value={twoFAOption}>
-                        <Stack direction="row" spacing={6}>
-                            <Radio value="email">Email</Radio>
-                            <Radio value="text">Text</Radio>
-                        </Stack>
-                    </RadioGroup>
-                )}
-                <Button colorScheme="blue" onClick={handleUpdate2FA}>
-                    Update 2FA Settings
-                </Button>
-            </Stack>
+            <FormControl display="flex" pb={4}>
+                <FormLabel>
+                    Enable 2FA:
+                </FormLabel>
+                <Switch
+                    isChecked={isEnabled ?? false}
+                    onChange={handleToggle}
+                />
+            </FormControl>
 
             <Heading size="md" mb={4}>
                 Automatic Logout Time
@@ -258,100 +261,106 @@ const ChangePassword = () => {
     /*const color = useColorModeValue("inherit", "ui.light")
     const showToast = useCustomToast()
     const {
-      register,
-      handleSubmit,
-      reset,
-      getValues,
-      formState: { errors, isSubmitting },
-    } = useForm<UpdatePasswordForm>({
-      mode: "onBlur",
-      criteriaMode: "all",
-    })
+        register,
+            handleSubmit,
+            reset,
+            getValues,
+            formState
+    :
+        {
+            errors, isSubmitting
+        }
+    ,
+    } = useForm
+        <UpdatePasswordForm>({
+            mode: "onBlur",
+            criteriaMode: "all",
+        })
 
-    const mutation = useMutation({
-      mutationFn: (data: UpdatePassword) =>
-        UsersService.updatePasswordMe({ requestBody: data }),
-      onSuccess: () => {
-        showToast("Success!", "Password updated successfully.", "success")
-        reset()
-      },
-      onError: (err: ApiError) => {
-        handleError(err, showToast)
-      },
-    })
+            const mutation = useMutation({
+                mutationFn: (data: UpdatePassword) =>
+                UsersService.updatePasswordMe({requestBody: data}),
+                onSuccess: () => {
+                showToast("Success!", "Password updated successfully.", "success")
+                reset()
+            },
+                onError: (err: ApiError) => {
+                handleError(err, showToast)
+            },
+            })
 
-    const onSubmit: SubmitHandler<UpdatePasswordForm> = async (data) => {
-      mutation.mutate(data)
-    }
+            const onSubmit: SubmitHandler<UpdatePasswordForm> = async (data) => {
+                mutation.mutate(data)
+            }
 
-    return (
-      <>
-        <Container maxW="full">
-          <Heading size="sm" py={4}>
-            Change Password
-          </Heading>
-          <Box
-            w={{ sm: "full", md: "50%" }}
-            as="form"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <FormControl isRequired isInvalid={!!errors.current_password}>
-              <FormLabel color={color} htmlFor="current_password">
-                Current Password
-              </FormLabel>
-              <Input
-                id="current_password"
-                {...register("current_password")}
-                placeholder="Password"
-                type="password"
-                w="auto"
-              />
-              {errors.current_password && (
-                <FormErrorMessage>
-                  {errors.current_password.message}
-                </FormErrorMessage>
-              )}
-            </FormControl>
-            <FormControl mt={4} isRequired isInvalid={!!errors.new_password}>
-              <FormLabel htmlFor="password">Set Password</FormLabel>
-              <Input
-                id="password"
-                {...register("new_password", passwordRules())}
-                placeholder="Password"
-                type="password"
-                w="auto"
-              />
-              {errors.new_password && (
-                <FormErrorMessage>{errors.new_password.message}</FormErrorMessage>
-              )}
-            </FormControl>
-            <FormControl mt={4} isRequired isInvalid={!!errors.confirm_password}>
-              <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
-              <Input
-                id="confirm_password"
-                {...register("confirm_password", confirmPasswordRules(getValues))}
-                placeholder="Password"
-                type="password"
-                w="auto"
-              />
-              {errors.confirm_password && (
-                <FormErrorMessage>
-                  {errors.confirm_password.message}
-                </FormErrorMessage>
-              )}
-            </FormControl>
-            <Button
-              variant="primary"
-              mt={4}
-              type="submit"
-              isLoading={isSubmitting}
-            >
-              Save
-            </Button>
-          </Box>
-        </Container>
-      </>
-    )
-  */
+                return (
+                <>
+                    <Container maxW="full">
+                        <Heading size="sm" py={4}>
+                            Change Password
+                        </Heading>
+                        <Box
+                            w={{sm: "full", md: "50%"}}
+                            as="form"
+                            onSubmit={handleSubmit(onSubmit)}
+                        >
+                            <FormControl isRequired isInvalid={!!errors.current_password}>
+                                <FormLabel color={color} htmlFor="current_password">
+                                    Current Password
+                                </FormLabel>
+                                <Input
+                                    id="current_password"
+                                    {...register("current_password")}
+                                    placeholder="Password"
+                                    type="password"
+                                    w="auto"
+                                />
+                                {errors.current_password && (
+                                    <FormErrorMessage>
+                                        {errors.current_password.message}
+                                    </FormErrorMessage>
+                                )}
+                            </FormControl>
+                            <FormControl mt={4} isRequired isInvalid={!!errors.new_password}>
+                                <FormLabel htmlFor="password">Set Password</FormLabel>
+                                <Input
+                                    id="password"
+                                    {...register("new_password", passwordRules())}
+                                    placeholder="Password"
+                                    type="password"
+                                    w="auto"
+                                />
+                                {errors.new_password && (
+                                    <FormErrorMessage>{errors.new_password.message}</FormErrorMessage>
+                                )}
+                            </FormControl>
+                            <FormControl mt={4} isRequired isInvalid={!!errors.confirm_password}>
+                                <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
+                                <Input
+                                    id="confirm_password"
+                                    {...register("confirm_password", confirmPasswordRules(getValues))}
+                                    placeholder="Password"
+                                    type="password"
+                                    w="auto"
+                                />
+                                {errors.confirm_password && (
+                                    <FormErrorMessage>
+                                        {errors.confirm_password.message}
+                                    </FormErrorMessage>
+                                )}
+                            </FormControl>
+                            <Button
+                                variant="primary"
+                                mt={4}
+                                type="submit"
+                                isLoading={isSubmitting}
+                            >
+                                Save
+                            </Button>
+                        </Box>
+                    </Container>
+                </>
+                )
+                */
 }
 export default ChangePassword

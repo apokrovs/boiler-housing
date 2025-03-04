@@ -11,6 +11,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    is_2fa_enabled: bool | None = Field(default=False)
 
 
 # Properties to receive via API on creation

@@ -72,6 +72,7 @@ export type UserCreate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  is_2fa_enabled?: boolean | null
   password: string
 }
 
@@ -81,6 +82,7 @@ export type UserPublic = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  is_2fa_enabled?: boolean | null
   id: string
 }
 
@@ -102,9 +104,9 @@ export type UserUpdate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  is_2fa_enabled?: boolean | null
   password?: string | null
   pin?: string | null
-  is_2fa_enabled?: boolean | null
 }
 
 export type UserUpdateMe = {
@@ -267,6 +269,12 @@ export type UsersVerifyOtpData = {
 }
 
 export type UsersVerifyOtpResponse = Message
+
+export type UsersUpdate2FaStatusData = {
+  enabled: boolean
+}
+
+export type UsersUpdate2FaStatusResponse = UserPublic
 
 export type UtilsTestEmailData = {
   emailTo: string
