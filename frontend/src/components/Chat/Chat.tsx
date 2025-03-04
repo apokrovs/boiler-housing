@@ -37,13 +37,13 @@ export const Chat = () => {
         setIsConnected(true);
         setError(null);
         reconnectAttempts.current = 0;
-        toast({
-          title: 'Connected to chat',
-          status: 'success',
-          duration: 2000,
-          isClosable: true,
-          position: 'bottom-right',
-        });
+        // toast({
+        //   title: 'Connected to chat',
+        //   status: 'success',
+        //   duration: 2000,
+        //   isClosable: true,
+        //   position: 'bottom-right',
+        // });
       };
 
       newSocket.onclose = (event) => {

@@ -7,7 +7,7 @@ import {
     Button,
     Avatar,
     Spinner,
-    useColorModeValue,
+    useColorModeValue, MenuButton, Menu, MenuList, MenuItem,
 } from '@chakra-ui/react';
 import useAuth from '../../hooks/useAuth';
 import {socket, sendWebSocketMessage} from './websocket';
@@ -58,7 +58,7 @@ export const ChatWindow = ({
     const limit = 20;
 
     // Styling
-    const myMessageBg = useColorModeValue('blue.100', 'blue.700');
+    const myMessageBg = useColorModeValue('yellow.500', 'yellow.500');
     const otherMessageBg = useColorModeValue('gray.100', 'gray.700');
     const timeColor = useColorModeValue('gray.500', 'gray.400');
 
@@ -176,14 +176,14 @@ export const ChatWindow = ({
                 if (data.type === 'new_message') {
                     // Check if this message belongs to the current conversation
                     const isCurrentConversation = isGroup
-                            ? data.is_group_chat && data.receiver_ids.includes(conversationId)
-                            : (
-                                    (!data.is_group_chat) &&
-                                    (
-                                            (data.sender_id === conversationId && data.receiver_ids.includes(user.id)) ||
-                                            (data.sender_id === user.id && data.receiver_ids.includes(conversationId))
-                                    )
-                            );
+                        ? data.is_group_chat && data.receiver_ids.includes(conversationId)
+                        : (
+                            (!data.is_group_chat) &&
+                            (
+                                (data.sender_id === conversationId && data.receiver_ids.includes(user.id)) ||
+                                (data.sender_id === user.id && data.receiver_ids.includes(conversationId))
+                            )
+                        );
 
                     if (isCurrentConversation) {
                         // Add to messages
@@ -221,7 +221,7 @@ export const ChatWindow = ({
 
                             // Check if this receipt is already there
                             const alreadyExists = msg.read_by?.some(
-                                    receipt => receipt.user_id === newReadReceipt.user_id
+                                receipt => receipt.user_id === newReadReceipt.user_id
                             );
 
                             if (!alreadyExists) {
@@ -240,8 +240,8 @@ export const ChatWindow = ({
                 else if (data.type === 'typing') {
                     // Check if relevant to this conversation
                     const isRelevantTyping =
-                            (isGroup && data.is_group && data.conversation_id === conversationId) ||
-                            (!isGroup && !data.is_group && data.user_id === conversationId);
+                        (isGroup && data.is_group && data.conversation_id === conversationId) ||
+                        (!isGroup && !data.is_group && data.user_id === conversationId);
 
                     if (isRelevantTyping) {
                         // Add to typing users
@@ -263,13 +263,13 @@ export const ChatWindow = ({
                     // Update temp message status
                     if (data.message_id) {
                         setMessages(prev => prev.map(msg =>
-                                msg.tempId === data.message_id || msg.id === data.message_id
-                                        ? {
-                                            ...msg,
-                                            id: data.message_id, // Replace temp ID with real ID
-                                            status: data.status === 'delivered' ? 'delivered' : 'sent'
-                                        }
-                                        : msg
+                            msg.tempId === data.message_id || msg.id === data.message_id
+                                ? {
+                                    ...msg,
+                                    id: data.message_id, // Replace temp ID with real ID
+                                    status: data.status === 'delivered' ? 'delivered' : 'sent'
+                                }
+                                : msg
                         ));
                     }
                 }
@@ -289,15 +289,15 @@ export const ChatWindow = ({
 
     // Debounced typing notification
     const debouncedTypingNotification = useRef(
-            debounce(() => {
-                if (socket && socket.readyState === WebSocket.OPEN) {
-                    sendWebSocketMessage({
-                        type: 'typing',
-                        conversation_id: conversationId,
-                        is_group: isGroup
-                    });
-                }
-            }, 500)
+        debounce(() => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                sendWebSocketMessage({
+                    type: 'typing',
+                    conversation_id: conversationId,
+                    is_group: isGroup
+                });
+            }
+        }, 500)
     ).current;
 
     // Handle message input change
@@ -359,9 +359,9 @@ export const ChatWindow = ({
 
                 // Mark the message as failed
                 setMessages(prev => prev.map(msg =>
-                        msg.tempId === tempId
-                                ? {...msg, status: 'sent'}
-                                : msg
+                    msg.tempId === tempId
+                        ? {...msg, status: 'sent'}
+                        : msg
                 ));
             }
         }
@@ -389,6 +389,17 @@ export const ChatWindow = ({
         }
     };
 
+    const handleEditMessage = (message: MessageWithStatus) => {
+        console.log('Editing message:', message);
+        // Open an input to edit the message content
+        // This could set a state like setEditingMessage(message)
+    };
+
+    const handleDeleteMessage = (message: MessageWithStatus) => {
+        console.log('Removing message:', message);
+        // Ask for confirmation and call your API to delete the message
+    };
+
     // Format time for display
     const formatMessageTime = (timestamp: string) => {
         const date = new Date(timestamp);
@@ -412,146 +423,162 @@ export const ChatWindow = ({
     };
 
     return (
-            <Box height="100%" display="flex" flexDirection="column">
-                {/* Header */}
-                <Flex
-                        p={4}
-                        borderBottom="1px solid"
-                        borderColor="gray.200"
-                        alignItems="center"
-                        bg={useColorModeValue('white', 'gray.800')}
-                >
-                    <Avatar
-                            size="sm"
-                            name={conversationName || 'Conversation'}
-                            mr={3}
-                            bg={isGroup ? 'green.500' : 'blue.500'}
-                    />
-                    <Box flex="1">
-                        <Text fontWeight="bold">{conversationName || (isGroup ? 'Group Chat' : 'Direct Message')}</Text>
-                        {typingUsers.size > 0 && (
-                                <Text fontSize="xs" color="gray.500">
-                                    {isGroup && typingUsers.size > 1
-                                            ? 'Several people are typing...'
-                                            : 'Typing...'}
-                                </Text>
-                        )}
-                    </Box>
-                </Flex>
+        <Box
+            position="absolute"
+            top="0"
+            left="535px" // Leaves 250px space for the sidebar on the left
+            width="calc(100vw - 535px)" // Full screen width minus the sidebar
+            height="100vh" // Full height
+            display="flex"
+            flexDirection="column"
+            bg={useColorModeValue('white', 'gray.800')}
+            zIndex="10" // Optional: adjust if you need layering
+        >
 
-                {/* Messages */}
-                <Box
-                        flex="1"
-                        overflowY="auto"
-                        p={4}
-                        ref={messagesContainerRef}
-                        onScroll={handleScroll}
-                        bg={useColorModeValue('gray.50', 'gray.900')}
-                >
-                    {isLoadingMore && (
-                            <Flex justify="center" mb={4}>
-                                <Spinner size="sm"/>
-                            </Flex>
-                    )}
+            {/* Rest of your chat window */}
 
-                    {hasMore && !isLoadingMore && (
-                            <Flex justify="center" mb={4}>
-                                <Button size="xs" onClick={loadMoreMessages} variant="ghost">
-                                    Load older messages
-                                </Button>
-                            </Flex>
-                    )}
-
-                    {isLoading ? (
-                            <Flex justify="center" align="center" height="100%">
-                                <Spinner/>
-                            </Flex>
-                    ) : (
-                            <>
-                                {messages.length === 0 ? (
-                                        <Flex justify="center" align="center" height="100%">
-                                            <Text color="gray.500">No messages yet</Text>
-                                        </Flex>
-                                ) : (
-                                        messages.map((message) => (
-                                                <Flex
-                                                        key={message.id || message.tempId}
-                                                        mb={3}
-                                                        flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
-                                                        alignItems="flex-end"
-                                                >
-                                                    {!message.isFromMe && (
-                                                            <Avatar
-                                                                    size="xs"
-                                                                    name={message.sender_id.substring(0, 2)}
-                                                                    mr={message.isFromMe ? 0 : 2}
-                                                                    ml={message.isFromMe ? 2 : 0}
-                                                            />
-                                                    )}
-
-                                                    <Box
-                                                            bg={message.isFromMe ? myMessageBg : otherMessageBg}
-                                                            px={3}
-                                                            py={2}
-                                                            borderRadius="lg"
-                                                            maxWidth="70%"
-                                                            position="relative"
-                                                    >
-                                                        {isGroup && !message.isFromMe && (
-                                                                <Text fontSize="xs" fontWeight="bold" mb={1}>
-                                                                    {message.sender_id}
-                                                                </Text>
-                                                        )}
-
-                                                        <Text>{message.content}</Text>
-
-                                                        <Flex
-                                                                fontSize="xs"
-                                                                color={timeColor}
-                                                                mt={1}
-                                                                justifyContent={message.isFromMe ? 'flex-end' : 'flex-start'}
-                                                                alignItems="center"
-                                                        >
-                                                            <Text>{formatMessageTime(message.created_at)}</Text>
-
-                                                            {message.isFromMe && (
-                                                                    <Box ml={1}
-                                                                         color={message.status === 'read' ? 'blue.500' : undefined}>
-                                                                        {getStatusIcon(message.status || 'sent')}
-                                                                    </Box>
-                                                            )}
-                                                        </Flex>
-                                                    </Box>
-                                                </Flex>
-                                        ))
-                                )}
-                                <div ref={messagesEndRef}/>
-                            </>
+            {/* Header */}
+            <Flex
+                p={4}
+                borderBottom="1px solid"
+                borderColor="gray.200"
+                alignItems="center"
+                bg={useColorModeValue('white', 'gray.800')}
+            >
+                <Avatar
+                    size="sm"
+                    name={conversationName || 'Conversation'}
+                    mr={3}
+                    bg={isGroup ? 'green.500' : 'yellow.500'}
+                />
+                <Box flex="1">
+                    <Text fontWeight="bold">{conversationName || (isGroup ? 'Group Chat' : 'Direct Message')}</Text>
+                    {typingUsers.size > 0 && (
+                        <Text fontSize="xs" color="gray.500">
+                            {isGroup && typingUsers.size > 1
+                                ? 'Several people are typing...'
+                                : 'Typing...'}
+                        </Text>
                     )}
                 </Box>
+            </Flex>
 
-                {/* Input */}
-                <Flex
-                        p={4}
-                        borderTop="1px solid"
-                        borderColor="gray.200"
-                        bg={useColorModeValue('white', 'gray.800')}
-                >
-                    <Input
-                            placeholder="Type a message..."
-                            value={messageText}
-                            onChange={handleMessageChange}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                            mr={2}
-                    />
-                    <Button
-                            colorScheme="blue"
-                            onClick={handleSendMessage}
-                            isDisabled={!messageText.trim()}
-                    >
-                        Send
-                    </Button>
-                </Flex>
+            {/* Messages */}
+            <Box
+                flex="1"
+                overflowY="auto"
+                p={4}
+                ref={messagesContainerRef}
+                onScroll={handleScroll}
+                bg={useColorModeValue('gray.50', 'gray.900')}
+            >
+                {isLoadingMore && (
+                    <Flex justify="center" mb={4}>
+                        <Spinner size="sm"/>
+                    </Flex>
+                )}
+
+                {hasMore && !isLoadingMore && (
+                    <Flex justify="center" mb={4}>
+                        <Button size="xs" onClick={loadMoreMessages} variant="ghost">
+                            Load older messages
+                        </Button>
+                    </Flex>
+                )}
+
+                {isLoading ? (
+                    <Flex justify="center" align="center" height="100%">
+                        <Spinner/>
+                    </Flex>
+                ) : (
+                    <>
+                        {messages.length === 0 ? (
+                            <Flex justify="center" align="center" height="100%">
+                                <Text color="gray.500">No messages yet</Text>
+                            </Flex>
+                        ) : (
+                            messages.map((message) => (
+                                <Flex
+                                    key={message.id || message.tempId}
+                                    mb={3}
+                                    flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
+                                    alignItems="flex-end"
+                                >
+                                    {!message.isFromMe && (
+                                        <Avatar
+                                            size="xs"
+                                            name={message.sender_id.substring(0, 2)}
+                                            mr={message.isFromMe ? 0 : 2}
+                                            ml={message.isFromMe ? 2 : 0}
+                                        />
+                                    )}
+
+                                    <Menu placement="bottom" portalProps={{appendToParentPortal: false}}>
+                                        <MenuButton
+                                            as={Button}
+                                            p={0}  // Remove padding so the content controls the width
+                                            bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
+                                            color="black"
+                                            borderRadius="lg"
+                                            maxW="70%"
+                                            h={"100%"}
+                                            display="inline-block"
+                                            textAlign="left"
+                                            whiteSpace="pre-wrap"
+                                            wordBreak="break-word"
+                                            _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
+                                        >
+                                            <Box
+                                                p={3}  // Add padding inside the box, not the button itself
+                                                whiteSpace="pre-wrap"
+                                                wordBreak="break-word"
+                                                w="100%"  // Let the box grow to fill the button's width
+                                            >
+                                                <Text fontSize="md" lineHeight="short">
+                                                    {message.content}
+                                                </Text>
+                                            </Box>
+                                        </MenuButton>
+
+                                        <MenuList zIndex="popover">
+                                            <MenuItem onClick={() => handleEditMessage(message)}>Edit</MenuItem>
+                                            <MenuItem onClick={() => handleDeleteMessage(message)}>Remove</MenuItem>
+                                        </MenuList>
+                                    </Menu>
+
+
+                                </Flex>
+                            ))
+                        )}
+                        <div ref={messagesEndRef}/>
+                    </>
+                )}
             </Box>
+
+            {/* Input */}
+            <Flex
+                p={4}
+                borderTop="1px solid"
+                borderColor="gray.200"
+                bg={useColorModeValue('white', 'gray.800')}
+            >
+                <Input
+                    placeholder="Type a message..."
+                    value={messageText}
+                    onChange={handleMessageChange}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    mr={2}
+
+                    focusBorderColor="yellow.500"
+                />
+                <Button
+                    colorScheme="yellow"
+                    onClick={handleSendMessage}
+                    isDisabled={!messageText.trim()}
+                >
+                    Send
+                </Button>
+            </Flex>
+        </Box>
     );
 };

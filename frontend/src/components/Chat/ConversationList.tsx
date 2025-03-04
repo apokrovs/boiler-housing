@@ -34,9 +34,9 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
     const limit = 20;
 
     // Styling
-    const selectedBg = useColorModeValue('blue.50', 'blue.900');
+    const selectedBg = useColorModeValue('yellow.50', 'yellow.900');
     const hoverBg = useColorModeValue('gray.100', 'gray.700');
-    const unreadBadgeBg = useColorModeValue('blue.500', 'blue.200');
+    const unreadBadgeBg = useColorModeValue('yellow.500', 'yellow.200');
     const unreadBadgeColor = useColorModeValue('white', 'gray.800');
 
     // Load conversations
@@ -244,7 +244,7 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
                                             size="sm"
                                             name={getConversationName(conversation)}
                                             mr={3}
-                                            bg={conversation.is_group ? 'green.500' : 'blue.500'}
+                                            bg={conversation.is_group ? 'green.500' : 'yellow.500'}
                                     />
 
                                     <Box flex="1" overflow="hidden">
