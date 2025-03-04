@@ -23,22 +23,15 @@ class ConnectionManager:
         """Connect a new WebSocket for a user"""
         await websocket.accept()
         async with self._lock:
-            # Store the connection
-            if user_id in self.active_connections:
-                # If there's an existing connection, close it first
-                try:
-                    await self.active_connections[user_id].close()
-                    logger.warning(f"Closed existing connection for user {user_id}")
-                except Exception:
-                    pass
-
             self.active_connections[user_id] = websocket
             if user_id not in self.open_conversations:
                 self.open_conversations[user_id] = set()
-            logger.info(f"User {user_id} connected. Active connections: {len(self.active_connections)}")
+        logger.info(f"User {user_id} connected. Active connections: {len(self.active_connections)}")
 
     def disconnect(self, user_id: UUID):
         """Handle disconnection of a user"""
+        # This method is called in a context where async isn't available
+        # so we can't use the lock directly
         if user_id in self.active_connections:
             del self.active_connections[user_id]
         # We keep the open_conversations entry in case the user reconnects
@@ -67,8 +60,9 @@ class ConnectionManager:
 
     async def send_personal_message(self, message: dict, user_id: UUID):
         """Send a message to a specific user if they are connected"""
-        if user_id in self.active_connections:
-            await self.active_connections[user_id].send_text(json.dumps(message))
+        async with self._lock:
+            if user_id in self.active_connections:
+                await self.active_connections[user_id].send_text(json.dumps(message))
 
     async def broadcast_to_recipients(self, message: dict, recipient_ids: List[UUID], exclude_ids: List[UUID] = None):
         """Send a message to multiple recipients, excluding specified users"""

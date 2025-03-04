@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 from uuid import UUID
 
@@ -23,17 +24,20 @@ logger = logging.getLogger(__name__)
 @router.websocket("/ws/{token}")
 async def websocket_endpoint(websocket: WebSocket, token: str):
     # Authenticate using the token
-    session = None
+    auth_session = next(deps.get_db())
+    user = None
     try:
-        logger.info(f"WebSocket connection attempt with token: {token[:10]}...")
-        session = next(deps.get_db())
         try:
-            user = deps.get_current_user(session=session, token=token)
+            logger.info(f"WebSocket connection attempt with token: {token[:10]}...")
+            user = deps.get_current_user(session=auth_session, token=token)
             logger.info(f"Authentication successful for user: {user.id}")
         except Exception as auth_error:
             logger.error(f"Authentication failed: {str(auth_error)}")
             await websocket.close(code=1008, reason="Authentication failed")
             return
+        finally:
+            # Close the auth session immediately after authentication
+            auth_session.close()
 
         user_id = user.id
         logger.info(f"Accepting connection for user {user_id}")
@@ -50,8 +54,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         try:
             while True:
                 # Wait for messages from the client
-                data = await websocket.receive_text()
+                session = next(deps.get_db())
                 try:
+                    data = await websocket.receive_text()
                     message_data = json.loads(data)
 
                     # Validate message structure
@@ -215,6 +220,12 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                                     reader_id=user_id,
                                     recipient_ids=recipients
                                 )
+                    elif message_data["type"] == "ping":
+                        # Respond with a pong to keep the connection alive
+                        await websocket.send_text(json.dumps({
+                            "type": "pong",
+                            "timestamp": str(int(asyncio.get_event_loop().time() * 1000))
+                        }))
 
                     else:
                         await websocket.send_text(json.dumps({
@@ -226,6 +237,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 except Exception as e:
                     logger.exception("Error processing WebSocket message")
                     await websocket.send_text(json.dumps({"error": str(e)}))
+                finally:
+                    session.close()
+                    logger.debug("Database session closed for WebSocket connection")
 
         except WebSocketDisconnect:
             manager.disconnect(user_id)
@@ -233,13 +247,6 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     except Exception as e:
         logger.exception("WebSocket authentication error")
         await websocket.close(code=1008)  # Policy violation
-
-    finally:
-        # Always close the session when done
-        if session:
-            session.close()
-            logger.debug("Database session closed for WebSocket connection")
-
 
 # REST API endpoints for messaging
 
