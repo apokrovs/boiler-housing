@@ -41,12 +41,33 @@ const ChangePassword = () => {
     const [enable2FA, setEnable2FA] = useState(false)
     const [twoFAOption, setTwoFAOption] = useState("email")
 
-    const handleChangePassword = () => {
-        console.log("Current Password: ", currPassword)
-        console.log("New Password: ", newPassword)
-        console.log("Confirm Password: ", confirmPassword)
-        alert("Password change requested")
-    }
+    const handleChangePassword = async () => {
+        try {
+            const response = await fetch("/api/v1/users/change-password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    current_password: currPassword,
+                    new_password: newPassword,
+                    confirm_new_password: confirmPassword,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(errorData.detail || "Error changing password");
+                return;
+            }
+
+            alert("Password updated successfully!");
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Something went wrong!");
+        }
+    };
+
 
     const handleUpdateRecovery = () => {
         console.log("Recover Email: ", recoveryEmail)
