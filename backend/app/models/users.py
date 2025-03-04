@@ -18,8 +18,6 @@ class UserBase(SQLModel):
     profile_visibility: bool | None = Field(default=None)
     recovery_email: EmailStr | None = Field(default=None, max_length=255)
     recovery_phone_number: str | None = Field(default=None, max_length=10)
-    active_profile: str | None = Field(default=None, max_length=6)
-
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
