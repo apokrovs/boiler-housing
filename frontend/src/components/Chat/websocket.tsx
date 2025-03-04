@@ -2,23 +2,28 @@
 export let socket: WebSocket | null = null;
 let pingInterval: number | null = null;
 let isReconnecting = false;
+let reconnectionTimeout: number | null = null;
 
 /**
  * Creates a WebSocket connection with authentication token
  */
 export const createWebSocketConnection = (): WebSocket | null => {
-    // Don't create a new connection if we're already reconnecting
-    if (isReconnecting) {
-        console.log('Already attempting to reconnect. Skipping this attempt.');
-        return null;
+    // First, clear any existing reconnection timeout
+    if (reconnectionTimeout) {
+        clearTimeout(reconnectionTimeout);
+        reconnectionTimeout = null;
     }
+
+   if (isReconnecting) {
+       console.log('Already attempting to reconnect. Skipping this attempt.');
+        return null;
+   }
 
     isReconnecting = true;
 
     const token = localStorage.getItem("access_token");
     if (!token) {
         console.error('No auth token available for WebSocket connection');
-        isReconnecting = false;
         return null;
     }
 
@@ -31,6 +36,7 @@ export const createWebSocketConnection = (): WebSocket | null => {
     // Close any existing connection
     if (socket && socket.readyState !== WebSocket.CLOSED) {
         socket.close();
+        socket = null;
     }
 
     // Clean up any existing ping interval
@@ -44,10 +50,12 @@ export const createWebSocketConnection = (): WebSocket | null => {
 
     // Set a connection timeout
     const connectionTimeout = setTimeout(() => {
-        if (newSocket.readyState !== WebSocket.OPEN) {
+        if (newSocket && newSocket.readyState !== WebSocket.OPEN) {
             console.error('WebSocket connection timed out');
             newSocket.close();
+            // Make sure to reset isReconnecting flag here
             isReconnecting = false;
+            socket = null;
         }
     }, 10000); // 10 second timeout
 
@@ -64,12 +72,16 @@ export const createWebSocketConnection = (): WebSocket | null => {
                     console.log('Ping sent to server');
                 } catch (error) {
                     console.error('Failed to send ping:', error);
-                    clearInterval(pingInterval!);
-                    pingInterval = null;
+                    if (pingInterval) {
+                        clearInterval(pingInterval);
+                        pingInterval = null;
+                    }
                 }
             } else {
-                clearInterval(pingInterval!);
-                pingInterval = null;
+                if (pingInterval) {
+                    clearInterval(pingInterval);
+                    pingInterval = null;
+                }
             }
         }, 30000); // Every 30 seconds
     };
@@ -83,11 +95,18 @@ export const createWebSocketConnection = (): WebSocket | null => {
             pingInterval = null;
         }
 
+        // Make sure to clean up the socket reference
+        if (socket === newSocket) {
+            socket = null;
+        }
+
         isReconnecting = false;
     };
 
     newSocket.onerror = (error) => {
         console.error('WebSocket error occurred:', error);
+        // We don't set isReconnecting to false here because
+        // the onclose handler will be called after this
     };
 
     socket = newSocket;
@@ -110,4 +129,28 @@ export const sendWebSocketMessage = (messageData: any): boolean => {
         console.error('Failed to send message:', error);
         return false;
     }
+};
+
+/**
+ * Schedule a reconnection attempt with backoff
+ */
+export const scheduleReconnection = (attempt: number, maxAttempts: number, onReconnect: () => void): void => {
+    // If we're already reconnecting, cancel it
+    if (reconnectionTimeout) {
+        clearTimeout(reconnectionTimeout);
+        reconnectionTimeout = null;
+    }
+
+    if (attempt >= maxAttempts) {
+        console.log(`Maximum reconnection attempts (${maxAttempts}) reached`);
+        return;
+    }
+
+    const backoffTime = 1000 * Math.min(30, Math.pow(2, attempt));
+    console.log(`Scheduling reconnection in ${backoffTime/1000} seconds (attempt ${attempt}/${maxAttempts})`);
+
+    reconnectionTimeout = window.setTimeout(() => {
+        reconnectionTimeout = null;
+        onReconnect();
+    }, backoffTime);
 };

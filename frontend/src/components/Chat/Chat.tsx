@@ -4,7 +4,7 @@ import useAuth from '../../hooks/useAuth';
 import {ConversationList} from './ConversationList';
 import {ChatWindow} from './ChatWindow';
 import {NewConversation} from './NewConversation';
-import {socket, createWebSocketConnection, sendWebSocketMessage} from './websocket';
+import {socket, createWebSocketConnection, sendWebSocketMessage, scheduleReconnection} from './websocket';
 
 interface SelectedConversation {
     id: string;
@@ -25,15 +25,7 @@ export const Chat = () => {
     useEffect(() => {
         if (!user) return;
 
-        let reconnectTimer: number | null = null;
-
         const connectWebSocket = () => {
-            // Clear any existing timer
-            if (reconnectTimer) {
-                window.clearTimeout(reconnectTimer);
-                reconnectTimer = null;
-            }
-
             const newSocket = createWebSocketConnection();
 
             if (!newSocket) {
@@ -72,13 +64,13 @@ export const Chat = () => {
                 if (event.code !== 1000 && event.code !== 1008) {
                     if (reconnectAttempts.current < maxReconnectAttempts) {
                         reconnectAttempts.current += 1;
-                        const backoffTime = 1000 * Math.min(30, Math.pow(2, reconnectAttempts.current));
 
-                        console.log(`Reconnecting in ${backoffTime / 1000} seconds (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
-
-                        reconnectTimer = window.setTimeout(() => {
-                            connectWebSocket();
-                        }, backoffTime);
+                        // Use the new scheduleReconnection helper
+                        scheduleReconnection(
+                                reconnectAttempts.current,
+                                maxReconnectAttempts,
+                                connectWebSocket
+                        );
                     } else {
                         setError('Connection lost. Please refresh the page to reconnect.');
                     }
@@ -88,6 +80,7 @@ export const Chat = () => {
             newSocket.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 setError('WebSocket error occurred');
+                // We don't need to do anything here as the onclose handler will be called
             };
 
             // Add a message handler to receive server messages
@@ -98,29 +91,29 @@ export const Chat = () => {
                     // Log pongs to verify the connection is alive
                     if (data.type === 'pong') {
                         console.log('Received pong from server');
+                    } else if (data.error) {
+                        console.error('Server error:', data.error);
                     }
 
-                    // Handle other message types
-                    // ... existing code
+                    // Handle other message types as needed
+                    // ... your existing message handling code
                 } catch (error) {
                     console.error('Error parsing message:', error);
                 }
             };
         };
 
+        // Initial connection
         connectWebSocket();
 
         // Clean up on unmount
         return () => {
-            if (reconnectTimer) {
-                window.clearTimeout(reconnectTimer);
-            }
-
+            // The socket cleanup is now handled in createWebSocketConnection
             if (socket && socket.readyState !== WebSocket.CLOSED) {
                 socket.close(1000, 'Component unmounted');
             }
         };
-    }, [user, toast, selectedConversation]);
+    }, [user, toast, selectedConversation, maxReconnectAttempts]);
 
     // Handle conversation selection
     const handleSelectConversation = (conversationId: string, isGroup: boolean, name?: string) => {

@@ -226,6 +226,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                             "type": "pong",
                             "timestamp": str(int(asyncio.get_event_loop().time() * 1000))
                         }))
+                        logger.debug(f"Ping received from user {user_id}, sent pong response")
 
                     else:
                         await websocket.send_text(json.dumps({
@@ -247,6 +248,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
     except Exception as e:
         logger.exception("WebSocket authentication error")
         await websocket.close(code=1008)  # Policy violation
+
 
 # REST API endpoints for messaging
 
