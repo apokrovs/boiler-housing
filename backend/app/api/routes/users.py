@@ -28,6 +28,9 @@ from app.models.users import (
 from app.models.utils import Message
 from app.utils import generate_new_account_email, send_email
 
+import random
+import datetime
+
 router = APIRouter(prefix="/users", tags=["users"])
 
 
@@ -260,3 +263,54 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+def generate_otp() -> str:
+    return str(random.randint(100000, 999999))  # 6-digit OTP
+
+
+@router.post("/send-otp", response_model=Message)
+def send_otp(*, session: SessionDep, email: str) -> Any:
+    """
+    Send OTP to user's email.
+    """
+    user = crud_users.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    otp = generate_otp()
+    user.otp_code = otp
+    user.otp_expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+
+    session.add(user)
+    session.commit()
+
+    send_email(
+        email_to=user.email,
+        subject="Your OTP Code",
+        html_content=f"<p>Your OTP code is: <b>{otp}</b>. It expires in 10 minutes.</p>"
+    )
+
+    return Message(message="OTP sent successfully")
+
+
+@router.post("/verify-otp", response_model=Message)
+def verify_otp(*, session: SessionDep, email: str, otp: str) -> Any:
+    """
+    Verify OTP for user login.
+    """
+    user = crud_users.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not user.otp_code or user.otp_code != otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    if user.otp_expires_at and user.otp_expires_at < datetime.datetime.utcnow():
+        raise HTTPException(status_code=400, detail="OTP expired")
+
+    user.otp_code = None
+    user.otp_expires_at = None
+    session.add(user)
+    session.commit()
+
+    return Message(message="OTP verified successfully")

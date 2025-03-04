@@ -30,6 +30,7 @@ class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=40)
     pin: str | None = Field(default=None, min_length=4, max_length=4)
+    is_2fa_enabled: bool | None = Field(default=False)
 
 
 class UserUpdateMe(SQLModel):
@@ -50,6 +51,8 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     hashed_pin: str | None = Field(default=None)
+    is_2fa_enabled: bool | None = Field(default=False)
+    latest_otp: str | None = Field(default=None)
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
 

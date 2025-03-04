@@ -49,6 +49,10 @@ import type {
   UsersUpdateUserResponse,
   UsersDeleteUserData,
   UsersDeleteUserResponse,
+  UsersSendOtpData,
+  UsersSendOtpResponse,
+  UsersVerifyOtpData,
+  UsersVerifyOtpResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
@@ -579,6 +583,54 @@ export class UsersService {
       url: "/api/v1/users/{user_id}",
       path: {
         user_id: data.userId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Send Otp
+   * Send OTP to user's email.
+   * @param data The data for the request.
+   * @param data.email
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static sendOtp(
+    data: UsersSendOtpData,
+  ): CancelablePromise<UsersSendOtpResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/send-otp",
+      query: {
+        email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Verify Otp
+   * Verify OTP for user login.
+   * @param data The data for the request.
+   * @param data.email
+   * @param data.otp
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static verifyOtp(
+    data: UsersVerifyOtpData,
+  ): CancelablePromise<UsersVerifyOtpResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/verify-otp",
+      query: {
+        email: data.email,
+        otp: data.otp,
       },
       errors: {
         422: "Validation Error",

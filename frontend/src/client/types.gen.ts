@@ -104,6 +104,7 @@ export type UserUpdate = {
   full_name?: string | null
   password?: string | null
   pin?: string | null
+  is_2fa_enabled?: boolean | null
 }
 
 export type UserUpdateMe = {
@@ -253,6 +254,19 @@ export type UsersDeleteUserData = {
 }
 
 export type UsersDeleteUserResponse = Message
+
+export type UsersSendOtpData = {
+  email: string
+}
+
+export type UsersSendOtpResponse = Message
+
+export type UsersVerifyOtpData = {
+  email: string
+  otp: string
+}
+
+export type UsersVerifyOtpResponse = Message
 
 export type UtilsTestEmailData = {
   emailTo: string
