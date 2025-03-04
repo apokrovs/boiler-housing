@@ -2,9 +2,10 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import col, delete, func, select, Session
 
 from app.crud import users as crud_users
+from app.crud.users import update_user
 from app.api.deps import (
     CurrentUser,
     SessionDep,
@@ -23,11 +24,12 @@ from app.models.users import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+    ChangePassword
 )
 
 from app.models.utils import Message
 from app.utils import generate_new_account_email, send_email
-
+from app.api.deps import get_db, get_current_user
 router = APIRouter(prefix="/users", tags=["users"])
 
 
@@ -253,3 +255,23 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+@router.post("/change-password")
+def change_password(
+    password_data: ChangePassword,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect.")
+
+
+    if password_data.new_password != password_data.confirm_new_password:
+        raise HTTPException(status_code=400, detail="New passwords do not match.")
+
+
+    user_update = UserUpdate(password=password_data.new_password)
+    updated_user = update_user(session=db, db_user=current_user, user_in=user_update)
+
+    return {"detail": "Password updated successfully"}

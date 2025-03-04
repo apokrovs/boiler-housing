@@ -59,7 +59,7 @@ class UpdatePassword(SQLModel):
     recovery_phone_number: str | None = Field(default=None, max_length=10)
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
-
+    confirm_new_password: str = Field(min_length=8, max_length=40)
 
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
@@ -77,3 +77,8 @@ class UserPublic(UserBase):
 class UsersPublic(SQLModel):
     data: list[UserPublic]
     count: int
+
+class ChangePassword(SQLModel):
+    current_password: str = Field(min_length=8, max_length=40)
+    new_password: str = Field(min_length=8, max_length=40)
+    confirm_new_password: str = Field(min_length=8, max_length=40)

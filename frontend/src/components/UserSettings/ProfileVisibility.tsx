@@ -68,7 +68,7 @@ const ProfileVisibility = () => {
         </FormControl>
 
         <Button
-          colorScheme="blue"
+          colorScheme="yellow"
           onClick={handleUpdateVisibility}
           //isLoading={mutation.isLoading}
         >
