@@ -15,7 +15,7 @@ import {
     type ApiError,
     type RenterPreferencePublic,
     type RenterPreferenceUpdate,
-    RenterPreferencesService, RenterPreferenceCreate,
+    RenterPreferenceService, RenterPreferenceCreate,
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import {handleError} from "../../utils"
@@ -50,7 +50,10 @@ const RenterPreferences = ({ renter_preference }: PreferencesProps) => {
     useEffect(() => {
         const fetchPreferences = async () => {
             try {
-                const response = await RenterPreferencesService.readRenterPreference();
+                const response = await RenterPreferenceService.readRenterPreferences({
+                    skip: 0,
+                    limit: 1, // Only need to check if one exists
+                });
 
                 if (response && response.id) {
                     console.log("Setting update mode to true")
@@ -68,8 +71,8 @@ const RenterPreferences = ({ renter_preference }: PreferencesProps) => {
     const mutation = useMutation({
         mutationFn: async (data: RenterPreferenceCreate | RenterPreferenceUpdate) => {
             return updateMode
-                ? RenterPreferencesService.updateRenterPreference({ requestBody: data as RenterPreferenceUpdate })
-                : RenterPreferencesService.createRenterPreference({ requestBody: data as RenterPreferenceCreate });
+                ? RenterPreferenceService.updateRenterPreference({ requestBody: data as RenterPreferenceUpdate })
+                : RenterPreferenceService.createRenterPreference({ requestBody: data as RenterPreferenceCreate });
         },
         onSuccess: () => {
             showToast("Success!", `Preference ${updateMode ? "updated" : "created"} successfully.`, "success");
