@@ -125,7 +125,6 @@ export type UserCreate = {
   profile_visibility?: boolean | null
   recovery_email?: string | null
   recovery_phone_number?: string | null
-  active_profile?: string | null
   password: string
 }
 
@@ -140,7 +139,6 @@ export type UserPublic = {
   profile_visibility?: boolean | null
   recovery_email?: string | null
   recovery_phone_number?: string | null
-  active_profile?: string | null
   id: string
 }
 
@@ -166,7 +164,6 @@ export type UserUpdate = {
   profile_visibility?: boolean | null
   recovery_email?: string | null
   recovery_phone_number?: string | null
-  active_profile?: string | null
   password?: string | null
 }
 
