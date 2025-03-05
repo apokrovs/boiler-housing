@@ -104,7 +104,7 @@ test("30 second auto logout -- make better test in the future", async  ({page}) 
 
   await page.waitForURL("/")
 
-  await page.clock.fastForward(31000)
+  await page.clock.fastForward(31 * 60 * 1000 )
 
   await page.goto("/login")
 })

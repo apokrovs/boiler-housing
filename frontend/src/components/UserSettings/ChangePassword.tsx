@@ -1,4 +1,4 @@
-import {useState} from "react"
+import {useEffect, useState} from "react"
 
 import {
     Button,
@@ -12,6 +12,7 @@ import {
     Radio,
     Text
 } from "@chakra-ui/react"
+import useAuth from "../../hooks/useAuth.ts";
 /*
 import {useMutation} from "@tanstack/react-query"
 import {type SubmitHandler, useForm} from "react-hook-form"
@@ -25,6 +26,7 @@ interface UpdatePasswordForm extends UpdatePassword {
 }*/
 
 const ChangePassword = () => {
+    const {user} = useAuth()
     const [currPassword, setCurrPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -32,7 +34,13 @@ const ChangePassword = () => {
     const [recoveryEmail, setRecoveryEmail] = useState("")
     const [phone, setRecoveryPhone] = useState("")
 
-    const [autoLogout, setAutoLogout] = useState("10")
+    const [autoLogout, setAutoLogout] = useState("")
+
+    useEffect(() => {
+        if(user?.auto_logout) {
+            setAutoLogout(String(user.auto_logout))
+        }
+    }, [user])
 
     const handleChangePassword = () => {
         console.log("Current Password: ", currPassword)

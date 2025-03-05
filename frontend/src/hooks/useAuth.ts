@@ -27,6 +27,8 @@ const useAuth = () => {
     queryFn: UsersService.readUserMe,
     enabled: isLoggedIn(),
   })
+  // @ts-ignore
+  const logout_time = (user?.auto_logout) * 60 * 1000
 
   const signUpMutation = useMutation({
     mutationFn: (data: UserRegister) =>
@@ -87,7 +89,6 @@ const useAuth = () => {
   }
 
   const timerID = useRef<NodeJS.Timeout | null>(null)
-  const logout_time = 30000;
 
   const logout_timer_reset = () => {
     if (timerID.current) {
