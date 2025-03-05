@@ -100,8 +100,169 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                         await websocket.send_text(json.dumps({"error": "Missing message type"}))
                         continue
 
-                    # Rest of your message handling logic...
-                    # (I'm keeping this part unchanged to focus on the error handling)
+                    # Handle different message types
+                    if message_data["type"] == "message":
+                        if "receiver_ids" not in message_data or "content" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing required fields"}))
+                            continue
+
+                        # Parse receiver IDs
+                        receiver_ids = [UUID(id_str) for id_str in message_data["receiver_ids"]]
+                        is_group = len(receiver_ids) > 1 or message_data.get("is_group_chat", False)
+
+                        # Create a message in the database
+                        message_create = MessageCreate(
+                            receiver_ids=receiver_ids,
+                            content=message_data["content"],
+                            is_group_chat=is_group
+                        )
+
+                        db_message = message_crud.create_message(
+                            session=session,
+                            sender_id=user_id,
+                            message_in=message_create
+                        )
+
+                        # Get the message recipients
+                        message_recipients = message_crud.get_message_recipients(session, db_message.id)
+
+                        # Convert to dict for sending via WebSocket
+                        message_dict = {
+                            "id": str(db_message.id),
+                            "sender_id": str(db_message.sender_id),
+                            "receiver_ids": [str(r) for r in message_recipients],
+                            "content": db_message.content,
+                            "is_group_chat": db_message.is_group_chat,
+                            "created_at": db_message.created_at.isoformat(),
+                            "type": "new_message"
+                        }
+
+                        # Try to send to all online recipients
+                        online_count = 0
+                        for receiver_id in message_recipients:
+                            if manager.is_online(receiver_id):
+                                await manager.send_personal_message(message_dict, receiver_id)
+                                online_count += 1
+
+                                # If the receiver has an open conversation with the sender, mark as read
+                                # For direct messages
+                                if not is_group and manager.has_open_conversation(receiver_id, user_id):
+                                    message_crud.mark_message_as_read(session, db_message.id, receiver_id)
+
+                                # For group chats
+                                if is_group and any(
+                                        manager.has_open_conversation(receiver_id, r) for r in receiver_ids
+                                ):
+                                    message_crud.mark_message_as_read(session, db_message.id, receiver_id)
+
+                        # Send confirmation back to the sender
+                        await websocket.send_text(json.dumps({
+                            "type": "message_sent",
+                            "message_id": str(db_message.id),
+                            "status": "delivered" if online_count > 0 else "sent",
+                            "online_recipients": online_count,
+                            "total_recipients": len(message_recipients)
+                        }))
+
+                    elif message_data["type"] == "open_conversation":
+                        if "conversation_id" not in message_data or "is_group" not in message_data:
+                            await websocket.send_text(
+                                json.dumps({"error": "Missing conversation_id or is_group flag"}))
+                            continue
+
+                        conversation_id = UUID(message_data["conversation_id"])
+                        is_group = message_data["is_group"]
+
+                        manager.add_open_conversation(user_id, conversation_id)
+
+                        # Mark messages as read
+                        count = message_crud.mark_conversation_as_read(
+                            session=session,
+                            user_id=user_id,
+                            conversation_id=conversation_id,
+                            is_group=is_group
+                        )
+
+                        await websocket.send_text(json.dumps({
+                            "type": "conversation_opened",
+                            "conversation_id": str(conversation_id),
+                            "is_group": is_group,
+                            "messages_read": count
+                        }))
+
+                    elif message_data["type"] == "close_conversation":
+                        if "conversation_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing conversation_id"}))
+                            continue
+
+                        conversation_id = UUID(message_data["conversation_id"])
+                        manager.remove_open_conversation(user_id, conversation_id)
+
+                        await websocket.send_text(json.dumps({
+                            "type": "conversation_closed",
+                            "conversation_id": str(conversation_id)
+                        }))
+
+                    elif message_data["type"] == "typing":
+                        if "conversation_id" not in message_data or "is_group" not in message_data:
+                            await websocket.send_text(
+                                json.dumps({"error": "Missing conversation_id or is_group flag"}))
+                            continue
+
+                        conversation_id = UUID(message_data["conversation_id"])
+                        is_group = message_data["is_group"]
+
+                        # For direct messages, recipient_ids is just the conversation_id (other user)
+                        # For group chats, we need to get all participants
+                        if is_group:
+                            # In a real app, you'd fetch group members from a groups table
+                            # This is simplified to just use the conversation_id as a participant
+                            recipient_ids = [conversation_id]
+                        else:
+                            recipient_ids = [conversation_id]
+
+                        # Send typing notification to recipients
+                        await manager.broadcast_typing_notification(
+                            typing_user_id=user_id,
+                            conversation_id=conversation_id,
+                            recipient_ids=recipient_ids,
+                            is_group=is_group
+                        )
+
+                    elif message_data["type"] == "read_receipt":
+                        if "message_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing message_id"}))
+                            continue
+
+                        message_id = UUID(message_data["message_id"])
+
+                        # Mark message as read
+                        success = message_crud.mark_message_as_read(session, message_id, user_id)
+
+                        if success:
+                            # Get message to find out the sender
+                            message = message_crud.get_message(session, message_id)
+
+                            if message:
+                                # For group chats, notify all participants
+                                # For direct messages, notify just the sender
+                                if message.is_group_chat:
+                                    recipients = message_crud.get_message_recipients(session, message_id)
+                                    recipients.append(message.sender_id)
+                                else:
+                                    recipients = [message.sender_id]
+
+                                # Send read receipt to recipients
+                                await manager.broadcast_read_receipt(
+                                    message_id=message_id,
+                                    reader_id=user_id,
+                                    recipient_ids=recipients
+                                )
+
+                    else:
+                        await websocket.send_text(json.dumps({
+                            "error": f"Unknown message type: {message_data['type']}"
+                        }))
 
                 except asyncio.TimeoutError:
                     # Connection might be dead, send a ping to check

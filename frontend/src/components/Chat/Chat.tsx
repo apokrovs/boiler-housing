@@ -4,7 +4,7 @@ import useAuth from '../../hooks/useAuth';
 import {ConversationList} from './ConversationList';
 import {ChatWindow} from './ChatWindow';
 import {NewConversation} from './NewConversation';
-import {socket, createWebSocketConnection, sendWebSocketMessage, scheduleReconnection} from './websocket';
+import {socket, createWebSocketConnection, sendWebSocketMessage } from './websocket';
 
 interface SelectedConversation {
     id: string;
@@ -64,13 +64,6 @@ export const Chat = () => {
                 if (event.code !== 1000 && event.code !== 1008) {
                     if (reconnectAttempts.current < maxReconnectAttempts) {
                         reconnectAttempts.current += 1;
-
-                        // Use the new scheduleReconnection helper
-                        scheduleReconnection(
-                                reconnectAttempts.current,
-                                maxReconnectAttempts,
-                                connectWebSocket
-                        );
                     } else {
                         setError('Connection lost. Please refresh the page to reconnect.');
                     }
