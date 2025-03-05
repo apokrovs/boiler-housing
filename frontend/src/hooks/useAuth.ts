@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import {useState, useRef, useEffect} from "react"
 
 import { AxiosError } from "axios"
 import {
@@ -85,6 +85,32 @@ const useAuth = () => {
     localStorage.removeItem("access_token")
     navigate({ to: "/login" })
   }
+
+  const timerID = useRef<NodeJS.Timeout | null>(null)
+  const logout_time = 30000;
+
+  const logout_timer_reset = () => {
+    if (timerID.current) {
+      clearTimeout(timerID.current)
+    }
+    timerID.current = setTimeout(() => {
+      logout()
+    }, logout_time)
+  }
+
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      logout_timer_reset()
+
+      const handleActivity = () => {
+        logout_timer_reset()
+      }
+      window.addEventListener("mousemove", handleActivity)
+      if(timerID.current) {
+        clearTimeout(timerID.current)
+      }
+    }
+  }, [user]);
 
   return {
     signUpMutation,

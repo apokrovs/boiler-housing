@@ -96,6 +96,19 @@ test("Successful log out", async ({ page }) => {
   await page.waitForURL("/login")
 })
 
+test("30 second auto logout -- make better test in the future", async  ({page}) => {
+  await page.goto("/login")
+
+  await fillForm(page, firstSuperuser, firstSuperuserPassword)
+  await page.getByRole("button", { name: "Log In" }).click()
+
+  await page.waitForURL("/")
+
+  await page.clock.fastForward(31000)
+
+  await page.goto("/login")
+})
+
 test("Logged-out user cannot access protected routes", async ({ page }) => {
   await page.goto("/login")
 
