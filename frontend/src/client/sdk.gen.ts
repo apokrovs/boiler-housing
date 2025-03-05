@@ -51,6 +51,8 @@ import type {
   UsersUpdateUserResponse,
   UsersDeleteUserData,
   UsersDeleteUserResponse,
+  UsersChangePasswordData,
+  UsersChangePasswordResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
@@ -504,7 +506,7 @@ export class UsersService {
    */
   public static deleteRenterMe(): CancelablePromise<UsersDeleteRenterMeResponse> {
     return __request(OpenAPI, {
-      method: "PATCH",
+      method: "DELETE",
       url: "/api/v1/users/me/renter",
     })
   }
@@ -517,7 +519,7 @@ export class UsersService {
    */
   public static deleteLeaserMe(): CancelablePromise<UsersDeleteLeaserMeResponse> {
     return __request(OpenAPI, {
-      method: "PATCH",
+      method: "DELETE",
       url: "/api/v1/users/me/leaser",
     })
   }
@@ -610,6 +612,27 @@ export class UsersService {
       path: {
         user_id: data.userId,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Change Password
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static changePassword(
+    data: UsersChangePasswordData,
+  ): CancelablePromise<UsersChangePasswordResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/change-password",
+      body: data.requestBody,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },
