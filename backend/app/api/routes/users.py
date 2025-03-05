@@ -128,7 +128,7 @@ def read_user_me(current_user: CurrentUser) -> Any:
     """
     return current_user
 
-@router.delete("/me", response_model=Message)
+@router.delete("/me/renter", response_model=Message)
 def delete_renter_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own renter profile
@@ -142,7 +142,7 @@ def delete_renter_me(session: SessionDep, current_user: CurrentUser) -> Any:
     session.commit()
     return Message(message="Renter profile deleted successfully")
 
-@router.delete("/me", response_model=Message)
+@router.delete("/me/leaser", response_model=Message)
 def delete_leaser_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own leaser profile
