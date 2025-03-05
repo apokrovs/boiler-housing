@@ -391,13 +391,15 @@ export const ChatWindow = ({
 
     const handleEditMessage = (message: MessageWithStatus) => {
         console.log('Editing message:', message);
-        // Open an input to edit the message content
-        // This could set a state like setEditingMessage(message)
+
     };
 
     const handleDeleteMessage = (message: MessageWithStatus) => {
         console.log('Removing message:', message);
-        // Ask for confirmation and call your API to delete the message
+    };
+    const handleBlockUser = () => {
+        console.log('Blocking user:', user);
+
     };
 
     // Format time for display
@@ -461,6 +463,13 @@ export const ChatWindow = ({
                         </Text>
                     )}
                 </Box>
+                  <Button
+        size="sm"
+        colorScheme="red"
+        onClick={handleBlockUser}
+    >
+        Block
+    </Button>
             </Flex>
 
             {/* Messages */}
