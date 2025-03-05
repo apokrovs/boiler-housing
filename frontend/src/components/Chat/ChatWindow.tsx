@@ -56,7 +56,9 @@ export const ChatWindow = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const limit = 20;
-
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [editingMessage, setEditingMessage] = useState<MessageWithStatus | null>(null);
+    const [editText, setEditText] = useState<string>('');
     // Styling
     const myMessageBg = useColorModeValue('yellow.500', 'yellow.500');
     const otherMessageBg = useColorModeValue('gray.100', 'gray.700');
@@ -391,16 +393,37 @@ export const ChatWindow = ({
 
     const handleEditMessage = (message: MessageWithStatus) => {
         console.log('Editing message:', message);
-
+        setEditingMessage(message);
+        setEditText(message.content);
     };
 
     const handleDeleteMessage = (message: MessageWithStatus) => {
         console.log('Removing message:', message);
+        if (window.confirm(`Are you sure you want to delete this message?`)) {
+            setMessages(prevMessages => prevMessages.filter(msg => msg.id !== message.id));
+        }
     };
     const handleBlockUser = () => {
         console.log('Blocking user:', user);
-
+        if (window.confirm(`Are you sure you want to block ${conversationName}?`)) {
+            setIsBlocked(true);
+        }
     };
+    const handleSaveEdit = () => {
+        setMessages(prevMessages => prevMessages.map(msg => msg.id === editingMessage?.id ? {
+            ...msg,
+            content: editText
+        } : msg));
+        setEditingMessage(null);
+        setEditText('')
+    }
+
+const handleUnblockUser = () => {
+    if (window.confirm(`Are you sure you want to unblock ${conversationName}?`)) {
+        setIsBlocked(false);
+    }
+};
+
 
     // Format time for display
     const formatMessageTime = (timestamp: string) => {
@@ -463,13 +486,14 @@ export const ChatWindow = ({
                         </Text>
                     )}
                 </Box>
-                  <Button
-        size="sm"
-        colorScheme="red"
-        onClick={handleBlockUser}
-    >
-        Block
-    </Button>
+                {!isGroup &&(
+                <Button
+                    size="sm"
+                    colorScheme="red"
+                    onClick={handleBlockUser}
+                >
+                    Block
+                </Button>)}
             </Flex>
 
             {/* Messages */}
@@ -500,68 +524,85 @@ export const ChatWindow = ({
                         <Spinner/>
                     </Flex>
                 ) : (
-                    <>
-                        {messages.length === 0 ? (
-                            <Flex justify="center" align="center" height="100%">
-                                <Text color="gray.500">No messages yet</Text>
-                            </Flex>
-                        ) : (
-                            messages.map((message) => (
-                                <Flex
-                                    key={message.id || message.tempId}
-                                    mb={3}
-                                    flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
-                                    alignItems="flex-end"
-                                >
-                                    {!message.isFromMe && (
-                                        <Avatar
-                                            size="xs"
-                                            name={message.sender_id.substring(0, 2)}
-                                            mr={message.isFromMe ? 0 : 2}
-                                            ml={message.isFromMe ? 2 : 0}
-                                        />
-                                    )}
+                    isBlocked ? (
+                        <Flex justify="center" align="center" height="100%">
+                            <Text color="red.500">You have blocked this user.</Text>
+                            <Button onClick={handleUnblockUser} ml={2}>Unblock</Button>
+                        </Flex>
+                    ) : (
+                        <>
+                            {messages.length === 0 ? (
+                                <Flex justify="center" align="center" height="100%">
+                                    <Text color="gray.500">No messages yet</Text>
+                                </Flex>
+                            ) : (
+                                messages.map((message) => (
+                                    <Flex
+                                        key={message.id || message.tempId}
+                                        mb={3}
+                                        flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
+                                        alignItems="flex-end"
+                                    >
+                                        {!message.isFromMe && (
+                                            <Avatar
+                                                size="xs"
+                                                name={message.sender_id.substring(0, 2)}
+                                                mr={message.isFromMe ? 0 : 2}
+                                                ml={message.isFromMe ? 2 : 0}
+                                            />
+                                        )}
 
-                                    <Menu placement="bottom" portalProps={{appendToParentPortal: false}}>
-                                        <MenuButton
-                                            as={Button}
-                                            p={0}  // Remove padding so the content controls the width
-                                            bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
-                                            color="black"
-                                            borderRadius="lg"
-                                            maxW="70%"
-                                            h={"100%"}
-                                            display="inline-block"
-                                            textAlign="left"
-                                            whiteSpace="pre-wrap"
-                                            wordBreak="break-word"
-                                            _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
-                                        >
-                                            <Box
-                                                p={3}  // Add padding inside the box, not the button itself
+                                        <Menu placement="bottom" portalProps={{appendToParentPortal: false}}>
+                                            <MenuButton
+                                                as={Button}
+                                                p={0}  // Remove padding so the content controls the width
+                                                bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
+                                                color="black"
+                                                borderRadius="lg"
+                                                maxW="70%"
+                                                h={"100%"}
+                                                display="inline-block"
+                                                textAlign="left"
                                                 whiteSpace="pre-wrap"
                                                 wordBreak="break-word"
-                                                w="100%"  // Let the box grow to fill the button's width
+                                                _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
                                             >
-                                                <Text fontSize="md" lineHeight="short">
-                                                    {message.content}
-                                                </Text>
-                                            </Box>
-                                        </MenuButton>
+                                                <Box
+                                                    p={3}  // Add padding inside the box, not the button itself
+                                                    whiteSpace="pre-wrap"
+                                                    wordBreak="break-word"
+                                                    w="100%"  // Let the box grow to fill the button's width
+                                                >
+                                                    {editingMessage?.id === message.id ? (
+                                                        <Input
+                                                            size="sm"
+                                                            value={editText}
+                                                            onChange={(e) => setEditText(e.target.value)}
+                                                            onBlur={handleSaveEdit}  // Or add a save button
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        <Text fontSize="md" lineHeight="short">
+                                                            {message.content}
+                                                        </Text>
+                                                    )}
 
-                                        <MenuList zIndex="popover">
-                                            <MenuItem onClick={() => handleEditMessage(message)}>Edit</MenuItem>
-                                            <MenuItem onClick={() => handleDeleteMessage(message)}>Remove</MenuItem>
-                                        </MenuList>
-                                    </Menu>
+                                                </Box>
+                                            </MenuButton>
+
+                                            <MenuList zIndex="popover">
+                                                <MenuItem onClick={() => handleEditMessage(message)}>Edit</MenuItem>
+                                                <MenuItem onClick={() => handleDeleteMessage(message)}>Remove</MenuItem>
+                                            </MenuList>
+                                        </Menu>
 
 
-                                </Flex>
-                            ))
-                        )}
-                        <div ref={messagesEndRef}/>
-                    </>
-                )}
+                                    </Flex>
+                                ))
+                            )}
+                            <div ref={messagesEndRef}/>
+                        </>
+                    ))}
             </Box>
 
             {/* Input */}
