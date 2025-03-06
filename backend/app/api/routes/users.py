@@ -1,8 +1,11 @@
+import smtplib
 import uuid
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import delete, func, select
 
 from app.crud import users as crud_users
 from app.api.deps import (
@@ -22,14 +25,12 @@ from app.models.users import (
     UserRegister,
     UsersPublic,
     UserUpdate,
-    UserUpdateMe, UpdatePin,
+    UserUpdateMe,
+    UpdatePin,
 )
 
 from app.models.utils import Message
 from app.utils import generate_new_account_email, send_email
-
-import random
-import datetime
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -43,7 +44,6 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
     Retrieve users.
     """
-
     count_statement = select(func.count()).select_from(User)
     count = session.exec(count_statement).one()
 
@@ -80,6 +80,17 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     return user
 
 
+@router.get("/by-email/{email}", response_model=UserPublic)
+def read_user_by_email(*, email: str, session: SessionDep) -> Any:
+    """
+    Get a specific user by email.
+    """
+    user = crud_users.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return user
+
+
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
@@ -87,7 +98,6 @@ def update_user_me(
     """
     Update own user.
     """
-
     if user_in.email:
         existing_user = crud_users.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != current_user.id:
@@ -121,6 +131,7 @@ def update_password_me(
     session.commit()
     return Message(message="Password updated successfully")
 
+
 @router.post("/me/pin", response_model=Message)
 def update_user_pin(
     *, session: SessionDep, body: UpdatePin, current_user: CurrentUser
@@ -138,6 +149,7 @@ def update_user_pin(
     session.add(current_user)
     session.commit()
     return Message(message="PIN updated successfully")
+
 
 @router.post("/me/verify-pin", response_model=Message)
 def verify_user_pin(
@@ -194,7 +206,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     return user
 
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get("/by-id/{user_id}", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -226,7 +238,6 @@ def update_user(
     """
     Update a user.
     """
-
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(
@@ -258,62 +269,13 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
+    # Directly reference the model attribute for filtering
+    statement = delete(Item).where(Item.owner_id == user_id)
     session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
 
-def generate_otp() -> str:
-    return str(random.randint(100000, 999999))  # 6-digit OTP
-
-
-@router.post("/send-otp", response_model=Message)
-def send_otp(*, session: SessionDep, email: str) -> Any:
-    """
-    Send OTP to user's email.
-    """
-    user = crud_users.get_user_by_email(session=session, email=email)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    otp = generate_otp()
-    user.latest_otp = otp
-    user.otp_expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
-
-    session.add(user)
-    session.commit()
-
-    send_email(
-        email_to=user.email,
-        subject="Your OTP Code",
-        html_content=f"<p>Your OTP code is: <b>{otp}</b>. It expires in 10 minutes.</p>"
-    )
-
-    return Message(message="OTP sent successfully")
-
-
-@router.post("/verify-otp", response_model=Message)
-def verify_otp(*, session: SessionDep, email: str, otp: str) -> Any:
-    """
-    Verify OTP for user login.
-    """
-    user = crud_users.get_user_by_email(session=session, email=email)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if not user.otp_code or user.latest_otp != otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-
-    if user.otp_expires_at and user.otp_expires_at < datetime.datetime.utcnow():
-        raise HTTPException(status_code=400, detail="OTP expired")
-
-    user.latest_otp = None
-    user.otp_expires_at = None
-    session.add(user)
-    session.commit()
-
-    return Message(message="OTP verified successfully")
 
 @router.patch("/me/2fa", response_model=UserPublic)
 def update_2fa_status(

@@ -204,6 +204,12 @@ export type UsersCreateUserData = {
 
 export type UsersCreateUserResponse = UserPublic
 
+export type UsersReadUserByEmailData = {
+  email: string
+}
+
+export type UsersReadUserByEmailResponse = UserPublic
+
 export type UsersReadUserMeResponse = UserPublic
 
 export type UsersDeleteUserMeResponse = Message
@@ -256,19 +262,6 @@ export type UsersDeleteUserData = {
 }
 
 export type UsersDeleteUserResponse = Message
-
-export type UsersSendOtpData = {
-  email: string
-}
-
-export type UsersSendOtpResponse = Message
-
-export type UsersVerifyOtpData = {
-  email: string
-  otp: string
-}
-
-export type UsersVerifyOtpResponse = Message
 
 export type UsersUpdate2FaStatusData = {
   enabled: boolean
