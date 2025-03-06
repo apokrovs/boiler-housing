@@ -141,6 +141,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
                         # Try to send to all online recipients
                         online_count = 0
+                        receiver_emails = []
                         for receiver_id in message_recipients:
                             if manager.is_online(receiver_id):
                                 await manager.send_personal_message(message_dict, receiver_id)
@@ -157,10 +158,18 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                                 ):
                                     message_crud.mark_message_as_read(session, db_message.id, receiver_id)
 
+
+                            receiver_emails.append(user_crud.get_user(session=session, id=receiver_id).email)
+
+
+
                         # Send confirmation back to the sender
                         await websocket.send_text(json.dumps({
                             "type": "message_sent",
+                            "content": db_message.content,
+                            "receiver_emails": [str(r) for r in receiver_emails],
                             "message_id": str(db_message.id),
+                            "message": str(db_message.content),
                             "status": "delivered" if online_count > 0 else "sent",
                             "online_recipients": online_count,
                             "total_recipients": len(message_recipients)

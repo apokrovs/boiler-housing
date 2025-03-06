@@ -197,13 +197,6 @@ export const ChatWindow = ({
                             }
                         ]);
 
-                        if (data.sender_id !== user.id) {
-                            // TODO: Send email here?
-                            console.log(`Send an email to ${user.id}`);
-
-                            sendEmailNotification(user.email, data.sender_name, data.content)
-                        }
-
                         // console.log("email sent?")
                         // console.log('Received WebSocket message:', data);
                         //
@@ -282,6 +275,15 @@ export const ChatWindow = ({
                                 : msg
                         ));
                     }
+
+                    // TODO: Send email here?
+                    for (const email of data.receiver_emails) {
+
+                        console.log(`Send an email to ${user.id}`);
+
+                        sendEmailNotification(email, data.sender_name, data.content)
+                    }
+
                 }
             } catch (err) {
                 console.error('Error handling WebSocket message:', err);
