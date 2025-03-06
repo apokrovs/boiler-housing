@@ -70,12 +70,17 @@ export const createWebSocketConnection = (): WebSocket | null => {
     newSocket.onmessage = (event) => {
       console.log('Received message:', event.data);
       try {
+        // TODO: @Arnav Wadhwa this doesnt work dumbass
         const message = JSON.parse(event.data);
         if (message.type === 'ping') {
           console.log('Received server ping');
           return;
         }
-        // Process other message types as needed...
+
+        else if (message.type === 'new_message') {
+          console.log(`Received new Message from ${message.sender_id}`);
+        }
+
       } catch (error) {
         console.error('Error parsing message:', error);
       }

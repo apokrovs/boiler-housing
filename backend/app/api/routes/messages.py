@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Qu
 from starlette.websockets import WebSocketState
 
 from app.crud import messages as message_crud
+from app.crud import users as user_crud
 from app.api import deps
 from app.models.messages import (
     MessageCreate,
@@ -130,6 +131,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                         message_dict = {
                             "id": str(db_message.id),
                             "sender_id": str(db_message.sender_id),
+                            "sender_name": str(db_message.sender.full_name),
                             "receiver_ids": [str(r) for r in message_recipients],
                             "content": db_message.content,
                             "is_group_chat": db_message.is_group_chat,

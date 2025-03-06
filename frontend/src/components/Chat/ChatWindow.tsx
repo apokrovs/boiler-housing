@@ -11,9 +11,9 @@ import {
 } from '@chakra-ui/react';
 import useAuth from '../../hooks/useAuth';
 import {socket, sendWebSocketMessage} from './websocket';
-import {MessagesService} from '../../client';
-import {MessagePublic, ReadReceipt} from '../../client/types.gen';
-
+import {MessagesService, UsersService} from '../../client';
+import {MessagePublic, ReadReceipt, UserPublic} from '../../client/types.gen';
+import {sendEmailNotification} from "../../client/emailService.ts";
 
 function debounce(func: Function, wait: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -26,6 +26,7 @@ function debounce(func: Function, wait: number) {
         }, wait);
     };
 }
+
 
 interface ChatWindowProps {
     conversationId: string;
@@ -174,9 +175,7 @@ export const ChatWindow = ({
             try {
                 const data = JSON.parse(event.data);
 
-                // Handle new message
                 if (data.type === 'new_message') {
-                    // Check if this message belongs to the current conversation
                     const isCurrentConversation = isGroup
                         ? data.is_group_chat && data.receiver_ids.includes(conversationId)
                         : (
@@ -188,7 +187,6 @@ export const ChatWindow = ({
                         );
 
                     if (isCurrentConversation) {
-                        // Add to messages
                         setMessages(prev => [
                             ...prev,
                             {
@@ -199,15 +197,25 @@ export const ChatWindow = ({
                             }
                         ]);
 
-                        // Mark as read if not from me
-                        if (data.sender_id !== user.id && socket && socket.readyState === WebSocket.OPEN) {
-                            sendWebSocketMessage({
-                                type: 'read_receipt',
-                                message_id: data.id
-                            });
+                        if (data.sender_id !== user.id) {
+                            // TODO: Send email here?
+                            console.log(`Send an email to ${user.id}`);
+
+                            sendEmailNotification(user.email, data.sender_name, data.content)
                         }
+
+                        // console.log("email sent?")
+                        // console.log('Received WebSocket message:', data);
+                        //
+                        // sendEmailNotification(
+                        //     'anna.pokrovskaya05@gmail.com',
+                        //     usersService.,
+                        //     `You have a new message from "`
+                        // );
                     }
+
                 }
+
 
                 // Handle read receipts
                 else if (data.type === 'read_receipt') {
@@ -418,11 +426,11 @@ export const ChatWindow = ({
         setEditText('')
     }
 
-const handleUnblockUser = () => {
-    if (window.confirm(`Are you sure you want to unblock ${conversationName}?`)) {
-        setIsBlocked(false);
-    }
-};
+    const handleUnblockUser = () => {
+        if (window.confirm(`Are you sure you want to unblock ${conversationName}?`)) {
+            setIsBlocked(false);
+        }
+    };
 
 
     // Format time for display
@@ -486,14 +494,14 @@ const handleUnblockUser = () => {
                         </Text>
                     )}
                 </Box>
-                {!isGroup &&(
-                <Button
-                    size="sm"
-                    colorScheme="red"
-                    onClick={handleBlockUser}
-                >
-                    Block
-                </Button>)}
+                {!isGroup && (
+                    <Button
+                        size="sm"
+                        colorScheme="red"
+                        onClick={handleBlockUser}
+                    >
+                        Block
+                    </Button>)}
             </Flex>
 
             {/* Messages */}
@@ -628,6 +636,16 @@ const handleUnblockUser = () => {
                 >
                     Send
                 </Button>
+                {/*<Button onClick={() => {*/}
+                {/*    sendEmailNotification(*/}
+                {/*        'arnav.v.wadhwa@gmail.com',*/}
+                {/*        "Anya",*/}
+                {/*        "hi arnav isnt this amazing"*/}
+                {/*    );*/}
+                {/*}}>*/}
+                {/*    Send Test Email*/}
+                {/*</Button>*/}
+
             </Flex>
         </Box>
     );
