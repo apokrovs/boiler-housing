@@ -28,7 +28,7 @@ const useAuth = () => {
     enabled: isLoggedIn(),
   })
   // @ts-ignore
-  const logout_time = (user?.auto_logout) * 60 * 1000
+  const logout_time = (user?.auto_logout ?? 30)* 60 * 1000
 
   const signUpMutation = useMutation({
     mutationFn: (data: UserRegister) =>

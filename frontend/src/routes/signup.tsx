@@ -36,8 +36,12 @@ export const Route = createFileRoute("/signup")({
 })
 
 interface UserRegisterForm extends UserRegister {
+  email: string
+  phone_number: string | null
+  password: string
   confirm_password: string
-  phone_number?: string
+  full_name?: string | null
+  auto_logout?: number
 }
 
 function SignUp() {
@@ -56,6 +60,7 @@ function SignUp() {
       phone_number: "",
       password: "",
       confirm_password: "",
+      auto_logout: 30
     },
   })
 

@@ -13,6 +13,9 @@ import {
     Text
 } from "@chakra-ui/react"
 import useAuth from "../../hooks/useAuth.ts";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
+import {UsersService, UserUpdateMe} from "../../client";
+import useCustomToast from "../../hooks/useCustomToast.ts";
 /*
 import {useMutation} from "@tanstack/react-query"
 import {type SubmitHandler, useForm} from "react-hook-form"
@@ -27,6 +30,9 @@ interface UpdatePasswordForm extends UpdatePassword {
 
 const ChangePassword = () => {
     const {user} = useAuth()
+    const queryClient = useQueryClient()
+    const showToast = useCustomToast()
+
     const [currPassword, setCurrPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
@@ -34,13 +40,26 @@ const ChangePassword = () => {
     const [recoveryEmail, setRecoveryEmail] = useState("")
     const [phone, setRecoveryPhone] = useState("")
 
-    const [autoLogout, setAutoLogout] = useState("")
+    const [autoLogout, setAutoLogout] = useState("10")
 
     useEffect(() => {
         if(user?.auto_logout) {
             setAutoLogout(String(user.auto_logout))
         }
     }, [user])
+
+    const updateUserMutation = useMutation({
+        mutationFn: (updatedUser: UserUpdateMe) =>
+            UsersService.updateUserMe({requestBody: updatedUser}),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["currentUser"] })
+            showToast("Success!", "Auto logout time updated successfully.", "success")
+    },
+        onError: (error) => {
+            console.error("Failed to update auto logout time.", error)
+            alert("Failed to update auto logout time.")
+        }
+    })
 
     const handleChangePassword = () => {
         console.log("Current Password: ", currPassword)
@@ -57,7 +76,10 @@ const ChangePassword = () => {
 
     const handleUpdateLogout = () => {
         console.log("Auto logout time: ", autoLogout)
-        alert("Automatic logout time updated!")
+        if (user) {
+            const updatedUser = {...user, auto_logout: Number(autoLogout)}
+            updateUserMutation.mutate(updatedUser)
+        }
     }
 
     return (
@@ -133,6 +155,7 @@ const ChangePassword = () => {
             <Stack spacing={4} mb={4}>
                 <RadioGroup onChange={setAutoLogout} value={autoLogout}>
                     <Stack direction="row" spacing={6}>
+                        <Radio value="0.083333">Test Value 5 Seconds</Radio>
                         <Radio value="10">10 minutes</Radio>
                         <Radio value="20">20 minutes</Radio>
                         <Radio value="30">30 minutes</Radio>
