@@ -9,6 +9,12 @@ export type Body_login_login_access_token = {
   client_secret?: string | null
 }
 
+export type ChangePassword = {
+  current_password: string
+  new_password: string
+  confirm_new_password: string
+}
+
 export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
@@ -105,6 +111,7 @@ export type UpdatePassword = {
   recovery_phone_number?: string | null
   current_password: string
   new_password: string
+  confirm_new_password: string
 }
 
 export type UserCreate = {
@@ -317,6 +324,12 @@ export type UsersDeleteUserData = {
 }
 
 export type UsersDeleteUserResponse = Message
+
+export type UsersChangePasswordData = {
+  requestBody: ChangePassword
+}
+
+export type UsersChangePasswordResponse = unknown
 
 export type UtilsTestEmailData = {
   emailTo: string
