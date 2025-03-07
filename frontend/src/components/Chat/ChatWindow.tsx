@@ -506,15 +506,11 @@ export const ChatWindow = ({
 
     return (
             <Box
-                    position="absolute"
-                    top="0"
-                    left="535px" // Leaves 250px space for the sidebar on the left
-                    width="calc(100vw - 535px)" // Full screen width minus the sidebar
-                    height="100vh" // Full height
+                    height="85vh"
+                    width="100%"
                     display="flex"
                     flexDirection="column"
                     bg={useColorModeValue('white', 'gray.800')}
-                    zIndex="10" // Optional: adjust if you need layering
             >
                 {/* Header */}
                 <Flex
