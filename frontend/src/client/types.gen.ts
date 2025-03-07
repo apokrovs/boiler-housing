@@ -332,6 +332,14 @@ export type MessagesUnblockUserData = {
 
 export type MessagesUnblockUserResponse = boolean
 
+export type MessagesGetBlockedUsersResponse = Array<string>
+
+export type MessagesCheckUserBlockedData = {
+  userId: string
+}
+
+export type MessagesCheckUserBlockedResponse = boolean
+
 export type PrivateCreateUserData = {
   requestBody: PrivateUserCreate
 }

@@ -49,6 +49,9 @@ import type {
   MessagesBlockUserResponse,
   MessagesUnblockUserData,
   MessagesUnblockUserResponse,
+  MessagesGetBlockedUsersResponse,
+  MessagesCheckUserBlockedData,
+  MessagesCheckUserBlockedResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
   UsersReadUsersData,
@@ -611,6 +614,42 @@ export class MessagesService {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/messages/users/{user_id}/unblock",
+      path: {
+        user_id: data.userId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Blocked Users
+   * Get all users blocked by the current user.
+   * @returns string Successful Response
+   * @throws ApiError
+   */
+  public static getBlockedUsers(): CancelablePromise<MessagesGetBlockedUsersResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/messages/users/blocked",
+    })
+  }
+
+  /**
+   * Check User Blocked
+   * Check if a user is blocked by the current user or has blocked the current user.
+   * @param data The data for the request.
+   * @param data.userId
+   * @returns boolean Successful Response
+   * @throws ApiError
+   */
+  public static checkUserBlocked(
+    data: MessagesCheckUserBlockedData,
+  ): CancelablePromise<MessagesCheckUserBlockedResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/messages/users/{user_id}/blocked",
       path: {
         user_id: data.userId,
       },

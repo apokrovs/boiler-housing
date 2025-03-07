@@ -1110,29 +1110,30 @@ def unblock_user(
 
     return success
 
-    @router.get("/users/blocked", response_model=List[UUID])
-    def get_blocked_users(
-            *,
-            session: deps.SessionDep,
-            current_user: deps.CurrentUser,
-    ) -> Any:
-        """
-        Get all users blocked by the current user.
-        """
-        return message_crud.get_blocked_users(session, current_user.id)
+@router.get("/users/blocked", response_model=List[UUID])
+def get_blocked_users(
+        *,
+        session: deps.SessionDep,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Get all users blocked by the current user.
+    """
+    return message_crud.get_blocked_users(session, current_user.id)
 
-    @router.get("/users/{user_id}/blocked", response_model=bool)
-    def check_user_blocked(
-            *,
-            session: deps.SessionDep,
-            user_id: UUID,
-            current_user: deps.CurrentUser,
-    ) -> Any:
-        """
-        Check if a user is blocked by the current user or has blocked the current user.
-        """
-        return message_crud.is_user_blocked(
-            session=session,
-            user_id=current_user.id,
-            target_id=user_id
-        )
+
+@router.get("/users/{user_id}/blocked", response_model=bool)
+def check_user_blocked(
+        *,
+        session: deps.SessionDep,
+        user_id: UUID,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Check if a user is blocked by the current user or has blocked the current user.
+    """
+    return message_crud.is_user_blocked(
+        session=session,
+        user_id=current_user.id,
+        target_id=user_id
+    )
