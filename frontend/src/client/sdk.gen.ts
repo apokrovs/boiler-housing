@@ -39,6 +39,7 @@ import type {
   UsersDeleteUserMeResponse,
   UsersUpdateUserMeData,
   UsersUpdateUserMeResponse,
+  UsersUpdateActiveProfileResponse,
   UsersUpdatePasswordMeData,
   UsersUpdatePasswordMeResponse,
   UsersDeleteRenterMeResponse,
@@ -473,6 +474,19 @@ export class UsersService {
       errors: {
         422: "Validation Error",
       },
+    })
+  }
+
+  /**
+   * Update Active Profile
+   * Switch the active profile type.
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateActiveProfile(): CancelablePromise<UsersUpdateActiveProfileResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/profile",
     })
   }
 

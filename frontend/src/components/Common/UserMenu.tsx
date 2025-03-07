@@ -11,18 +11,36 @@ import { FaUserAstronaut } from "react-icons/fa"
 import { FiLogOut, FiUser } from "react-icons/fi"
 
 import useAuth from "../../hooks/useAuth"
+import useCustomToast from "../../hooks/useCustomToast"
 import {PiUserSwitchDuotone} from "react-icons/pi";
-import {useQueryClient} from "@tanstack/react-query";
-import type {UserPublic} from "../../client";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {type ApiError, UserPublic, UsersService} from "../../client";
+import {handleError} from "../../utils.ts";
 
 const UserMenu = () => {
   const { logout } = useAuth()
+  const showToast = useCustomToast()
 
   const handleLogout = async () => {
     logout()
   }
   const queryClient = useQueryClient()
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
+
+  const switchProfile = useMutation({
+    mutationFn: () => UsersService.updateActiveProfile(),
+    onSuccess: () => {
+      window.location.reload()
+    },
+    onError: (err: ApiError) => {
+      console.log("Error:", err);
+      handleError(err, showToast);
+    },
+    onSettled: () => {
+      //
+    },
+  })
+
 
   return (
     <>
@@ -47,8 +65,8 @@ const UserMenu = () => {
               My profile
             </MenuItem>
             {currentUser?.profile_type === "Both" && (
-                <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} as={Link} to="./">
-                Change roles
+                <MenuItem icon={<PiUserSwitchDuotone fontSize={"24px"}/>} onClick={() => switchProfile.mutate()}>
+                  Change roles
                 </MenuItem>
             )}
             <MenuItem

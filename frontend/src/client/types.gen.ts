@@ -125,6 +125,7 @@ export type UserCreate = {
   profile_visibility?: boolean | null
   recovery_email?: string | null
   recovery_phone_number?: string | null
+  active_profile_type?: string | null
   password: string
 }
 
@@ -139,6 +140,7 @@ export type UserPublic = {
   profile_visibility?: boolean | null
   recovery_email?: string | null
   recovery_phone_number?: string | null
+  active_profile_type?: string | null
   id: string
 }
 
@@ -164,6 +166,7 @@ export type UserUpdate = {
   profile_visibility?: boolean | null
   recovery_email?: string | null
   recovery_phone_number?: string | null
+  active_profile_type?: string | null
   password?: string | null
 }
 
@@ -289,6 +292,8 @@ export type UsersUpdateUserMeData = {
 }
 
 export type UsersUpdateUserMeResponse = UserPublic
+
+export type UsersUpdateActiveProfileResponse = UserPublic
 
 export type UsersUpdatePasswordMeData = {
   requestBody: UpdatePassword

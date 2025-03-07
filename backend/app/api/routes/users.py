@@ -100,6 +100,23 @@ def update_user_me(
     session.refresh(current_user)
     return current_user
 
+@router.patch("/me/profile", response_model=Message)
+def update_active_profile(
+    *, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """
+    Switch the active profile type.
+    """
+
+    if current_user.active_profile_type == "Renter":
+        current_user.active_profile_type = "Leaser"
+    else :
+        current_user.active_profile_type = "Renter"
+
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return Message(message="Active profile switched successfully")
 
 @router.patch("/me/password", response_model=Message)
 def update_password_me(

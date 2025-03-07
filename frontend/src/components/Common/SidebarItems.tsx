@@ -1,7 +1,7 @@
 import { Box, Flex, Icon, Text, useColorModeValue } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { FiBriefcase, FiHome, FiSettings, FiUsers} from "react-icons/fi"
+import { FiBriefcase, FiHome, FiSettings } from "react-icons/fi"
 import { FaHouseChimney, FaHeart } from "react-icons/fa6";
 
 import type { UserPublic } from "../../client"
@@ -11,7 +11,7 @@ const items = [
   { icon: FiBriefcase, title: "Items", path: "/items" },
   { icon: FiSettings, title: "User Settings", path: "/settings" },
   { icon: FaHouseChimney, title: "Your Listings", path: "/settings"},
-  { icon: FaHeart, title: "Liked Listings", path: "/settings"},
+  { icon: FaHeart, title: "Liked Listings", path: "./"},
 ]
 
 interface SidebarItemsProps {
@@ -25,11 +25,14 @@ const SidebarItems = ({ onClose }: SidebarItemsProps) => {
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
 
   const filteredItems = items.filter((item) => {
+    console.log("Current User:", currentUser);  // Check if active_profile_type exists in currentUser
+    console.log("Profile Type:", currentUser?.profile_type);  // Should be "Leaser" or "Both"
+    console.log("Active Profile Type:", currentUser?.active_profile_type);  // Should be "Leaser"
     if (item.title === "Liked Listings") {
-      return currentUser?.profile_type === "Renter" || currentUser?.profile_type === "Both";
+      return currentUser?.profile_type === "Renter" || (currentUser?.profile_type === "Both" && currentUser?.active_profile_type === "Renter");
     }
     if (item.title === "Your Listings") {
-      return currentUser?.profile_type === "Leaser" || currentUser?.profile_type === "Both";
+      return currentUser?.profile_type === "Leaser" || (currentUser?.profile_type === "Both" && currentUser?.active_profile_type === "Leaser");
     }
     return true; // Show all other items
   });
