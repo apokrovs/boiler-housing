@@ -38,7 +38,7 @@ const UserInformation = () => {
         reset,
         getValues,
         control,
-        formState: {isSubmitting, errors, isDirty},
+        formState: {isSubmitting, errors},
     } = useForm<UserPublic>({
         mode: "onBlur",
         criteriaMode: "all",
@@ -59,6 +59,7 @@ const UserInformation = () => {
         mutationFn: (data: UserUpdateMe) =>
             UsersService.updateUserMe({requestBody: data}),
         onSuccess: () => {
+            window.location.reload()
             showToast("Success!", "User updated successfully.", "success")
         },
         onError: (err: ApiError) => {
@@ -233,7 +234,7 @@ const UserInformation = () => {
                             onClick={toggleEditMode}
                             type={editMode ? "button" : "submit"}
                             isLoading={editMode ? isSubmitting : false}
-                            isDisabled={editMode ? !isDirty || !getValues("email") : false}
+                            isDisabled={editMode ? !getValues("email") : false}
                         >
                             {editMode ? "Save" : "Edit"}
                         </Button>
