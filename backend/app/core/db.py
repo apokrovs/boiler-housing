@@ -29,6 +29,6 @@ def init_db(session: Session) -> None:
             email=settings.FIRST_SUPERUSER,
             phone_number="1234567890",
             password=settings.FIRST_SUPERUSER_PASSWORD,
-            is_superuser=True,
+            is_superuser=True
         )
         user = crud_users.create_user(session=session, user_create=user_in)

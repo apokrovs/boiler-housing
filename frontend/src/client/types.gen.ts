@@ -63,24 +63,30 @@ export type UpdatePassword = {
 
 export type UserCreate = {
   email: string
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  auto_logout?: number
   password: string
 }
 
 export type UserPublic = {
   email: string
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  auto_logout?: number
   id: string
 }
 
 export type UserRegister = {
   email: string
+  phone_number: string | null
   password: string
   full_name?: string | null
+  auto_logout?: number
 }
 
 export type UsersPublic = {
@@ -90,15 +96,18 @@ export type UsersPublic = {
 
 export type UserUpdate = {
   email?: string | null
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  auto_logout?: number | null
   password?: string | null
 }
 
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
+  auto_logout?: number | null
 }
 
 export type ValidationError = {

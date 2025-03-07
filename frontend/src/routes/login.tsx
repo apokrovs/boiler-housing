@@ -1,17 +1,22 @@
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons"
+//import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons"
 import {
+  Box,
   Button,
-  Container,
+  //Container,
   FormControl,
-  FormErrorMessage,
-  Icon,
+  //FormErrorMessage,
+  Heading,
+  HStack,
+  //Icon,
   Image,
   Input,
-  InputGroup,
-  InputRightElement,
   Link,
   Text,
-  useBoolean,
+  Stack,
+  Center,
+  Alert,
+  AlertIcon, FormErrorMessage
+  //useBoolean
 } from "@chakra-ui/react"
 import {
   Link as RouterLink,
@@ -20,7 +25,7 @@ import {
 } from "@tanstack/react-router"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
-import Logo from "/assets/images/fastapi-logo.svg"
+//const Logo = "/assets/images/BoilerHousingCropped.png"
 import type { Body_login_login_access_token as AccessToken } from "../client"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { emailPattern } from "../utils"
@@ -37,7 +42,7 @@ export const Route = createFileRoute("/login")({
 })
 
 function Login() {
-  const [show, setShow] = useBoolean()
+  //const [show, setShow] = useBoolean()
   const { loginMutation, error, resetError } = useAuth()
   const {
     register,
@@ -59,86 +64,105 @@ function Login() {
 
     try {
       await loginMutation.mutateAsync(data)
+      //throw redirect({to: "/settings"})
     } catch {
       // error is handled by useAuth hook
     }
   }
 
   return (
-    <>
-      <Container
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-        h="100vh"
-        maxW="sm"
-        alignItems="stretch"
-        justifyContent="center"
-        gap={4}
-        centerContent
-      >
-        <Image
-          src={Logo}
-          alt="FastAPI logo"
-          height="auto"
-          maxW="2xs"
-          alignSelf="center"
-          mb={4}
-        />
-        <FormControl id="username" isInvalid={!!errors.username || !!error}>
-          <Input
-            id="username"
-            {...register("username", {
-              required: "Username is required",
-              pattern: emailPattern,
-            })}
-            placeholder="Email"
-            type="email"
-            required
-          />
-          {errors.username && (
-            <FormErrorMessage>{errors.username.message}</FormErrorMessage>
+      <>
+        <Box
+            boxShadow={'md'}
+            height={"100px"}
+            //background={"black"}
+            width={"100%"}>
+          <HStack gap={90}>
+            <Image pl={4} pt={"15px"} src={"/assets/images/BoilerHousingCropped.png"}></Image>
+          </HStack>
+        </Box>
+        <Center p={12} //bg={'white'}
+        >
+          <Stack
+              as = {"form"}
+              onSubmit = {handleSubmit(onSubmit)}
+              rounded={'lg'}
+              boxShadow={'lg'}
+              //bg={"white"}
+              p={20}
+              gap={6}>
+            <Heading
+                fontSize={"3xl"}
+                color={"#CEB888"}
+                >
+              Welcome Back!
+            </Heading>
+            <Text
+                //color={"#373A36"}
+                fontSize={"md"}>
+              Please log in with your email and password.
+            </Text>
+            {error && (
+              <Alert status="error">
+                <AlertIcon />
+                {error}
+            </Alert>
           )}
-        </FormControl>
-        <FormControl id="password" isInvalid={!!error}>
-          <InputGroup>
+            <FormControl id = {"username"} isInvalid={!!errors.username || !!error}>
             <Input
-              {...register("password", {
-                required: "Password is required",
-              })}
-              type={show ? "text" : "password"}
-              placeholder="Password"
-              required
-            />
-            <InputRightElement
-              color="ui.dim"
-              _hover={{
-                cursor: "pointer",
-              }}
-            >
-              <Icon
-                as={show ? ViewOffIcon : ViewIcon}
-                onClick={setShow.toggle}
-                aria-label={show ? "Hide password" : "Show password"}
-              >
-                {show ? <ViewOffIcon /> : <ViewIcon />}
-              </Icon>
-            </InputRightElement>
-          </InputGroup>
-          {error && <FormErrorMessage>{error}</FormErrorMessage>}
-        </FormControl>
-        <Link as={RouterLink} to="/recover-password" color="blue.500">
-          Forgot password?
-        </Link>
-        <Button variant="primary" type="submit" isLoading={isSubmitting}>
-          Log In
-        </Button>
-        <Text>
-          Don't have an account?{" "}
-          <Link as={RouterLink} to="/signup" color="blue.500">
-            Sign up
-          </Link>
-        </Text>
-      </Container>
-    </>
-  )
+                {...register("username", {
+                  required: "Username is required",
+                  pattern: emailPattern,
+                })}
+                placeholder={"Email"}
+                type={"email"}
+                id={"username"}
+                >
+            </Input>
+              {errors.username && (
+                <FormErrorMessage>{errors.username.message}</FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl id={"password"} isInvalid = {!!error}>
+            <Input
+                {...register("password", {required: "Password is required"})}
+                placeholder={"Password"}
+                type={"password"}>
+              </Input>
+            </FormControl>
+            <HStack gap={19}>
+              <Link
+                  as={RouterLink}
+                  to={"/recover-password"}
+                  color={'#CEB888'} fontSize={'md'}>
+                Forgot Password?
+              </Link>
+              <Button
+                  type={"submit"}
+                  //bg={"black"}
+                  loadingText={"Logging you in..."}
+                  isLoading={isSubmitting}
+                  width={"50%"}
+                  size={'lg'}
+                  color={'#CEB888'}>Log In</Button>
+            </HStack>
+            <HStack>
+              <Text
+                  //color={"#373A36"}
+                  fontSize={"md"}>
+                New here?
+              </Text>
+              <Link
+                  as={RouterLink}
+                  to={"/signup"}
+                  variant={'underline'}
+                  color={'#CEB888'}
+                  fontSize={'md'}>
+                Create an account
+              </Link>
+            </HStack>
+          </Stack>
+        </Center>
+      </>
+  );
 }
