@@ -34,7 +34,7 @@ import {
 import useAuth, {isLoggedIn, PinLogin} from "../hooks/useAuth"
 import {emailPattern} from "../utils"
 import {useState} from "react";
-import {sendEmailNotification} from "../client/emailService.ts";
+import {sendOTPNotification} from "../client/emailService.ts";
 
 export const Route = createFileRoute("/login")({
     component: Login,
@@ -129,7 +129,7 @@ function Login() {
                 setStoredOtp(otp); // Update state with the OTP
                 console.log("Generated OTP:", otp); // Log the correct OTP
 
-                await sendEmailNotification(
+                await sendOTPNotification(
                     data.username,
                     "User",
                     otp

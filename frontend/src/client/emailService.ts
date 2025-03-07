@@ -1,6 +1,6 @@
 import emailjs from "@emailjs/browser"
 
-export const sendEmailNotification = async (
+export const sendOTPNotification = async (
   toEmail: string,
   toName: string,
   otpCode: string,
