@@ -119,9 +119,9 @@ services:
     ports:
       - "5173:5173"
     volumes:
+      - ./frontend/index.html:/app/index.html
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
-      - ./frontend/package.json:/app/package.json
       - ./frontend/vite.config.ts:/app/vite.config.ts
     build:
       context: ./frontend
