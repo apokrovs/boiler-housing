@@ -76,7 +76,7 @@ def get_blocked_users(
     query = select(UserBlock.blocked_id).where(
         UserBlock.blocker_id == user_id
     )
-    return [blocked_id for blocked_id, in session.exec(query)]
+    return [blocked_id for blocked_id in session.exec(query)]
 
 
 def is_user_blocked(
