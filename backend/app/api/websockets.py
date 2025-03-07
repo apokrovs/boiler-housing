@@ -4,6 +4,7 @@ from uuid import UUID
 import json
 import logging
 import asyncio
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +14,6 @@ class ConnectionManager:
         # Map of user_id to their websocket connection
         self.active_connections: Dict[UUID, WebSocket] = {}
         # Map of user_id to the set of conversations they've opened
-        # For direct messages: conversation_id is the other user's ID
-        # For group chats: conversation_id is the group ID
         self.open_conversations: Dict[UUID, Set[UUID]] = {}
         # Lock for WebSocket operations
         self._lock = asyncio.Lock()
@@ -78,28 +77,143 @@ class ConnectionManager:
                 except Exception as e:
                     logger.exception(f"Error sending message to {recipient_id}: {str(e)}")
 
+    async def broadcast_conversation_message(self, message_data: dict, conversation_id: UUID,
+                                             participant_ids: List[UUID], sender_id: UUID):
+        """
+        Broadcast a message to all participants in a conversation
+
+        Args:
+            message_data: The message data to broadcast
+            conversation_id: The ID of the conversation
+            participant_ids: List of all participant IDs in the conversation
+            sender_id: The ID of the user who sent the message
+        """
+        notification = {
+            "type": "message",
+            "conversation_id": str(conversation_id),
+            "data": message_data
+        }
+
+        # Send to all participants except the sender
+        await self.broadcast_to_recipients(notification, participant_ids, [sender_id])
+
+    async def broadcast_message_update(self, message_data: dict, conversation_id: UUID,
+                                       participant_ids: List[UUID], updater_id: UUID):
+        """
+        Broadcast a message update to all participants in a conversation
+
+        Args:
+            message_data: The updated message data
+            conversation_id: The ID of the conversation
+            participant_ids: List of all participant IDs in the conversation
+            updater_id: The ID of the user who updated the message
+        """
+        notification = {
+            "type": "message_update",
+            "conversation_id": str(conversation_id),
+            "data": message_data
+        }
+
+        # Send to all participants including the updater
+        await self.broadcast_to_recipients(notification, participant_ids)
+
+    async def broadcast_message_delete(self, message_id: UUID, conversation_id: UUID,
+                                       participant_ids: List[UUID], deleter_id: UUID):
+        """
+        Broadcast a message deletion to all participants in a conversation
+
+        Args:
+            message_id: The ID of the deleted message
+            conversation_id: The ID of the conversation
+            participant_ids: List of all participant IDs in the conversation
+            deleter_id: The ID of the user who deleted the message
+        """
+        notification = {
+            "type": "message_delete",
+            "conversation_id": str(conversation_id),
+            "message_id": str(message_id),
+            "deleted_at": datetime.utcnow().isoformat(),
+            "deleted_by": str(deleter_id)
+        }
+
+        # Send to all participants including the deleter
+        await self.broadcast_to_recipients(notification, participant_ids)
+
     async def broadcast_typing_notification(self, typing_user_id: UUID, conversation_id: UUID,
-                                            recipient_ids: List[UUID], is_group: bool):
-        """Send typing notification to all recipients in a conversation"""
+                                            participant_ids: List[UUID]):
+        """
+        Send typing notification to all participants in a conversation
+
+        Args:
+            typing_user_id: The ID of the user who is typing
+            conversation_id: The ID of the conversation
+            participant_ids: List of all participant IDs in the conversation
+        """
         notification = {
             "type": "typing",
             "user_id": str(typing_user_id),
             "conversation_id": str(conversation_id),
-            "is_group": is_group
+            "timestamp": datetime.utcnow().isoformat()
         }
 
-        await self.broadcast_to_recipients(notification, recipient_ids, [typing_user_id])
+        # Send to all participants except the typing user
+        await self.broadcast_to_recipients(notification, participant_ids, [typing_user_id])
 
-    async def broadcast_read_receipt(self, message_id: UUID, reader_id: UUID, recipient_ids: List[UUID]):
-        """Send read receipt notification to all recipients of a message"""
+    async def broadcast_read_receipt(self, message_id: UUID, conversation_id: UUID,
+                                     reader_id: UUID, participant_ids: List[UUID]):
+        """
+        Send read receipt notification to all participants in a conversation
+
+        Args:
+            message_id: The ID of the message that was read
+            conversation_id: The ID of the conversation
+            reader_id: The ID of the user who read the message
+            participant_ids: List of all participant IDs in the conversation
+        """
         notification = {
             "type": "read_receipt",
             "message_id": str(message_id),
+            "conversation_id": str(conversation_id),
             "reader_id": str(reader_id),
-            "timestamp": str(int(asyncio.get_event_loop().time() * 1000))  # milliseconds since epoch
+            "timestamp": datetime.utcnow().isoformat()
         }
 
-        await self.broadcast_to_recipients(notification, recipient_ids, [reader_id])
+        # Send to all participants except the reader
+        await self.broadcast_to_recipients(notification, participant_ids, [reader_id])
+
+    async def broadcast_user_blocked(self, blocker_id: UUID, blocked_id: UUID):
+        """
+        Notify a user that they've been blocked
+
+        Args:
+            blocker_id: The ID of the user who did the blocking
+            blocked_id: The ID of the user who was blocked
+        """
+        notification = {
+            "type": "user_blocked",
+            "blocker_id": str(blocker_id),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        # Notify the blocked user only
+        await self.send_personal_message(notification, blocked_id)
+
+    async def broadcast_user_unblocked(self, unblocker_id: UUID, unblocked_id: UUID):
+        """
+        Notify a user that they've been unblocked
+
+        Args:
+            unblocker_id: The ID of the user who did the unblocking
+            unblocked_id: The ID of the user who was unblocked
+        """
+        notification = {
+            "type": "user_unblocked",
+            "unblocker_id": str(unblocker_id),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        # Notify the unblocked user only
+        await self.send_personal_message(notification, unblocked_id)
 
 
 # Create a global instance

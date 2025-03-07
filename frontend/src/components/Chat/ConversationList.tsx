@@ -1,4 +1,3 @@
-// src/components/Chat/ConversationList.tsx
 import {useState, useEffect, useCallback} from 'react';
 import {
     Box,
@@ -14,9 +13,9 @@ import {
     Center
 } from '@chakra-ui/react';
 import useAuth from '../../hooks/useAuth';
-import {socket} from './websocket';
+import {subscribeToMessageType} from './websocket';
 import {MessagesService, UsersService} from '../../client';
-import {Conversation} from '../../client/types.gen';
+import {ConversationPublic} from '../../client/types.gen';
 
 interface ConversationListProps {
     selectedConversationId?: string;
@@ -25,7 +24,7 @@ interface ConversationListProps {
 
 export const ConversationList = ({selectedConversationId, onSelectConversation}: ConversationListProps) => {
     const {user} = useAuth();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [conversations, setConversations] = useState<ConversationPublic[]>([]);
     const [conversationNames, setConversationNames] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -80,64 +79,51 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
         loadConversations(true);
     }, [loadConversations]);
 
-    // WebSocket event handlers
+    // Subscribe to WebSocket events
     useEffect(() => {
-        if (!socket) return;
+        if (!user) return;
 
-        const handleSocketMessage = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
+        // Handle new messages
+        const unsubMessage = subscribeToMessageType('message', () => {
+            // Refresh conversations to show the new message
+            loadConversations(true);
+        });
 
-                // Handle new message event
-                if (data.type === 'new_message') {
-                    // Refresh conversations to show the new message
-                    loadConversations(true);
-                }
+        // Handle sent message confirmations
+        const unsubMessageSent = subscribeToMessageType('message_sent', () => {
+            // Refresh conversations to show the new message
+            loadConversations(true);
+        });
 
-                // Handle read receipt event
-                else if (data.type === 'read_receipt') {
-                    // Update unread counts
-                    setConversations(prevConversations =>
-                            prevConversations.map(conv => {
-                                if (conv.participants.includes(data.reader_id)) {
-                                    return {
-                                        ...conv,
-                                        unread_count: Math.max(0, conv.unread_count - 1),
-                                    };
-                                }
-                                return conv;
-                            })
-                    );
-                }
+        // Handle read receipts
+        const unsubReadReceipt = subscribeToMessageType('read_receipt', () => {
+            // Refresh to update unread counts
+            loadConversations(true);
+        });
 
-                // Handle conversation opened event
-                else if (data.type === 'conversation_opened') {
-                    // Update unread count for this conversation
-                    setConversations(prevConversations =>
-                            prevConversations.map(conv => {
-                                if (conv.id === data.conversation_id) {
-                                    return {
-                                        ...conv,
-                                        unread_count: 0,
-                                    };
-                                }
-                                return conv;
-                            })
-                    );
-                }
-            } catch (err) {
-                console.error('Error handling WebSocket message:', err);
-            }
-        };
+        // Handle conversation changes (new, updated, deleted)
+        const unsubConversationChange = subscribeToMessageType('conversation_updated', () => {
+            loadConversations(true);
+        });
 
-        socket.addEventListener('message', handleSocketMessage);
+        // Handle user blocking/unblocking
+        const unsubUserBlocked = subscribeToMessageType('user_blocked', () => {
+            loadConversations(true);
+        });
+
+        const unsubUserUnblocked = subscribeToMessageType('user_unblocked', () => {
+            loadConversations(true);
+        });
 
         return () => {
-            if (socket) {
-                socket.removeEventListener('message', handleSocketMessage);
-            }
+            unsubMessage();
+            unsubMessageSent();
+            unsubReadReceipt();
+            unsubConversationChange();
+            unsubUserBlocked();
+            unsubUserUnblocked();
         };
-    }, [socket, loadConversations]);
+    }, [user, loadConversations]);
 
     // Load user names for direct messages
     useEffect(() => {
@@ -156,14 +142,14 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
             await Promise.all(
                     directMessageConversations.map(async (conv) => {
                         // Find the other user ID in participants
-                        const otherUserId = conv.participants.find(id => id !== user.id);
-                        if (!otherUserId) return;
+                        const otherUser = conv.participants.find(p => p.user_id !== user.id);
+                        if (!otherUser) return;
 
                         try {
-                            const userData = await UsersService.readUserById({userId: otherUserId});
+                            const userData = await UsersService.readUserById({userId: otherUser.user_id});
                             names[conv.id] = userData.full_name || userData.email;
                         } catch (err) {
-                            console.error(`Error fetching name for user ${otherUserId}:`, err);
+                            console.error(`Error fetching name for user ${otherUser.user_id}:`, err);
                             names[conv.id] = 'Unknown User';
                         }
                     })
@@ -199,7 +185,7 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
     };
 
     // Get conversation display name
-    const getConversationName = (conversation: Conversation) => {
+    const getConversationName = (conversation: ConversationPublic) => {
         if (conversation.name) return conversation.name;
 
         // For direct messages, use the cached name or fallback
@@ -211,12 +197,20 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
     };
 
     // Handle conversation selection
-    const handleSelectConversation = (conversation: Conversation) => {
-        onSelectConversation(
-                conversation.id,
-                conversation.is_group,
-                getConversationName(conversation)
-        );
+    const handleSelectConversation = (conversation: ConversationPublic) => {
+        if (conversation.is_group) {
+            onSelectConversation(
+                    conversation.id,
+                    conversation.is_group,
+                    getConversationName(conversation)
+            );
+        } else {
+           onSelectConversation(
+                    conversation.id,
+                    false,
+                    getConversationName(conversation)
+            );
+        }
     };
 
     // Load more conversations

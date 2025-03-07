@@ -11,6 +11,47 @@ let connectionTimeout: number | null = null;
 let reconnectAttempt = 0;
 const maxReconnectAttempts = 5;
 
+// Event callbacks for different message types
+type MessageCallback = (message: any) => void;
+const messageHandlers: Record<string, MessageCallback[]> = {};
+
+/**
+ * Subscribe to a specific message type
+ * @param type Message type to subscribe to
+ * @param callback Function to call when a message of this type is received
+ * @returns A function to unsubscribe
+ */
+export const subscribeToMessageType = (type: string, callback: MessageCallback): () => void => {
+  if (!messageHandlers[type]) {
+    messageHandlers[type] = [];
+  }
+  messageHandlers[type].push(callback);
+
+  // Return unsubscribe function
+  return () => {
+    if (messageHandlers[type]) {
+      messageHandlers[type] = messageHandlers[type].filter(cb => cb !== callback);
+    }
+  };
+};
+
+/**
+ * Process a received message and call registered handlers
+ */
+const processMessage = (message: any) => {
+  const type = message.type;
+
+  // Call all registered handlers for this message type
+  if (messageHandlers[type]) {
+    messageHandlers[type].forEach(handler => handler(message));
+  }
+
+  // Call all registered handlers for 'all' message type
+  if (messageHandlers['all']) {
+    messageHandlers['all'].forEach(handler => handler(message));
+  }
+};
+
 /**
  * Creates a WebSocket connection with the authentication token.
  */
@@ -65,21 +106,26 @@ export const createWebSocketConnection = (): WebSocket | null => {
       }
       // Reset reconnection attempts on a successful connection
       reconnectAttempt = 0;
+
+      // Call all registered handlers for connection open
+      if (messageHandlers['connection_open']) {
+        messageHandlers['connection_open'].forEach(handler => handler({}));
+      }
     };
 
     newSocket.onmessage = (event) => {
-      console.log('Received message:', event.data);
       try {
-        // TODO: @Arnav Wadhwa this doesnt work dumbass
         const message = JSON.parse(event.data);
-        if (message.type === 'ping') {
+
+        // Log all non-ping messages for debugging
+        if (message.type !== 'ping') {
+          console.log('Received message:', message);
+        } else {
           console.log('Received server ping');
-          return;
         }
 
-        else if (message.type === 'new_message') {
-          console.log(`Received new Message from ${message.sender_id}`);
-        }
+        // Process the message with registered handlers
+        processMessage(message);
 
       } catch (error) {
         console.error('Error parsing message:', error);
@@ -89,6 +135,12 @@ export const createWebSocketConnection = (): WebSocket | null => {
     newSocket.onclose = (event) => {
       console.log(`WebSocket closed with code: ${event.code}, reason: ${event.reason || 'No reason provided'}`);
       socket = null;
+
+      // Call all registered handlers for connection close
+      if (messageHandlers['connection_close']) {
+        messageHandlers['connection_close'].forEach(handler => handler({ code: event.code, reason: event.reason }));
+      }
+
       // If the closure wasn't a normal close (code 1000), attempt reconnection
       if (event.code !== 1000) {
         scheduleReconnection();
@@ -97,6 +149,12 @@ export const createWebSocketConnection = (): WebSocket | null => {
 
     newSocket.onerror = (error) => {
       console.error('WebSocket error:', error);
+
+      // Call all registered handlers for connection error
+      if (messageHandlers['connection_error']) {
+        messageHandlers['connection_error'].forEach(handler => handler(error));
+      }
+
       // onclose will handle reconnection if necessary
     };
 
@@ -139,4 +197,121 @@ export const sendWebSocketMessage = (messageData: any): boolean => {
     console.error('Failed to send message:', error);
     return false;
   }
+};
+
+/**
+ * Sends a chat message to a conversation.
+ * Creates a new conversation if needed.
+ */
+export const sendChatMessage = (content: string, conversationId?: string, participants?: string[], isGroup: boolean = false): boolean => {
+  if (!content.trim()) return false;
+
+  const messageData = conversationId ?
+    {
+      type: "message",
+      conversation_id: conversationId,
+      participants: participants,
+      content
+    } :
+    {
+      type: "message",
+      new_conversation: true,
+      participant_ids: participants,
+      is_group: isGroup,
+      content
+    };
+
+  return sendWebSocketMessage(messageData);
+};
+
+/**
+ * Marks a message as read.
+ */
+export const markMessageAsRead = (messageId: string, conversationId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "read_receipt",
+    message_id: messageId,
+    conversation_id: conversationId
+  });
+};
+
+/**
+ * Sends a typing indicator for a conversation.
+ */
+export const sendTypingIndicator = (conversationId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "typing",
+    conversation_id: conversationId
+  });
+};
+
+/**
+ * Opens a conversation in the UI.
+ */
+export const openConversation = (conversationId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "open_conversation",
+    conversation_id: conversationId
+  });
+};
+
+/**
+ * Closes a conversation in the UI.
+ */
+export const closeConversation = (conversationId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "close_conversation",
+    conversation_id: conversationId
+  });
+};
+
+/**
+ * Edits a message.
+ */
+export const editMessage = (messageId: string, content: string): boolean => {
+  return sendWebSocketMessage({
+    type: "edit_message",
+    message_id: messageId,
+    content
+  });
+};
+
+/**
+ * Deletes a message.
+ */
+export const deleteMessage = (messageId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "delete_message",
+    message_id: messageId
+  });
+};
+
+/**
+ * Blocks a user.
+ */
+export const blockUser = (userId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "block_user",
+    user_id: userId
+  });
+};
+
+/**
+ * Unblocks a user.
+ */
+export const unblockUser = (userId: string): boolean => {
+  return sendWebSocketMessage({
+    type: "unblock_user",
+    user_id: userId
+  });
+};
+
+/**
+ * Manually close the WebSocket connection
+ */
+export const closeWebSocketConnection = () => {
+  if (socket && socket.readyState === WebSocketState.OPEN) {
+    socket.close(1000, "User logged out");
+  }
+  socket = null;
 };

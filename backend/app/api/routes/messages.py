@@ -1,22 +1,30 @@
 import asyncio
-from typing import Any
+import uuid
+from typing import Any, List
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, status
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, status, Body
 from starlette.websockets import WebSocketState
 
+from app.api.deps import SessionDep
 from app.crud import messages as message_crud
 from app.crud import users as user_crud
 from app.api import deps
 from app.models.messages import (
     MessageCreate,
+    MessageUpdate,
     MessagePublic,
+    ReadReceipt,
     MessagesPublic,
-    ConversationsPublic
+    ConversationCreate,
+    ConversationPublic,
+    ConversationsPublic,
+    UserBlockCreate, Conversation
 )
 from app.api.websockets import manager
 import json
 import logging
+from datetime import datetime
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 logger = logging.getLogger(__name__)
@@ -24,6 +32,153 @@ logger = logging.getLogger(__name__)
 
 @router.websocket("/ws/{token}")
 async def websocket_endpoint(websocket: WebSocket, token: str):
+    """
+    WebSocket endpoint for real-time messaging.
+
+    Client should send JSON messages with a "type" field and appropriate payload.
+    Server will respond with JSON messages with a "type" field and appropriate response data.
+
+    Message types and required fields:
+
+    1. Create/Send Message:
+       Client sends:
+       {
+           "type": "message",
+           "conversation_id": "UUID string", (or "new_conversation": true for new conversations)
+           "content": "message text",
+           "participant_ids": ["UUID string", "UUID string"], (only required if "new_conversation" is true)
+           "is_group": boolean (only required if "new_conversation" is true)
+       }
+
+       Server responds:
+       {
+           "type": "message_sent",
+           "message_id": "UUID string",
+           "conversation_id": "UUID string",
+           "content": "message text",
+           "created_at": "ISO timestamp",
+           "status": "sent",
+           "participant_count": number
+       }
+
+    2. Edit Message:
+       Client sends:
+       {
+           "type": "edit_message",
+           "message_id": "UUID string",
+           "content": "new message text"
+       }
+
+       Server responds:
+       {
+           "type": "message_updated",
+           "message_id": "UUID string",
+           "conversation_id": "UUID string",
+           "content": "updated text",
+           "updated_at": "ISO timestamp"
+       }
+
+    3. Delete Message:
+       Client sends:
+       {
+           "type": "delete_message",
+           "message_id": "UUID string"
+       }
+
+       Server responds:
+       {
+           "type": "message_deleted",
+           "message_id": "UUID string",
+           "conversation_id": "UUID string",
+           "deleted_at": "ISO timestamp"
+       }
+
+    4. Open Conversation:
+       Client sends:
+       {
+           "type": "open_conversation",
+           "conversation_id": "UUID string"
+       }
+
+       Server responds:
+       {
+           "type": "conversation_opened",
+           "conversation_id": "UUID string",
+           "is_group": boolean,
+           "messages_read": number
+       }
+
+    5. Close Conversation:
+       Client sends:
+       {
+           "type": "close_conversation",
+           "conversation_id": "UUID string"
+       }
+
+       Server responds:
+       {
+           "type": "conversation_closed",
+           "conversation_id": "UUID string"
+       }
+
+    6. Typing Notification:
+       Client sends:
+       {
+           "type": "typing",
+           "conversation_id": "UUID string"
+       }
+
+       Server responds: (to all other participants)
+       {
+           "type": "typing",
+           "user_id": "UUID string",
+           "conversation_id": "UUID string",
+           "timestamp": "ISO timestamp"
+       }
+
+    7. Read Receipt:
+       Client sends:
+       {
+           "type": "read_receipt",
+           "message_id": "UUID string",
+           "conversation_id": "UUID string"
+       }
+
+       Server responds:
+       {
+           "type": "read_receipt_sent",
+           "message_id": "UUID string",
+           "conversation_id": "UUID string"
+       }
+
+    8. Block User:
+       Client sends:
+       {
+           "type": "block_user",
+           "user_id": "UUID string"
+       }
+
+       Server responds:
+       {
+           "type": "user_blocked",
+           "blocked_id": "UUID string",
+           "created_at": "ISO timestamp"
+       }
+
+    9. Unblock User:
+       Client sends:
+       {
+           "type": "unblock_user",
+           "user_id": "UUID string"
+       }
+
+       Server responds:
+       {
+           "type": "user_unblocked",
+           "unblocked_id": "UUID string",
+           "timestamp": "ISO timestamp"
+       }
+    """
     # Track connection state to avoid multiple close attempts
     connection_closed = False
     # For cleanup
@@ -69,7 +224,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                         try:
                             await websocket.send_text(json.dumps({
                                 "type": "ping",
-                                "timestamp": str(int(asyncio.get_event_loop().time() * 1000))
+                                "timestamp": datetime.utcnow().isoformat()
                             }))
                             logger.debug(f"Ping sent to user {user_id}")
                         except Exception as e:
@@ -103,86 +258,268 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
                     # Handle different message types
                     if message_data["type"] == "message":
-                        if "receiver_ids" not in message_data or "content" not in message_data:
-                            await websocket.send_text(json.dumps({"error": "Missing required fields"}))
+                        try:
+                            # Check if we need to create a new conversation
+                            if "new_conversation" in message_data and message_data["new_conversation"]:
+                                # Validate required fields for new conversation
+                                if "participant_ids" not in message_data or "is_group" not in message_data:
+                                    await websocket.send_text(json.dumps({
+                                        "error": "Missing required fields for new conversation"
+                                    }))
+                                    continue
+
+                                # Convert participant IDs to UUID objects
+                                participant_ids = [UUID(id_str) for id_str in message_data["participant_ids"]]
+
+                                # Create a new conversation
+                                conversation_create = ConversationCreate(
+                                    participant_ids=participant_ids,
+                                    is_group=message_data["is_group"],
+                                    name=message_data.get("name")
+                                )
+
+                                try:
+                                    conversation = message_crud.create_conversation(
+                                        session=session,
+                                        creator_id=user_id,
+                                        conversation_in=conversation_create
+                                    )
+                                    conversation_id = conversation.id
+                                except HTTPException as http_ex:
+                                    await websocket.send_text(json.dumps({
+                                        "type": "error",
+                                        "status_code": http_ex.status_code,
+                                        "detail": http_ex.detail
+                                    }))
+                                    continue
+                            else:
+                                # For existing conversation, validate conversation_id
+                                if "conversation_id" not in message_data:
+                                    await websocket.send_text(json.dumps({
+                                        "error": "Missing conversation_id for existing conversation"
+                                    }))
+                                    continue
+
+                                conversation_id = UUID(message_data["conversation_id"])
+
+                                # Verify the conversation exists and user is a participant
+                                participants = message_crud.get_conversation_participants(session, conversation_id)
+                                if not participants or user_id not in participants:
+                                    await websocket.send_text(json.dumps({
+                                        "type": "error",
+                                        "detail": "Conversation not found or you're not a participant"
+                                    }))
+                                    continue
+
+                            # Validate content
+                            if "content" not in message_data:
+                                await websocket.send_text(json.dumps({"error": "Missing message content"}))
+                                continue
+
+                            # Create a message in the database
+                            message_create = MessageCreate(
+                                conversation_id=conversation_id,
+                                content=message_data["content"]
+                            )
+
+                            # Create the message
+                            db_message = message_crud.create_message(
+                                session=session,
+                                sender_id=user_id,
+                                message_in=message_create
+                            )
+
+                            # Get the conversation participants
+                            participant_ids = message_crud.get_conversation_participants(
+                                session, db_message.conversation_id
+                            )
+
+                            # Get message read receipts
+                            _, read_receipts = message_crud.get_message_with_read_status(session, db_message.id)
+
+                            # Convert to dict for sending via WebSocket
+                            message_dict = {
+                                "id": str(db_message.id),
+                                "sender_id": str(db_message.sender_id),
+                                "conversation_id": str(db_message.conversation_id),
+                                "content": db_message.content,
+                                "created_at": db_message.created_at.isoformat(),
+                                "read_by": [
+                                    {"user_id": str(receipt.user_id),
+                                     "read_at": receipt.read_at.isoformat()}
+                                    for receipt in read_receipts
+                                ]
+                            }
+
+                            # Broadcast to all participants except the sender
+                            await manager.broadcast_conversation_message(
+                                message_data=message_dict,
+                                conversation_id=db_message.conversation_id,
+                                participant_ids=participant_ids,
+                                sender_id=user_id
+                            )
+
+                            # Send confirmation back to the sender
+                            await websocket.send_text(json.dumps({
+                                "type": "message_sent",
+                                "message_id": str(db_message.id),
+                                "conversation_id": str(db_message.conversation_id),
+                                "content": db_message.content,
+                                "created_at": db_message.created_at.isoformat(),
+                                "status": "sent",
+                                "participant_count": len(participant_ids) - 1  # Exclude sender
+                            }))
+                        except HTTPException as http_ex:
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "status_code": http_ex.status_code,
+                                "detail": http_ex.detail
+                            }))
+                        except Exception as e:
+                            logger.exception(f"Error creating message: {str(e)}")
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "Failed to create message"
+                            }))
+
+                    elif message_data["type"] == "edit_message":
+                        if "message_id" not in message_data or "content" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing required fields for edit message"}))
                             continue
 
-                        # Parse receiver IDs
-                        receiver_ids = [UUID(id_str) for id_str in message_data["receiver_ids"]]
-                        is_group = len(receiver_ids) > 1 or message_data.get("is_group_chat", False)
+                        message_id = UUID(message_data["message_id"])
+                        content = message_data["content"]
 
-                        # Create a message in the database
-                        message_create = MessageCreate(
-                            receiver_ids=receiver_ids,
-                            content=message_data["content"],
-                            is_group_chat=is_group
-                        )
+                        try:
+                            # Update the message
+                            updated_message = message_crud.update_message(
+                                session=session,
+                                message_id=message_id,
+                                user_id=user_id,
+                                message_update=MessageUpdate(content=content)
+                            )
 
-                        db_message = message_crud.create_message(
-                            session=session,
-                            sender_id=user_id,
-                            message_in=message_create
-                        )
+                            if not updated_message:
+                                await websocket.send_text(json.dumps({
+                                    "type": "error",
+                                    "detail": "Message not found or you don't have permission to edit it"
+                                }))
+                                continue
 
-                        # Get the message recipients
-                        message_recipients = message_crud.get_message_recipients(session, db_message.id)
+                            # Get participants to notify about the update
+                            participant_ids = message_crud.get_conversation_participants(
+                                session, updated_message.conversation_id
+                            )
 
-                        # Convert to dict for sending via WebSocket
-                        message_dict = {
-                            "id": str(db_message.id),
-                            "sender_id": str(db_message.sender_id),
-                            "sender_name": str(db_message.sender.full_name),
-                            "receiver_ids": [str(r) for r in message_recipients],
-                            "content": db_message.content,
-                            "is_group_chat": db_message.is_group_chat,
-                            "created_at": db_message.created_at.isoformat(),
-                            "type": "new_message"
-                        }
+                            # Create update notification
+                            message_dict = {
+                                "id": str(updated_message.id),
+                                "sender_id": str(updated_message.sender_id),
+                                "conversation_id": str(updated_message.conversation_id),
+                                "content": updated_message.content,
+                                "created_at": updated_message.created_at.isoformat(),
+                                "updated_at": updated_message.updated_at.isoformat()
+                            }
 
-                        # Try to send to all online recipients
-                        online_count = 0
-                        receiver_emails = []
-                        for receiver_id in message_recipients:
-                            if manager.is_online(receiver_id):
-                                await manager.send_personal_message(message_dict, receiver_id)
-                                online_count += 1
+                            # Broadcast update to all participants
+                            await manager.broadcast_message_update(
+                                message_data=message_dict,
+                                conversation_id=updated_message.conversation_id,
+                                participant_ids=participant_ids,
+                                updater_id=user_id
+                            )
 
-                                # If the receiver has an open conversation with the sender, mark as read
-                                # For direct messages
-                                if not is_group and manager.has_open_conversation(receiver_id, user_id):
-                                    message_crud.mark_message_as_read(session, db_message.id, receiver_id)
+                            # Confirm to the sender
+                            await websocket.send_text(json.dumps({
+                                "type": "message_updated",
+                                "message_id": str(updated_message.id),
+                                "conversation_id": str(updated_message.conversation_id),
+                                "content": updated_message.content,
+                                "updated_at": updated_message.updated_at.isoformat()
+                            }))
+                        except HTTPException as http_ex:
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "status_code": http_ex.status_code,
+                                "detail": http_ex.detail
+                            }))
+                        except Exception as e:
+                            logger.exception(f"Error updating message: {str(e)}")
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "Failed to update message"
+                            }))
 
-                                # For group chats
-                                if is_group and any(
-                                        manager.has_open_conversation(receiver_id, r) for r in receiver_ids
-                                ):
-                                    message_crud.mark_message_as_read(session, db_message.id, receiver_id)
+                    elif message_data["type"] == "delete_message":
+                        if "message_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing message_id"}))
+                            continue
 
+                        message_id = UUID(message_data["message_id"])
 
-                            receiver_emails.append(user_crud.get_user(session=session, id=receiver_id).email)
+                        try:
+                            # Delete the message
+                            deleted_message = message_crud.delete_message(
+                                session=session,
+                                message_id=message_id,
+                                user_id=user_id
+                            )
 
+                            if not deleted_message:
+                                await websocket.send_text(json.dumps({
+                                    "type": "error",
+                                    "detail": "Message not found or you don't have permission to delete it"
+                                }))
+                                continue
 
+                            # Get participants to notify about the deletion
+                            participant_ids = message_crud.get_conversation_participants(
+                                session, deleted_message.conversation_id
+                            )
 
-                        # Send confirmation back to the sender
-                        await websocket.send_text(json.dumps({
-                            "type": "message_sent",
-                            "content": db_message.content,
-                            "receiver_emails": [str(r) for r in receiver_emails],
-                            "message_id": str(db_message.id),
-                            "message": str(db_message.content),
-                            "status": "delivered" if online_count > 0 else "sent",
-                            "online_recipients": online_count,
-                            "total_recipients": len(message_recipients)
-                        }))
+                            # Broadcast deletion to all participants
+                            await manager.broadcast_message_delete(
+                                message_id=message_id,
+                                conversation_id=deleted_message.conversation_id,
+                                participant_ids=participant_ids,
+                                deleter_id=user_id
+                            )
+
+                            # Confirm to the sender
+                            await websocket.send_text(json.dumps({
+                                "type": "message_deleted",
+                                "message_id": str(message_id),
+                                "conversation_id": str(deleted_message.conversation_id),
+                                "deleted_at": deleted_message.deleted_at.isoformat()
+                            }))
+                        except HTTPException as http_ex:
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "status_code": http_ex.status_code,
+                                "detail": http_ex.detail
+                            }))
+                        except Exception as e:
+                            logger.exception(f"Error deleting message: {str(e)}")
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "Failed to delete message"
+                            }))
 
                     elif message_data["type"] == "open_conversation":
-                        if "conversation_id" not in message_data or "is_group" not in message_data:
-                            await websocket.send_text(
-                                json.dumps({"error": "Missing conversation_id or is_group flag"}))
+                        if "conversation_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing conversation_id"}))
                             continue
 
                         conversation_id = UUID(message_data["conversation_id"])
-                        is_group = message_data["is_group"]
+
+                        # Verify the conversation exists and user is a participant
+                        participants = message_crud.get_conversation_participants(session, conversation_id)
+                        if user_id not in participants:
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "You are not a participant in this conversation"
+                            }))
+                            continue
 
                         manager.add_open_conversation(user_id, conversation_id)
 
@@ -190,14 +527,16 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                         count = message_crud.mark_conversation_as_read(
                             session=session,
                             user_id=user_id,
-                            conversation_id=conversation_id,
-                            is_group=is_group
+                            conversation_id=conversation_id
                         )
+
+                        # Get conversation data
+                        conversation = message_crud.get_conversation(session, conversation_id)
 
                         await websocket.send_text(json.dumps({
                             "type": "conversation_opened",
                             "conversation_id": str(conversation_id),
-                            "is_group": is_group,
+                            "is_group": conversation.is_group,
                             "messages_read": count
                         }))
 
@@ -215,60 +554,135 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                         }))
 
                     elif message_data["type"] == "typing":
-                        if "conversation_id" not in message_data or "is_group" not in message_data:
-                            await websocket.send_text(
-                                json.dumps({"error": "Missing conversation_id or is_group flag"}))
+                        if "conversation_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing conversation_id"}))
                             continue
 
                         conversation_id = UUID(message_data["conversation_id"])
-                        is_group = message_data["is_group"]
 
-                        # For direct messages, recipient_ids is just the conversation_id (other user)
-                        # For group chats, we need to get all participants
-                        if is_group:
-                            # In a real app, you'd fetch group members from a groups table
-                            # This is simplified to just use the conversation_id as a participant
-                            recipient_ids = [conversation_id]
-                        else:
-                            recipient_ids = [conversation_id]
+                        # Verify the conversation exists and user is a participant
+                        participants = message_crud.get_conversation_participants(session, conversation_id)
+                        if user_id not in participants:
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "You are not a participant in this conversation"
+                            }))
+                            continue
 
-                        # Send typing notification to recipients
+                        # Send typing notification to all participants
                         await manager.broadcast_typing_notification(
                             typing_user_id=user_id,
                             conversation_id=conversation_id,
-                            recipient_ids=recipient_ids,
-                            is_group=is_group
+                            participant_ids=participants
                         )
 
                     elif message_data["type"] == "read_receipt":
-                        if "message_id" not in message_data:
-                            await websocket.send_text(json.dumps({"error": "Missing message_id"}))
+                        if "message_id" not in message_data or "conversation_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing required fields for read receipt"}))
                             continue
 
                         message_id = UUID(message_data["message_id"])
+                        conversation_id = UUID(message_data["conversation_id"])
 
                         # Mark message as read
                         success = message_crud.mark_message_as_read(session, message_id, user_id)
 
                         if success:
-                            # Get message to find out the sender
-                            message = message_crud.get_message(session, message_id)
+                            # Get participants to notify about the read receipt
+                            participants = message_crud.get_conversation_participants(session, conversation_id)
 
-                            if message:
-                                # For group chats, notify all participants
-                                # For direct messages, notify just the sender
-                                if message.is_group_chat:
-                                    recipients = message_crud.get_message_recipients(session, message_id)
-                                    recipients.append(message.sender_id)
-                                else:
-                                    recipients = [message.sender_id]
+                            # Send read receipt to all participants
+                            await manager.broadcast_read_receipt(
+                                message_id=message_id,
+                                conversation_id=conversation_id,
+                                reader_id=user_id,
+                                participant_ids=participants
+                            )
 
-                                # Send read receipt to recipients
-                                await manager.broadcast_read_receipt(
-                                    message_id=message_id,
-                                    reader_id=user_id,
-                                    recipient_ids=recipients
+                            await websocket.send_text(json.dumps({
+                                "type": "read_receipt_sent",
+                                "message_id": str(message_id),
+                                "conversation_id": str(conversation_id)
+                            }))
+                        else:
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "Failed to mark message as read"
+                            }))
+
+                    elif message_data["type"] == "block_user":
+                        if "user_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing user_id"}))
+                            continue
+
+                        blocked_id = UUID(message_data["user_id"])
+
+                        try:
+                            # Block the user
+                            block = message_crud.block_user(
+                                session=session,
+                                blocker_id=user_id,
+                                blocked_id=blocked_id
+                            )
+
+                            # Notify the blocked user
+                            await manager.broadcast_user_blocked(
+                                blocker_id=user_id,
+                                blocked_id=blocked_id
+                            )
+
+                            # Confirm to the blocker
+                            await websocket.send_text(json.dumps({
+                                "type": "user_blocked",
+                                "blocked_id": str(blocked_id),
+                                "created_at": block.created_at.isoformat()
+                            }))
+                        except Exception as e:
+                            logger.exception(f"Error blocking user: {str(e)}")
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "Failed to block user"
+                            }))
+
+                    elif message_data["type"] == "unblock_user":
+                        if "user_id" not in message_data:
+                            await websocket.send_text(json.dumps({"error": "Missing user_id"}))
+                            continue
+
+                        unblocked_id = UUID(message_data["user_id"])
+
+                        try:
+                            # Unblock the user
+                            success = message_crud.unblock_user(
+                                session=session,
+                                blocker_id=user_id,
+                                blocked_id=unblocked_id
+                            )
+
+                            if success:
+                                # Notify the unblocked user
+                                await manager.broadcast_user_unblocked(
+                                    unblocker_id=user_id,
+                                    unblocked_id=unblocked_id
                                 )
+
+                                # Confirm to the unblocker
+                                await websocket.send_text(json.dumps({
+                                    "type": "user_unblocked",
+                                    "unblocked_id": str(unblocked_id),
+                                    "timestamp": datetime.utcnow().isoformat()
+                                }))
+                            else:
+                                await websocket.send_text(json.dumps({
+                                    "type": "error",
+                                    "detail": "User was not blocked"
+                                }))
+                        except Exception as e:
+                            logger.exception(f"Error unblocking user: {str(e)}")
+                            await websocket.send_text(json.dumps({
+                                "type": "error",
+                                "detail": "Failed to unblock user"
+                            }))
 
                     else:
                         await websocket.send_text(json.dumps({
@@ -280,7 +694,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                     try:
                         await websocket.send_text(json.dumps({
                             "type": "ping",
-                            "timestamp": str(int(asyncio.get_event_loop().time() * 1000))
+                            "timestamp": datetime.utcnow().isoformat()
                         }))
                     except Exception:
                         # If we can't send a ping, the connection is dead
@@ -336,9 +750,40 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 # Ignore errors during close
                 pass
 
+
 # REST API endpoints for messaging
 
-@router.post("", response_model=MessagePublic)
+@router.post("/conversations", response_model=ConversationPublic)
+def create_conversation(
+        *,
+        session: deps.SessionDep,
+        conversation_in: ConversationCreate,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Create a new conversation.
+    """
+    conversation = message_crud.create_conversation(
+        session=session, creator_id=current_user.id, conversation_in=conversation_in
+    )
+
+    # Get participants for the response
+    participants = message_crud.get_conversation_participants(session, conversation.id)
+
+    # Create the response object
+    return ConversationPublic(
+        id=conversation.id,
+        name=conversation.name,
+        is_group=conversation.is_group,
+        created_at=conversation.created_at,
+        participants=[{"user_id": participant_id} for participant_id in participants],
+        last_message=None,
+        last_message_time=None,
+        unread_count=0
+    )
+
+
+@router.post("/messages", response_model=MessagePublic)
 def create_message(
         *,
         session: deps.SessionDep,
@@ -346,24 +791,106 @@ def create_message(
         current_user: deps.CurrentUser,
 ) -> Any:
     """
-    Create new message.
+    Create a new message.
     """
     message = message_crud.create_message(
         session=session, sender_id=current_user.id, message_in=message_in
     )
 
-    # Get recipients and read receipts for the response
-    receiver_ids = message_crud.get_message_recipients(session, message.id)
-    read_receipts = message_crud.get_message_read_receipts(session, message.id)
+    # Get read receipts for the response
+    _, read_receipts = message_crud.get_message_with_read_status(session, message.id)
 
     # Convert to public model
     message_public = MessagePublic(
         id=message.id,
         sender_id=message.sender_id,
-        receiver_ids=receiver_ids,
+        conversation_id=message.conversation_id,
         content=message.content,
-        is_group_chat=message.is_group_chat,
         created_at=message.created_at,
+        updated_at=message.updated_at,
+        deleted=message.deleted,
+        read_by=read_receipts
+    )
+
+    return message_public
+
+
+@router.put("/messages/{message_id}", response_model=MessagePublic)
+def update_message(
+        *,
+        session: deps.SessionDep,
+        message_id: UUID,
+        message_update: MessageUpdate,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Update a message.
+    """
+    updated_message = message_crud.update_message(
+        session=session,
+        message_id=message_id,
+        user_id=current_user.id,
+        message_update=message_update
+    )
+
+    if not updated_message:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message not found"
+        )
+
+    # Get read receipts for the response
+    _, read_receipts = message_crud.get_message_with_read_status(session, message_id)
+
+    # Convert to public model
+    message_public = MessagePublic(
+        id=updated_message.id,
+        sender_id=updated_message.sender_id,
+        conversation_id=updated_message.conversation_id,
+        content=updated_message.content,
+        created_at=updated_message.created_at,
+        updated_at=updated_message.updated_at,
+        deleted=updated_message.deleted,
+        read_by=read_receipts
+    )
+
+    return message_public
+
+
+@router.delete("/messages/{message_id}", response_model=MessagePublic)
+def delete_message(
+        *,
+        session: deps.SessionDep,
+        message_id: UUID,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Delete a message.
+    """
+    deleted_message = message_crud.delete_message(
+        session=session,
+        message_id=message_id,
+        user_id=current_user.id
+    )
+
+    if not deleted_message:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message not found"
+        )
+
+    # Get read receipts for the response
+    _, read_receipts = message_crud.get_message_with_read_status(session, message_id)
+
+    # Convert to public model
+    message_public = MessagePublic(
+        id=deleted_message.id,
+        sender_id=deleted_message.sender_id,
+        conversation_id=deleted_message.conversation_id,
+        content=deleted_message.content,
+        created_at=deleted_message.created_at,
+        updated_at=deleted_message.updated_at,
+        deleted=deleted_message.deleted,
         read_by=read_receipts
     )
 
@@ -378,61 +905,81 @@ def get_conversations(
         limit: int = 50,
 ) -> Any:
     """
-    Get all conversations for the current user (both direct and group chats).
+    Get all conversations for the current user.
     """
-    conversations, count = message_crud.get_conversations(
+    conversations, total = message_crud.get_user_conversations(
         session=session, user_id=current_user.id, skip=skip, limit=limit
     )
 
-    return ConversationsPublic(data=conversations, count=count)
+    # Create conversation public objects
+    conversation_publics = []
+    for conv_dict in conversations:
+        # Create a ConversationPublic object with all required fields
+        conversation_public = ConversationPublic(
+            id=conv_dict["id"],
+            name=conv_dict["name"],
+            is_group=conv_dict["is_group"],
+            created_at=conv_dict["created_at"],
+            last_message=conv_dict["last_message"],
+            last_message_time=conv_dict["last_message_time"],
+            unread_count=conv_dict["unread_count"],
+            participants=conv_dict["participants"]
+        )
+        conversation_publics.append(conversation_public)
+
+    return ConversationsPublic(data=conversation_publics, count=total)
 
 
-@router.get("/conversation/{conversation_id}", response_model=MessagesPublic)
+@router.get("/conversations/{conversation_id}/messages", response_model=MessagesPublic)
 def get_conversation_messages(
         *,
         session: deps.SessionDep,
         conversation_id: UUID,
-        is_group: bool = False,
         current_user: deps.CurrentUser,
         skip: int = 0,
         limit: int = 100,
+        include_deleted: bool = False
 ) -> Any:
     """
     Get messages for a specific conversation.
-    For direct messages, conversation_id is the other user's ID.
-    For group chats, conversation_id is the conversation's unique ID.
     """
-    messages, count = message_crud.get_messages_for_conversation(
+    # Verify user is a participant
+    participants = message_crud.get_conversation_participants(session, conversation_id)
+    if current_user.id not in participants:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a participant in this conversation"
+        )
+
+    messages, count = message_crud.get_conversation_messages(
         session=session,
-        user_id=current_user.id,
         conversation_id=conversation_id,
-        is_group=is_group,
         skip=skip,
         limit=limit,
+        include_deleted=include_deleted
     )
 
     # Mark messages as read when fetched via API
     message_crud.mark_conversation_as_read(
         session=session,
         user_id=current_user.id,
-        conversation_id=conversation_id,
-        is_group=is_group
+        conversation_id=conversation_id
     )
 
     # Convert to public model with read receipts
     public_messages = []
     for message in messages:
-        receiver_ids = message_crud.get_message_recipients(session, message.id)
-        read_receipts = message_crud.get_message_read_receipts(session, message.id)
+        _, read_receipts = message_crud.get_message_with_read_status(session, message.id)
 
         public_messages.append(
             MessagePublic(
                 id=message.id,
                 sender_id=message.sender_id,
-                receiver_ids=receiver_ids,
+                conversation_id=message.conversation_id,
                 content=message.content,
-                is_group_chat=message.is_group_chat,
                 created_at=message.created_at,
+                updated_at=message.updated_at,
+                deleted=message.deleted,
                 read_by=read_receipts
             )
         )
@@ -440,12 +987,21 @@ def get_conversation_messages(
     return MessagesPublic(data=public_messages, count=count)
 
 
+@router.get("/conversations/{conversation_id}", response_model=ConversationPublic)
+def get_conversation_by_id(*, conversation_id: uuid.UUID, session: SessionDep):
+    """
+    Get a specific conversation by id.
+    """
+    conversation = session.get(Conversation, conversation_id)
+    return conversation
+
+
 @router.get("/unread", response_model=int)
 def get_unread_count(
         *,
         session: deps.SessionDep,
         current_user: deps.CurrentUser,
-        from_user: UUID = Query(None, description="Filter by sender"),
+        conversation_id: UUID = Query(None, description="Filter by conversation")
 ) -> Any:
     """
     Get count of unread messages for the current user.
@@ -453,11 +1009,11 @@ def get_unread_count(
     return message_crud.get_unread_count(
         session=session,
         user_id=current_user.id,
-        sender_id=from_user
+        conversation_id=conversation_id
     )
 
 
-@router.post("/{message_id}/read", response_model=bool)
+@router.post("/messages/{message_id}/read", response_model=bool)
 def mark_message_read(
         *,
         session: deps.SessionDep,
@@ -474,7 +1030,109 @@ def mark_message_read(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot mark message as read. Either the message doesn't exist or you're not a recipient."
+            detail="Cannot mark message as read. Either the message doesn't exist or you're not a participant in the conversation."
         )
 
     return True
+
+
+@router.post("/conversations/{conversation_id}/read", response_model=int)
+def mark_conversation_read(
+        *,
+        session: deps.SessionDep,
+        conversation_id: UUID,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Mark all messages in a conversation as read.
+    """
+    # Verify user is a participant
+    participants = message_crud.get_conversation_participants(session, conversation_id)
+    if current_user.id not in participants:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a participant in this conversation"
+        )
+
+    count = message_crud.mark_conversation_as_read(
+        session=session,
+        user_id=current_user.id,
+        conversation_id=conversation_id
+    )
+
+    return count
+
+
+@router.post("/users/block", response_model=dict)
+def block_user(
+        *,
+        session: deps.SessionDep,
+        block_data: UserBlockCreate,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Block a user.
+    """
+    block = message_crud.block_user(
+        session=session,
+        blocker_id=current_user.id,
+        blocked_id=block_data.blocked_id
+    )
+
+    return {
+        "blocker_id": str(block.blocker_id),
+        "blocked_id": str(block.blocked_id),
+        "created_at": block.created_at.isoformat()
+    }
+
+
+@router.post("/users/{user_id}/unblock", response_model=bool)
+def unblock_user(
+        *,
+        session: deps.SessionDep,
+        user_id: UUID,
+        current_user: deps.CurrentUser,
+) -> Any:
+    """
+    Unblock a user.
+    """
+    success = message_crud.unblock_user(
+        session=session,
+        blocker_id=current_user.id,
+        blocked_id=user_id
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User was not blocked"
+        )
+
+    return success
+
+    @router.get("/users/blocked", response_model=List[UUID])
+    def get_blocked_users(
+            *,
+            session: deps.SessionDep,
+            current_user: deps.CurrentUser,
+    ) -> Any:
+        """
+        Get all users blocked by the current user.
+        """
+        return message_crud.get_blocked_users(session, current_user.id)
+
+    @router.get("/users/{user_id}/blocked", response_model=bool)
+    def check_user_blocked(
+            *,
+            session: deps.SessionDep,
+            user_id: UUID,
+            current_user: deps.CurrentUser,
+    ) -> Any:
+        """
+        Check if a user is blocked by the current user or has blocked the current user.
+        """
+        return message_crud.is_user_blocked(
+            session=session,
+            user_id=current_user.id,
+            target_id=user_id
+        )

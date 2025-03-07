@@ -7,13 +7,27 @@ import {
     Button,
     Avatar,
     Spinner,
-    useColorModeValue, MenuButton, Menu, MenuList, MenuItem,
+    useColorModeValue,
+    MenuButton,
+    Menu,
+    MenuList,
+    MenuItem,
 } from '@chakra-ui/react';
 import useAuth from '../../hooks/useAuth';
-import {socket, sendWebSocketMessage} from './websocket';
-import {MessagesService, UsersService} from '../../client';
-import {MessagePublic, ReadReceipt, UserPublic} from '../../client/types.gen';
-import {sendEmailNotification} from "../../client/emailService.ts";
+import {
+    subscribeToMessageType,
+    sendChatMessage,
+    editMessage,
+    deleteMessage,
+    markMessageAsRead,
+    sendTypingIndicator,
+    openConversation,
+    closeConversation,
+    blockUser,
+    unblockUser
+} from './websocket';
+import {MessagesService} from '../../client';
+import {MessagePublic} from '../../client/types.gen';
 
 function debounce(func: Function, wait: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -26,7 +40,6 @@ function debounce(func: Function, wait: number) {
         }, wait);
     };
 }
-
 
 interface ChatWindowProps {
     conversationId: string;
@@ -43,7 +56,7 @@ interface MessageWithStatus extends MessagePublic {
 export const ChatWindow = ({
                                conversationId,
                                isGroup,
-                               conversationName
+                               conversationName,
                            }: ChatWindowProps) => {
     const {user} = useAuth();
     const [messages, setMessages] = useState<MessageWithStatus[]>([]);
@@ -60,10 +73,7 @@ export const ChatWindow = ({
     const [isBlocked, setIsBlocked] = useState(false);
     const [editingMessage, setEditingMessage] = useState<MessageWithStatus | null>(null);
     const [editText, setEditText] = useState<string>('');
-    // Styling
-    const myMessageBg = useColorModeValue('yellow.500', 'yellow.500');
-    const otherMessageBg = useColorModeValue('gray.100', 'gray.700');
-    const timeColor = useColorModeValue('gray.500', 'gray.400');
+    const [participants, setParticipants] = useState<string[]>([]);
 
     // Load messages
     const loadMessages = async (refresh = false) => {
@@ -80,10 +90,21 @@ export const ChatWindow = ({
 
             const response = await MessagesService.getConversationMessages({
                 conversationId,
-                isGroup,
                 skip: newPage * limit,
                 limit,
             });
+
+            // Load participants if this is the first load
+            if (refresh) {
+                try {
+                    const conversationDetails = await MessagesService.getConversationById({
+                        conversationId
+                    });
+                    setParticipants(conversationDetails.participants.map(p => p.user_id));
+                } catch (err) {
+                    console.error('Error loading participants:', err);
+                }
+            }
 
             const newMessages = response.data.map(msg => ({
                 ...msg,
@@ -100,15 +121,10 @@ export const ChatWindow = ({
             setHasMore(newMessages.length === limit);
             setPage(refresh ? 1 : newPage + 1);
 
-            // Mark messages as read via WebSocket
-            newMessages.forEach(msg => {
-                if (!msg.isFromMe && socket && socket.readyState === WebSocket.OPEN) {
-                    sendWebSocketMessage({
-                        type: 'read_receipt',
-                        message_id: msg.id
-                    });
-                }
-            });
+            // Mark messages as read
+            if (response.data.length > 0) {
+                markConversationAsRead();
+            }
 
         } catch (err) {
             setError('Failed to load messages');
@@ -116,6 +132,17 @@ export const ChatWindow = ({
         } finally {
             setIsLoading(false);
             setIsLoadingMore(false);
+        }
+    };
+
+    // Mark all messages in conversation as read
+    const markConversationAsRead = async () => {
+        try {
+            await MessagesService.markConversationRead({
+                conversationId
+            });
+        } catch (err) {
+            console.error('Error marking conversation as read:', err);
         }
     };
 
@@ -137,13 +164,7 @@ export const ChatWindow = ({
         loadMessages(true);
 
         // Notify server that this conversation is open
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            sendWebSocketMessage({
-                type: 'open_conversation',
-                conversation_id: conversationId,
-                is_group: isGroup
-            });
-        }
+        openConversation(conversationId);
 
         // Clean up
         return () => {
@@ -151,12 +172,7 @@ export const ChatWindow = ({
             setTypingUsers(new Set());
 
             // Notify server that conversation is closed
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                sendWebSocketMessage({
-                    type: 'close_conversation',
-                    conversation_id: conversationId
-                });
-            }
+            closeConversation(conversationId);
         };
     }, [conversationId, isGroup]);
 
@@ -169,147 +185,158 @@ export const ChatWindow = ({
 
     // Handle WebSocket events
     useEffect(() => {
-        if (!socket || !user) return;
+        if (!user) return;
 
-        const handleSocketMessage = (event: MessageEvent) => {
-            try {
-                const data = JSON.parse(event.data);
-
-                if (data.type === 'new_message') {
-                    const isCurrentConversation = isGroup
-                        ? data.is_group_chat && data.receiver_ids.includes(conversationId)
-                        : (
-                            (!data.is_group_chat) &&
-                            (
-                                (data.sender_id === conversationId && data.receiver_ids.includes(user.id)) ||
-                                (data.sender_id === user.id && data.receiver_ids.includes(conversationId))
-                            )
-                        );
-
-                    if (isCurrentConversation) {
-                        setMessages(prev => [
-                            ...prev,
-                            {
-                                ...data,
-                                isFromMe: data.sender_id === user.id,
-                                status: 'delivered',
-                                read_by: []
-                            }
-                        ]);
-
-                        // console.log("email sent?")
-                        // console.log('Received WebSocket message:', data);
-                        //
-                        // sendEmailNotification(
-                        //     'anna.pokrovskaya05@gmail.com',
-                        //     usersService.,
-                        //     `You have a new message from "`
-                        // );
+        // Subscribe to new messages
+        const unsubMessage = subscribeToMessageType('message', (data) => {
+            data = data.data
+            // Check if this message belongs to the current conversation
+            if (data.conversation_id === conversationId) {
+                // Add the message to the state
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        ...data,
+                        isFromMe: data.sender_id === user.id,
+                        status: 'delivered',
+                        read_by: []
                     }
+                ]);
 
-                }
+                // Mark as read
+                markMessageAsRead(data.id, conversationId);
+            }
+        });
 
-
-                // Handle read receipts
-                else if (data.type === 'read_receipt') {
-                    // Update message status
-                    setMessages(prev => prev.map(msg => {
-                        if (msg.id === data.message_id) {
-                            // Create a new read receipt
-                            const newReadReceipt: ReadReceipt = {
-                                message_id: data.message_id,
-                                user_id: data.reader_id,
-                                read_at: data.timestamp
-                            };
-
-                            // Check if this receipt is already there
-                            const alreadyExists = msg.read_by?.some(
-                                receipt => receipt.user_id === newReadReceipt.user_id
-                            );
-
-                            if (!alreadyExists) {
-                                return {
-                                    ...msg,
-                                    status: 'read',
-                                    read_by: [...(msg.read_by || []), newReadReceipt]
-                                };
-                            }
-                        }
-                        return msg;
-                    }));
-                }
-
-                // Handle typing indicators
-                else if (data.type === 'typing') {
-                    // Check if relevant to this conversation
-                    const isRelevantTyping =
-                        (isGroup && data.is_group && data.conversation_id === conversationId) ||
-                        (!isGroup && !data.is_group && data.user_id === conversationId);
-
-                    if (isRelevantTyping) {
-                        // Add to typing users
-                        setTypingUsers(prev => new Set(prev).add(data.user_id));
-
-                        // Clear after timeout
-                        setTimeout(() => {
-                            setTypingUsers(prev => {
-                                const newSet = new Set(prev);
-                                newSet.delete(data.user_id);
-                                return newSet;
-                            });
-                        }, 3000); // Clear typing indicator after 3 seconds
-                    }
-                }
-
-                // Handle message_sent confirmation
-                else if (data.type === 'message_sent') {
-                    // Update temp message status
-                    if (data.message_id) {
-                        setMessages(prev => prev.map(msg =>
-                            msg.tempId === data.message_id || msg.id === data.message_id
+        // Subscribe to message sent confirmations
+        const unsubMessageSent = subscribeToMessageType('message_sent', (data) => {
+            // Update temp message with confirmed data
+            if (data.conversation_id === conversationId) {
+                setMessages(prev => prev.map(msg =>
+                        msg.tempId === data.message_id || msg.id === data.message_id
                                 ? {
                                     ...msg,
-                                    id: data.message_id, // Replace temp ID with real ID
-                                    status: data.status === 'delivered' ? 'delivered' : 'sent'
+                                    id: data.message_id,
+                                    status: 'sent'
                                 }
                                 : msg
-                        ));
-                    }
-
-                    // TODO: Send email here?
-                    for (const email of data.receiver_emails) {
-
-                        console.log(`Send an email to ${user.id}`);
-
-                        sendEmailNotification(email, data.sender_name, data.content)
-                    }
-
-                }
-            } catch (err) {
-                console.error('Error handling WebSocket message:', err);
+                ));
             }
-        };
+        });
 
-        socket.addEventListener('message', handleSocketMessage);
+        // Subscribe to message updates
+        const unsubMessageUpdate = subscribeToMessageType('message_update', (data) => {
+            data = data.data
+            if (data.conversation_id === conversationId) {
+                setMessages(prev => prev.map(msg =>
+                        msg.id === data.id
+                                ? {
+                                    ...msg,
+                                    content: data.content,
+                                    updated_at: data.updated_at
+                                }
+                                : msg
+                ));
+            }
+        });
 
+        // Subscribe to message deletions
+        const unsubMessageDelete = subscribeToMessageType('message_delete', (data) => {
+            if (data.conversation_id === conversationId) {
+                setMessages(prev => prev.map(msg =>
+                        msg.id === data.message_id
+                                ? {
+                                    ...msg,
+                                    deleted: true,
+                                    content: "This message was deleted"
+                                }
+                                : msg
+                ));
+            }
+        });
+
+        // Subscribe to typing notifications
+        const unsubTyping = subscribeToMessageType('typing', (data) => {
+            console.log("typing", data);
+            if (data.conversation_id === conversationId && data.user_id !== user.id) {
+                // Add to typing users
+                setTypingUsers(prev => new Set(prev).add(data.user_id));
+
+                // Clear after timeout
+                setTimeout(() => {
+                    setTypingUsers(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(data.user_id);
+                        return newSet;
+                    });
+                }, 3000); // Clear typing indicator after 3 seconds
+            }
+        });
+
+        // Subscribe to read receipts
+        const unsubReadReceipt = subscribeToMessageType('read_receipt', (data) => {
+            console.log("read receipt:", data);
+            if (data.conversation_id === conversationId) {
+                // Update message read status
+                setMessages(prev => prev.map(msg => {
+                    if (msg.id === data.message_id) {
+                        // Check if this receipt already exists
+                        const existingReceipt = msg.read_by?.some(
+                                receipt => receipt.user_id === data.reader_id
+                        );
+
+                        if (!existingReceipt) {
+                            return {
+                                ...msg,
+                                status: 'read',
+                                read_by: [
+                                    ...(msg.read_by || []),
+                                    {
+                                        user_id: data.reader_id,
+                                        read_at: data.timestamp
+                                    }
+                                ]
+                            };
+                        }
+                    }
+                    return msg;
+                }));
+            }
+        });
+
+        // Subscribe to user blocked/unblocked events
+        const unsubBlocked = subscribeToMessageType('user_blocked', (data) => {
+            // If another user blocked us
+            if (data.blocker_id === conversationId) {
+                setIsBlocked(true);
+            }
+        });
+
+        const unsubUnblocked = subscribeToMessageType('user_unblocked', (data) => {
+            // If another user unblocked us
+            if (data.unblocker_id === conversationId) {
+                setIsBlocked(false);
+            }
+        });
+
+        // Return cleanup function
         return () => {
-            if (socket) {
-                socket.removeEventListener('message', handleSocketMessage);
-            }
+            unsubMessage();
+            unsubMessageSent();
+            unsubMessageUpdate();
+            unsubMessageDelete();
+            unsubTyping();
+            unsubReadReceipt();
+            unsubBlocked();
+            unsubUnblocked();
         };
-    }, [socket, user, conversationId, isGroup]);
+    }, [user, conversationId]);
 
     // Debounced typing notification
     const debouncedTypingNotification = useRef(
-        debounce(() => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                sendWebSocketMessage({
-                    type: 'typing',
-                    conversation_id: conversationId,
-                    is_group: isGroup
-                });
-            }
-        }, 500)
+            debounce(() => {
+                sendTypingIndicator(conversationId);
+            }, 500)
     ).current;
 
     // Handle message input change
@@ -327,40 +354,35 @@ export const ChatWindow = ({
         if (!messageText.trim() || !user) return;
 
         // Create a temporary ID for tracking this message
-        const tempId = `temp-${Date.now()}`;
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         // Add to messages with temporary status
         const tempMessage: MessageWithStatus = {
             id: tempId as any, // Will be replaced with actual ID
             tempId,
             sender_id: user.id,
-            receiver_ids: [conversationId],
+            conversation_id: conversationId,
             content: messageText,
-            is_group_chat: isGroup,
             created_at: new Date().toISOString(),
             isFromMe: true,
             status: 'sending',
-            read_by: []
+            read_by: [],
+            deleted: false
         };
 
         setMessages(prev => [...prev, tempMessage]);
 
         // Send via WebSocket
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            sendWebSocketMessage({
-                type: 'message',
-                content: messageText,
-                receiver_ids: [conversationId],
-                is_group_chat: isGroup
-            });
-        } else {
+        // TODO: @arnavwadhwa implement email sent
+        const success = sendChatMessage(messageText, conversationId, participants);
+
+        if (!success) {
             // Fallback to REST API if WebSocket is not available
             try {
                 await MessagesService.createMessage({
                     requestBody: {
-                        content: messageText,
-                        receiver_ids: [conversationId],
-                        is_group_chat: isGroup
+                        conversation_id: conversationId,
+                        content: messageText
                     }
                 });
 
@@ -371,9 +393,9 @@ export const ChatWindow = ({
 
                 // Mark the message as failed
                 setMessages(prev => prev.map(msg =>
-                    msg.tempId === tempId
-                        ? {...msg, status: 'sent'}
-                        : msg
+                        msg.tempId === tempId
+                                ? {...msg, status: 'sent'}
+                                : msg
                 ));
             }
         }
@@ -402,253 +424,277 @@ export const ChatWindow = ({
     };
 
     const handleEditMessage = (message: MessageWithStatus) => {
-        console.log('Editing message:', message);
+        console.log("edit message:", message);
+        // Only allow editing your own messages
+        if (message.sender_id !== user?.id) return;
+
         setEditingMessage(message);
         setEditText(message.content);
     };
 
     const handleDeleteMessage = (message: MessageWithStatus) => {
-        console.log('Removing message:', message);
+        console.log("deleteMessage:", message);
+        // Only allow deleting your own messages
+        if (message.sender_id !== user?.id) return;
+
         if (window.confirm(`Are you sure you want to delete this message?`)) {
-            setMessages(prevMessages => prevMessages.filter(msg => msg.id !== message.id));
+            // Send delete request
+            deleteMessage(message.id);
+
+            // Optimistically update UI
+            setMessages(prevMessages =>
+                    prevMessages.map(msg =>
+                            msg.id === message.id
+                                    ? {...msg, deleted: true, content: "This message was deleted"}
+                                    : msg
+                    )
+            );
         }
     };
+
     const handleBlockUser = () => {
-        console.log('Blocking user:', user);
+        if (isGroup) return; // Can't block groups
+
         if (window.confirm(`Are you sure you want to block ${conversationName}?`)) {
+            // Iterate through participants and ignore your own user id
+            participants.forEach((participantId) => {
+            // Check if the current participant's UUID is not equal to the current user's id.
+            if (user && participantId !== user.id) {
+                // Call the blockUser function for the other participant.
+                blockUser(participantId);
+            }
+        });
             setIsBlocked(true);
         }
     };
+
     const handleSaveEdit = () => {
-        setMessages(prevMessages => prevMessages.map(msg => msg.id === editingMessage?.id ? {
-            ...msg,
-            content: editText
-        } : msg));
+        if (!editingMessage) return;
+
+        // Send edit request
+        editMessage(editingMessage.id, editText);
+
+        // Optimistically update UI
+        setMessages(prevMessages =>
+                prevMessages.map(msg =>
+                        msg.id === editingMessage.id
+                                ? {...msg, content: editText, updated_at: new Date().toISOString()}
+                                : msg
+                )
+        );
+
         setEditingMessage(null);
-        setEditText('')
-    }
+        setEditText('');
+    };
 
     const handleUnblockUser = () => {
+        if (isGroup) return; // Can't unblock groups
+
         if (window.confirm(`Are you sure you want to unblock ${conversationName}?`)) {
+            unblockUser(conversationId);
             setIsBlocked(false);
         }
     };
 
-
-    // Format time for display
-    const formatMessageTime = (timestamp: string) => {
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-    };
-
-    // Get status icon based on message status
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'sending':
-                return '⏳';
-            case 'sent':
-                return '✓';
-            case 'delivered':
-                return '✓';
-            case 'read':
-                return '✓✓';
-            default:
-                return null;
-        }
-    };
-
     return (
-        <Box
-            position="absolute"
-            top="0"
-            left="535px" // Leaves 250px space for the sidebar on the left
-            width="calc(100vw - 535px)" // Full screen width minus the sidebar
-            height="100vh" // Full height
-            display="flex"
-            flexDirection="column"
-            bg={useColorModeValue('white', 'gray.800')}
-            zIndex="10" // Optional: adjust if you need layering
-        >
-
-            {/* Rest of your chat window */}
-
-            {/* Header */}
-            <Flex
-                p={4}
-                borderBottom="1px solid"
-                borderColor="gray.200"
-                alignItems="center"
-                bg={useColorModeValue('white', 'gray.800')}
-            >
-                <Avatar
-                    size="sm"
-                    name={conversationName || 'Conversation'}
-                    mr={3}
-                    bg={isGroup ? 'green.500' : 'yellow.500'}
-                />
-                <Box flex="1">
-                    <Text fontWeight="bold">{conversationName || (isGroup ? 'Group Chat' : 'Direct Message')}</Text>
-                    {typingUsers.size > 0 && (
-                        <Text fontSize="xs" color="gray.500">
-                            {isGroup && typingUsers.size > 1
-                                ? 'Several people are typing...'
-                                : 'Typing...'}
-                        </Text>
-                    )}
-                </Box>
-                {!isGroup && (
-                    <Button
-                        size="sm"
-                        colorScheme="red"
-                        onClick={handleBlockUser}
-                    >
-                        Block
-                    </Button>)}
-            </Flex>
-
-            {/* Messages */}
             <Box
-                flex="1"
-                overflowY="auto"
-                p={4}
-                ref={messagesContainerRef}
-                onScroll={handleScroll}
-                bg={useColorModeValue('gray.50', 'gray.900')}
+                    position="absolute"
+                    top="0"
+                    left="535px" // Leaves 250px space for the sidebar on the left
+                    width="calc(100vw - 535px)" // Full screen width minus the sidebar
+                    height="100vh" // Full height
+                    display="flex"
+                    flexDirection="column"
+                    bg={useColorModeValue('white', 'gray.800')}
+                    zIndex="10" // Optional: adjust if you need layering
             >
-                {isLoadingMore && (
-                    <Flex justify="center" mb={4}>
-                        <Spinner size="sm"/>
-                    </Flex>
-                )}
-
-                {hasMore && !isLoadingMore && (
-                    <Flex justify="center" mb={4}>
-                        <Button size="xs" onClick={loadMoreMessages} variant="ghost">
-                            Load older messages
-                        </Button>
-                    </Flex>
-                )}
-
-                {isLoading ? (
-                    <Flex justify="center" align="center" height="100%">
-                        <Spinner/>
-                    </Flex>
-                ) : (
-                    isBlocked ? (
-                        <Flex justify="center" align="center" height="100%">
-                            <Text color="red.500">You have blocked this user.</Text>
-                            <Button onClick={handleUnblockUser} ml={2}>Unblock</Button>
-                        </Flex>
-                    ) : (
-                        <>
-                            {messages.length === 0 ? (
-                                <Flex justify="center" align="center" height="100%">
-                                    <Text color="gray.500">No messages yet</Text>
-                                </Flex>
-                            ) : (
-                                messages.map((message) => (
-                                    <Flex
-                                        key={message.id || message.tempId}
-                                        mb={3}
-                                        flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
-                                        alignItems="flex-end"
-                                    >
-                                        {!message.isFromMe && (
-                                            <Avatar
-                                                size="xs"
-                                                name={message.sender_id.substring(0, 2)}
-                                                mr={message.isFromMe ? 0 : 2}
-                                                ml={message.isFromMe ? 2 : 0}
-                                            />
-                                        )}
-
-                                        <Menu placement="bottom" portalProps={{appendToParentPortal: false}}>
-                                            <MenuButton
-                                                as={Button}
-                                                p={0}  // Remove padding so the content controls the width
-                                                bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
-                                                color="black"
-                                                borderRadius="lg"
-                                                maxW="70%"
-                                                h={"100%"}
-                                                display="inline-block"
-                                                textAlign="left"
-                                                whiteSpace="pre-wrap"
-                                                wordBreak="break-word"
-                                                _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
-                                            >
-                                                <Box
-                                                    p={3}  // Add padding inside the box, not the button itself
-                                                    whiteSpace="pre-wrap"
-                                                    wordBreak="break-word"
-                                                    w="100%"  // Let the box grow to fill the button's width
-                                                >
-                                                    {editingMessage?.id === message.id ? (
-                                                        <Input
-                                                            size="sm"
-                                                            value={editText}
-                                                            onChange={(e) => setEditText(e.target.value)}
-                                                            onBlur={handleSaveEdit}  // Or add a save button
-                                                            autoFocus
-                                                        />
-                                                    ) : (
-                                                        <Text fontSize="md" lineHeight="short">
-                                                            {message.content}
-                                                        </Text>
-                                                    )}
-
-                                                </Box>
-                                            </MenuButton>
-
-                                            <MenuList zIndex="popover">
-                                                <MenuItem onClick={() => handleEditMessage(message)}>Edit</MenuItem>
-                                                <MenuItem onClick={() => handleDeleteMessage(message)}>Remove</MenuItem>
-                                            </MenuList>
-                                        </Menu>
-
-
-                                    </Flex>
-                                ))
-                            )}
-                            <div ref={messagesEndRef}/>
-                        </>
-                    ))}
-            </Box>
-
-            {/* Input */}
-            <Flex
-                p={4}
-                borderTop="1px solid"
-                borderColor="gray.200"
-                bg={useColorModeValue('white', 'gray.800')}
-            >
-                <Input
-                    placeholder="Type a message..."
-                    value={messageText}
-                    onChange={handleMessageChange}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    mr={2}
-
-                    focusBorderColor="yellow.500"
-                />
-                <Button
-                    colorScheme="yellow"
-                    onClick={handleSendMessage}
-                    isDisabled={!messageText.trim()}
+                {/* Header */}
+                <Flex
+                        p={4}
+                        borderBottom="1px solid"
+                        borderColor="gray.200"
+                        alignItems="center"
+                        bg={useColorModeValue('white', 'gray.800')}
                 >
-                    Send
-                </Button>
-                {/*<Button onClick={() => {*/}
-                {/*    sendEmailNotification(*/}
-                {/*        'arnav.v.wadhwa@gmail.com',*/}
-                {/*        "Anya",*/}
-                {/*        "hi arnav isnt this amazing"*/}
-                {/*    );*/}
-                {/*}}>*/}
-                {/*    Send Test Email*/}
-                {/*</Button>*/}
+                    <Avatar
+                            size="sm"
+                            name={conversationName || 'Conversation'}
+                            mr={3}
+                            bg={isGroup ? 'green.500' : 'yellow.500'}
+                    />
+                    <Box flex="1">
+                        <Text fontWeight="bold">{conversationName || (isGroup ? 'Group Chat' : 'Direct Message')}</Text>
+                        {typingUsers.size > 0 && (
+                                <Text fontSize="xs" color="gray.500">
+                                    {isGroup && typingUsers.size > 1
+                                            ? 'Several people are typing...'
+                                            : 'Typing...'}
+                                </Text>
+                        )}
+                    </Box>
+                    {!isGroup && (
+                            <Button
+                                    size="sm"
+                                    colorScheme={isBlocked ? "green" : "red"}
+                                    onClick={isBlocked ? handleUnblockUser : handleBlockUser}
+                            >
+                                {isBlocked ? "Unblock" : "Block"}
+                            </Button>
+                    )}
+                </Flex>
 
-            </Flex>
-        </Box>
+                {/* Messages */}
+                <Box
+                        flex="1"
+                        overflowY="auto"
+                        p={4}
+                        ref={messagesContainerRef}
+                        onScroll={handleScroll}
+                        bg={useColorModeValue('gray.50', 'gray.900')}
+                >
+                    {isLoadingMore && (
+                            <Flex justify="center" mb={4}>
+                                <Spinner size="sm"/>
+                            </Flex>
+                    )}
+
+                    {hasMore && !isLoadingMore && (
+                            <Flex justify="center" mb={4}>
+                                <Button size="xs" onClick={loadMoreMessages} variant="ghost">
+                                    Load older messages
+                                </Button>
+                            </Flex>
+                    )}
+
+                    {isLoading ? (
+                            <Flex justify="center" align="center" height="100%">
+                                <Spinner/>
+                            </Flex>
+                    ) : (
+                            isBlocked ? (
+                                    <Flex justify="center" align="center" height="100%">
+                                        <Text color="red.500">You have blocked this user.</Text>
+                                        <Button onClick={handleUnblockUser} ml={2}>Unblock</Button>
+                                    </Flex>
+                            ) : (
+                                    <>
+                                        {messages.length === 0 ? (
+                                                <Flex justify="center" align="center" height="100%">
+                                                    <Text color="gray.500">No messages yet</Text>
+                                                </Flex>
+                                        ) : (
+                                                messages.map((message) => (
+                                                        <Flex
+                                                                key={message.id || message.tempId}
+                                                                mb={3}
+                                                                flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
+                                                                alignItems="flex-end"
+                                                        >
+                                                            {!message.isFromMe && (
+                                                                    <Avatar
+                                                                            size="xs"
+                                                                            // name={message.sender_id.substring(0, 2)}
+                                                                            mr={message.isFromMe ? 0 : 2}
+                                                                            ml={message.isFromMe ? 2 : 0}
+                                                                    />
+                                                            )}
+
+                                                            <Menu placement="bottom"
+                                                                  portalProps={{appendToParentPortal: false}}>
+                                                                <MenuButton
+                                                                        as={Button}
+                                                                        p={0}  // Remove padding so the content controls the width
+                                                                        bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
+                                                                        color="black"
+                                                                        borderRadius="lg"
+                                                                        maxW="70%"
+                                                                        h={"100%"}
+                                                                        display="inline-block"
+                                                                        textAlign="left"
+                                                                        whiteSpace="pre-wrap"
+                                                                        wordBreak="break-word"
+                                                                        _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
+                                                                        isDisabled={message.deleted}
+                                                                >
+                                                                    <Box
+                                                                            p={3}  // Add padding inside the box, not the button itself
+                                                                            whiteSpace="pre-wrap"
+                                                                            wordBreak="break-word"
+                                                                            w="100%"  // Let the box grow to fill the button's width
+                                                                    >
+                                                                        {editingMessage?.id === message.id ? (
+                                                                                <Input
+                                                                                        size="sm"
+                                                                                        value={editText}
+                                                                                        onChange={(e) => setEditText(e.target.value)}
+                                                                                        onBlur={handleSaveEdit}
+                                                                                        onKeyPress={(e) => e.key === 'Enter' && handleSaveEdit()}
+                                                                                        autoFocus
+                                                                                />
+                                                                        ) : (
+                                                                                <Text
+                                                                                        fontSize="md"
+                                                                                        lineHeight="short"
+                                                                                        color={message.deleted ? "gray.500" : "inherit"}
+                                                                                        fontStyle={message.deleted ? "italic" : "normal"}
+                                                                                >
+                                                                                    {message.content}
+                                                                                    {message.updated_at && !message.deleted && (
+                                                                                            <Text as="span"
+                                                                                                  fontSize="xs"
+                                                                                                  color="gray.500"
+                                                                                                  ml={1}>
+                                                                                                (edited)
+                                                                                            </Text>
+                                                                                    )}
+                                                                                </Text>
+                                                                        )}
+                                                                    </Box>
+                                                                </MenuButton>
+
+                                                                <MenuList zIndex="popover">
+                                                                    {message.isFromMe && !message.deleted && (
+                                                                            <>
+                                                                                <MenuItem
+                                                                                        onClick={() => handleEditMessage(message)}>Edit</MenuItem>
+                                                                                <MenuItem
+                                                                                        onClick={() => handleDeleteMessage(message)}>Delete</MenuItem>
+                                                                            </>
+                                                                    )}
+                                                                </MenuList>
+                                                            </Menu>
+                                                        </Flex>
+                                                ))
+                                        )}
+                                        <div ref={messagesEndRef}/>
+                                    </>
+                            ))}
+                </Box>
+
+                {/* Input */}
+                <Flex
+                        p={4}
+                        borderTop="1px solid"
+                        borderColor="gray.200"
+                        bg={useColorModeValue('white', 'gray.800')}
+                >
+                    <Input
+                            placeholder={isBlocked ? "You cannot send messages to this user" : "Type a message..."}
+                            value={messageText}
+                            onChange={handleMessageChange}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                            mr={2}
+                            isDisabled={isBlocked}
+                            focusBorderColor="yellow.500"
+                    />
+                    <Button
+                            colorScheme="yellow"
+                            onClick={handleSendMessage}
+                            isDisabled={!messageText.trim() || isBlocked}
+                    >
+                        Send
+                    </Button>
+                </Flex>
+            </Box>
     );
 };

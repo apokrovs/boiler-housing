@@ -24,11 +24,12 @@ import {
 } from '@chakra-ui/react';
 import {AddIcon} from '@chakra-ui/icons';
 import useAuth from '../../hooks/useAuth';
-import {UsersService} from '../../client';
-import {UserPublic} from '../../client/types.gen';
+import {UsersService, MessagesService} from '../../client';
+import {UserPublic, ConversationCreate} from '../../client/types.gen';
+import {sendChatMessage} from './websocket';
 
 interface NewConversationProps {
-    onNewConversation: (userId: string, isGroup: boolean, name?: string) => void;
+    onNewConversation: (conversationId: string, isGroup: boolean, name?: string) => void;
 }
 
 export const NewConversation = ({onNewConversation}: NewConversationProps) => {
@@ -39,6 +40,7 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
     const [users, setUsers] = useState<UserPublic[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const toast = useToast();
 
@@ -86,7 +88,7 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
     }, [isOpen, user, toast]);
 
     // Handle starting a new conversation
-    const handleStartConversation = () => {
+    const handleStartConversation = async () => {
         if (selectedUsers.length === 0) {
             toast({
                 title: 'Select at least one user',
@@ -107,25 +109,62 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
             return;
         }
 
-        if (isGroup) {
-            // For group chats, we'll use a concatenated string of participant IDs as the conversation ID
-            // In a real app, you'd create a group in the database and get an ID
-            const groupId = JSON.stringify({
-                name: groupName,
-                participants: [...selectedUsers, user?.id]
+        try {
+            setIsCreating(true);
+
+            // Create the conversation in the backend
+            const conversationData: ConversationCreate = {
+                participant_ids: selectedUsers,
+                is_group: isGroup,
+                name: isGroup ? groupName : undefined
+            };
+
+            // Create the conversation
+            const newConversation = await MessagesService.createConversation({
+                requestBody: conversationData
             });
 
-            onNewConversation(groupId, true, groupName);
-        } else {
-            // For direct message, just use the selected user's ID
-            onNewConversation(selectedUsers[0], false);
-        }
+            // Start the conversation by sending the first message via WebSocket
+            if (newConversation) {
+                // Tell the parent component about the new conversation
+                onNewConversation(
+                    newConversation.id,
+                    newConversation.is_group || false,
+                    newConversation.name || undefined
+                );
 
-        // Reset and close
-        setSelectedUsers([]);
-        setGroupName('');
-        setIsGroup(false);
-        onClose();
+                // Send an initial greeting message
+                const greeting = isGroup
+                    ? `${user?.full_name || 'A user'} created this group conversation`
+                    : 'Hello! Let\'s chat!';
+
+                // Use WebSocket to send the first message
+                sendChatMessage(greeting, newConversation.id);
+
+                toast({
+                    title: 'Conversation created',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
+            console.error('Error creating conversation:', error);
+            toast({
+                title: 'Error creating conversation',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            setIsCreating(false);
+
+            // Reset and close
+            setSelectedUsers([]);
+            setGroupName('');
+            setIsGroup(false);
+            onClose();
+        }
     };
 
     // Handle user selection
@@ -228,8 +267,7 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
                                             >
                                                 <Checkbox
                                                     isChecked={selectedUsers.includes(user.id)}
-                                                    onChange={() => {
-                                                    }}
+                                                    onChange={() => {}}
                                                     mr={3}
                                                 />
                                                 <Avatar size="sm" name={user.full_name || user.email} mr={2}/>
@@ -256,15 +294,17 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button variant="ghost" mr={3} onClick={onClose}>
+                        <Button variant="ghost" mr={3} onClick={onClose} isDisabled={isCreating}>
                             Cancel
                         </Button>
                         <Button
-
-                            bg="yellow.500" onClick={handleStartConversation}
+                            bg="yellow.500"
+                            onClick={handleStartConversation}
+                            isLoading={isCreating}
                             isDisabled={
                                 selectedUsers.length === 0 ||
-                                (isGroup && !groupName.trim())
+                                (isGroup && !groupName.trim()) ||
+                                isCreating
                             }
                         >
                             Start Conversation
