@@ -1,3 +1,6 @@
+import {UsersService} from "../../client";
+import {sendEmailNotification} from "../../client/emailService.ts";
+
 export enum WebSocketState {
   CONNECTING = 0,
   OPEN = 1,
@@ -58,7 +61,7 @@ const processMessage = (message: any) => {
 export const createWebSocketConnection = (): WebSocket | null => {
   // If already connected or connecting, return the existing socket
   if (socket && (socket.readyState === WebSocketState.OPEN || socket.readyState === WebSocketState.CONNECTING)) {
-    console.log('WebSocket already connected or connecting');
+    // console.log('WebSocket already connected or connecting');
     return socket;
   }
 
@@ -72,7 +75,7 @@ export const createWebSocketConnection = (): WebSocket | null => {
     connectionTimeout = null;
   }
 
-  console.log('Starting WebSocket connection attempt');
+  // console.log('Starting WebSocket connection attempt');
 
   const token = localStorage.getItem("access_token");
   if (!token) {
@@ -85,7 +88,7 @@ export const createWebSocketConnection = (): WebSocket | null => {
   const wsProtocol = backendUrl.startsWith('https') ? 'wss://' : 'ws://';
   const urlObj = new URL(backendUrl);
   const wsUrl = `${wsProtocol}${urlObj.host}/api/v1/messages/ws/${token}`;
-  console.log('Attempting to connect to WebSocket at:', wsUrl);
+  // console.log('Attempting to connect to WebSocket at:', wsUrl);
 
   try {
     const newSocket = new WebSocket(wsUrl);
@@ -99,7 +102,7 @@ export const createWebSocketConnection = (): WebSocket | null => {
     }, 10000);
 
     newSocket.onopen = () => {
-      console.log('WebSocket connection established');
+      // console.log('WebSocket connection established');
       if (connectionTimeout) {
         clearTimeout(connectionTimeout);
         connectionTimeout = null;
@@ -119,9 +122,9 @@ export const createWebSocketConnection = (): WebSocket | null => {
 
         // Log all non-ping messages for debugging
         if (message.type !== 'ping') {
-          console.log('Received message:', message);
+          // console.log('Received message:', message);
         } else {
-          console.log('Received server ping');
+          // console.log('Received server ping');
         }
 
         // Process the message with registered handlers
@@ -133,7 +136,7 @@ export const createWebSocketConnection = (): WebSocket | null => {
     };
 
     newSocket.onclose = (event) => {
-      console.log(`WebSocket closed with code: ${event.code}, reason: ${event.reason || 'No reason provided'}`);
+      // console.log(`WebSocket closed with code: ${event.code}, reason: ${event.reason || 'No reason provided'}`);
       socket = null;
 
       // Call all registered handlers for connection close
@@ -171,12 +174,12 @@ export const createWebSocketConnection = (): WebSocket | null => {
  */
 const scheduleReconnection = () => {
   if (reconnectAttempt >= maxReconnectAttempts) {
-    console.log(`Maximum reconnection attempts (${maxReconnectAttempts}) reached`);
+    // console.log(`Maximum reconnection attempts (${maxReconnectAttempts}) reached`);
     return;
   }
   reconnectAttempt++;
   const backoffTime = Math.min(30000, 1000 * Math.pow(2, reconnectAttempt));
-  console.log(`Scheduling reconnection in ${backoffTime / 1000} seconds (attempt ${reconnectAttempt}/${maxReconnectAttempts})`);
+  // console.log(`Scheduling reconnection in ${backoffTime / 1000} seconds (attempt ${reconnectAttempt}/${maxReconnectAttempts})`);
   reconnectionTimeout = window.setTimeout(() => {
     createWebSocketConnection();
   }, backoffTime);
@@ -203,23 +206,23 @@ export const sendWebSocketMessage = (messageData: any): boolean => {
  * Sends a chat message to a conversation.
  * Creates a new conversation if needed.
  */
-export const sendChatMessage = (content: string, conversationId?: string, participants?: string[], isGroup: boolean = false): boolean => {
+export const sendChatMessage = async (content: string, conversationId?: string, participants?: string[], isGroup: boolean = false): boolean => {
   if (!content.trim()) return false;
 
   const messageData = conversationId ?
-    {
-      type: "message",
-      conversation_id: conversationId,
-      participants: participants,
-      content
-    } :
-    {
-      type: "message",
-      new_conversation: true,
-      participant_ids: participants,
-      is_group: isGroup,
-      content
-    };
+          {
+            type: "message",
+            conversation_id: conversationId,
+            participants: participants,
+            content
+          } :
+          {
+            type: "message",
+            new_conversation: true,
+            participant_ids: participants,
+            is_group: isGroup,
+            content
+          };
 
   return sendWebSocketMessage(messageData);
 };

@@ -26,8 +26,9 @@ import {
     blockUser,
     unblockUser
 } from './websocket';
-import {MessagesService} from '../../client';
+import {MessagesService, UsersService} from '../../client';
 import {MessagePublic} from '../../client/types.gen';
+import {sendEmailNotification} from "../../client/emailService.ts";
 
 function debounce(func: Function, wait: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -372,8 +373,15 @@ export const ChatWindow = ({
 
         setMessages(prev => [...prev, tempMessage]);
 
-        // Send via WebSocket
-        // TODO: @arnavwadhwa implement email sent
+        // First, get the emails of the participants
+        if (participants && user.full_name) {
+            for (const participant of participants) {
+                if (participant !== user.id) {
+                    const userData = await UsersService.readUserById({userId: participant});
+                    await sendEmailNotification(userData.email, user.full_name, messageText);
+                }
+            }
+        }
         const success = sendChatMessage(messageText, conversationId, participants);
 
         if (!success) {
@@ -458,12 +466,12 @@ export const ChatWindow = ({
         if (window.confirm(`Are you sure you want to block ${conversationName}?`)) {
             // Iterate through participants and ignore your own user id
             participants.forEach((participantId) => {
-            // Check if the current participant's UUID is not equal to the current user's id.
-            if (user && participantId !== user.id) {
-                // Call the blockUser function for the other participant.
-                blockUser(participantId);
-            }
-        });
+                // Check if the current participant's UUID is not equal to the current user's id.
+                if (user && participantId !== user.id) {
+                    // Call the blockUser function for the other participant.
+                    blockUser(participantId);
+                }
+            });
             setIsBlocked(true);
         }
     };
