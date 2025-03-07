@@ -9,6 +9,10 @@ export const namePattern = {
   value: /^[A-Za-z\s\u00C0-\u017F]{1,30}$/,
   message: "Invalid name",
 }
+export const phonePattern = {
+  value: /^[0-9]{10,}$/,
+  message: "Invalid Phone Number"
+}
 
 export const passwordRules = (isRequired = true) => {
   const rules: any = {

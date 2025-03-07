@@ -16,6 +16,8 @@ import type {
   ItemsDeleteItemResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
+  LoginLoginAccessTokenPinData,
+  LoginLoginAccessTokenPinResponse,
   LoginTestTokenResponse,
   LoginRecoverPasswordData,
   LoginRecoverPasswordResponse,
@@ -53,12 +55,18 @@ import type {
   UsersReadUsersResponse,
   UsersCreateUserData,
   UsersCreateUserResponse,
+  UsersReadUserByEmailData,
+  UsersReadUserByEmailResponse,
   UsersReadUserMeResponse,
   UsersDeleteUserMeResponse,
   UsersUpdateUserMeData,
   UsersUpdateUserMeResponse,
   UsersUpdatePasswordMeData,
   UsersUpdatePasswordMeResponse,
+  UsersUpdateUserPinData,
+  UsersUpdateUserPinResponse,
+  UsersVerifyUserPinData,
+  UsersVerifyUserPinResponse,
   UsersRegisterUserData,
   UsersRegisterUserResponse,
   UsersReadUserByIdData,
@@ -67,6 +75,8 @@ import type {
   UsersUpdateUserResponse,
   UsersDeleteUserData,
   UsersDeleteUserResponse,
+  UsersUpdate2FaStatusData,
+  UsersUpdate2FaStatusResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
@@ -210,6 +220,31 @@ export class LoginService {
       url: "/api/v1/login/access-token",
       formData: data.formData,
       mediaType: "application/x-www-form-urlencoded",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Login Access Token Pin
+   * PIN-based login, get an access token for future requests
+   * @param data The data for the request.
+   * @param data.email
+   * @param data.pin
+   * @returns Token Successful Response
+   * @throws ApiError
+   */
+  public static loginAccessTokenPin(
+    data: LoginLoginAccessTokenPinData,
+  ): CancelablePromise<LoginLoginAccessTokenPinResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/login/access-token-pin",
+      query: {
+        email: data.email,
+        pin: data.pin,
+      },
       errors: {
         422: "Validation Error",
       },
@@ -659,6 +694,29 @@ export class UsersService {
   }
 
   /**
+   * Read User By Email
+   * Get a specific user by email.
+   * @param data The data for the request.
+   * @param data.email
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static readUserByEmail(
+    data: UsersReadUserByEmailData,
+  ): CancelablePromise<UsersReadUserByEmailResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/by-email/{email}",
+      path: {
+        email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
    * Read User Me
    * Get current user.
    * @returns UserPublic Successful Response
@@ -729,6 +787,51 @@ export class UsersService {
   }
 
   /**
+   * Update User Pin
+   * Set or update the user's PIN.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static updateUserPin(
+    data: UsersUpdateUserPinData,
+  ): CancelablePromise<UsersUpdateUserPinResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/me/pin",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Verify User Pin
+   * Verify the user's PIN.
+   * @param data The data for the request.
+   * @param data.pin
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static verifyUserPin(
+    data: UsersVerifyUserPinData,
+  ): CancelablePromise<UsersVerifyUserPinResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/me/verify-pin",
+      query: {
+        pin: data.pin,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
    * Register User
    * Create new user without the need to be logged in.
    * @param data The data for the request.
@@ -763,7 +866,7 @@ export class UsersService {
   ): CancelablePromise<UsersReadUserByIdResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/{user_id}",
+      url: "/api/v1/users/by-id/{user_id}",
       path: {
         user_id: data.userId,
       },
@@ -815,6 +918,29 @@ export class UsersService {
       url: "/api/v1/users/{user_id}",
       path: {
         user_id: data.userId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update 2Fa Status
+   * Enable or disable two-factor authentication for the current user.
+   * @param data The data for the request.
+   * @param data.enabled
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static update2FaStatus(
+    data: UsersUpdate2FaStatusData,
+  ): CancelablePromise<UsersUpdate2FaStatusResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/2fa",
+      query: {
+        enabled: data.enabled,
       },
       errors: {
         422: "Validation Error",
