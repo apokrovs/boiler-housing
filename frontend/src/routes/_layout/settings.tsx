@@ -38,11 +38,10 @@ function UserSettings() {
         ? tabsConfig.slice(0, 6)
         : tabsConfig
 
-    if (currentUser?.is_2fa_enabled === false && !sessionStorage.getItem("2faAlertShown")) {
-        sessionStorage.setItem("2faAlertShown", "true"); // Prevents future alerts in this session
+    if (!currentUser?.is_2fa_enabled) {
         setTimeout(() => {
             alert("For better security, we recommend enabling Two-Factor Authentication.");
-        }, 3000);
+        }, 2000);
     }
 
     return (
