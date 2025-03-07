@@ -1,122 +1,139 @@
+import { useState } from "react";
 import {
-  Button,
-  Container,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Heading,
-  Input,
-  Text,
-} from "@chakra-ui/react"
-import { useMutation } from "@tanstack/react-query"
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
-import { type SubmitHandler, useForm } from "react-hook-form"
+    Button, Container, FormControl, FormErrorMessage, Heading, Input, Text
+} from "@chakra-ui/react";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { LoginService } from "../client";
+import useCustomToast from "../hooks/useCustomToast";
+import { emailPattern } from "../utils";
+import { isLoggedIn } from "../hooks/useAuth";
+import { sendOTPNotification } from "../client/emailService.ts";
 
-import { type ApiError, LoginService, type NewPassword } from "../client"
-import { isLoggedIn } from "../hooks/useAuth"
-import useCustomToast from "../hooks/useCustomToast"
-import { confirmPasswordRules, handleError, passwordRules } from "../utils"
-
-interface NewPasswordForm extends NewPassword {
-  confirm_password: string
+interface FormData {
+    email: string;
+    otp: string;
+    newPassword: string;
 }
 
 export const Route = createFileRoute("/reset-password")({
-  component: ResetPassword,
-  beforeLoad: async () => {
-    if (isLoggedIn()) {
-      throw redirect({
-        to: "/",
-      })
+    component: RecoverPassword,
+    beforeLoad: async () => {
+        if (isLoggedIn()) {
+            throw redirect({ to: "/" });
+        }
+    },
+});
+
+function RecoverPassword() {
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
+    const showToast = useCustomToast();
+    const [generatedOTP, setGeneratedOTP] = useState("");
+    const [step, setStep] = useState(1);
+
+    const sendOTPEmail = async (email: string) => {
+    if (!email) {
+        showToast("Error", "Email is required.", "error");
+        console.error("Error: Email is missing when calling sendOTPEmail");
+        return;
     }
-  },
-})
 
-function ResetPassword() {
-  const {
-    register,
-    handleSubmit,
-    getValues,
-    reset,
-    formState: { errors },
-  } = useForm<NewPasswordForm>({
-    mode: "onBlur",
-    criteriaMode: "all",
-    defaultValues: {
-      new_password: "",
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedOTP(otpCode);
+
+    console.log(`Generating OTP: ${otpCode} for email: ${email}`);
+
+    try {
+        console.log("Attempting to send OTP email...");
+        await sendOTPNotification(email, otpCode);
+        console.log("OTP email sent successfully");
+    } catch (error) {
+        console.error("Error sending OTP email:", error);
+    }
+};
+
+
+    const recoverPassword = useMutation({
+    mutationFn: async ({ email }: { email: string }) => {
+        console.log("Captured Email from Form:", email);
+        await sendOTPEmail(email);
     },
-  })
-  const showToast = useCustomToast()
-  const navigate = useNavigate()
-
-  const resetPassword = async (data: NewPassword) => {
-    const token = new URLSearchParams(window.location.search).get("token")
-    if (!token) return
-    await LoginService.resetPassword({
-      requestBody: { new_password: data.new_password, token: token },
-    })
-  }
-
-  const mutation = useMutation({
-    mutationFn: resetPassword,
     onSuccess: () => {
-      showToast("Success!", "Password updated successfully.", "success")
-      reset()
-      navigate({ to: "/login" })
+        console.log("Mutation success: OTP sent");
+        showToast("OTP Sent", "Check your email for the OTP code.", "success");
+        setStep(2);
     },
-    onError: (err: ApiError) => {
-      handleError(err, showToast)
+    onError: (error) => {
+        console.error("Mutation error:", error);
+        showToast("Error", "Failed to send OTP. Try again.", "error");
     },
-  })
+});
 
-  const onSubmit: SubmitHandler<NewPasswordForm> = async (data) => {
-    mutation.mutate(data)
-  }
 
-  return (
-    <Container
-      as="form"
-      onSubmit={handleSubmit(onSubmit)}
-      h="100vh"
-      maxW="sm"
-      alignItems="stretch"
-      justifyContent="center"
-      gap={4}
-      centerContent
-    >
-      <Heading size="xl" color="ui.main" textAlign="center" mb={2}>
-        Reset Password
-      </Heading>
-      <Text textAlign="center">
-        Please enter your new password and confirm it to reset your password.
-      </Text>
-      <FormControl mt={4} isInvalid={!!errors.new_password}>
-        <FormLabel htmlFor="password">Set Password</FormLabel>
-        <Input
-          id="password"
-          {...register("new_password", passwordRules())}
-          placeholder="Password"
-          type="password"
-        />
-        {errors.new_password && (
-          <FormErrorMessage>{errors.new_password.message}</FormErrorMessage>
-        )}
-      </FormControl>
-      <FormControl mt={4} isInvalid={!!errors.confirm_password}>
-        <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
-        <Input
-          id="confirm_password"
-          {...register("confirm_password", confirmPasswordRules(getValues))}
-          placeholder="Password"
-          type="password"
-        />
-        {errors.confirm_password && (
-          <FormErrorMessage>{errors.confirm_password.message}</FormErrorMessage>
-        )}
-      </FormControl>
-      <Button variant="primary" type="submit">
-        Reset Password
-      </Button>
-    </Container>
-  )
+    const resetPassword = useMutation({
+        mutationFn: async ({ otp, newPassword }: { otp: string; newPassword: string }) => {
+            if (otp !== generatedOTP) throw new Error("Invalid OTP");
+
+            await LoginService.resetPassword({
+                requestBody: {
+                    token: otp,
+                    new_password: newPassword
+                }
+            });
+        },
+        onSuccess: () => {
+            showToast("Success", "Password reset successful. You can now log in.", "success");
+        },
+        onError: () => {
+            showToast("Error", "OTP verification failed.", "error");
+        },
+    });
+
+    const onSubmit: SubmitHandler<FormData> = async (data) => {
+    console.log("Form submitted with data:", data);
+
+    if (step === 1) {
+        console.log("Triggering recoverPassword mutation...");
+        recoverPassword.mutate({ email: data.email });
+    } else {
+        console.log("Triggering resetPassword mutation...");
+        resetPassword.mutate(data);
+    }
+};
+
+
+    return (
+        <Container as="form" onSubmit={handleSubmit(onSubmit)}>
+            <Heading>Password Recovery</Heading>
+            {step === 1 && (
+                <>
+                    <Text>Enter your email to receive an OTP.</Text>
+                    <FormControl isInvalid={!!errors.email}>
+                        <Input {...register("email", { required: "Email is required", pattern: emailPattern })}
+                               placeholder="Email" type="email" />
+                        <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
+                    </FormControl>
+                    <Button type="submit" isLoading={isSubmitting}>Send OTP</Button>
+                </>
+            )}
+            {step === 2 && (
+                <>
+                    <Text>Enter the OTP sent to your email.</Text>
+                    <FormControl isInvalid={!!errors.otp}>
+                        <Input {...register("otp", { required: "OTP is required" })} placeholder="OTP" type="text" />
+                        <FormErrorMessage>{errors.otp?.message}</FormErrorMessage>
+                    </FormControl>
+                    <FormControl isInvalid={!!errors.newPassword}>
+                        <Input {...register("newPassword", { required: "Enter a new password" })}
+                               placeholder="New Password" type="password" />
+                        <FormErrorMessage>{errors.newPassword?.message}</FormErrorMessage>
+                    </FormControl>
+                    <Button type="submit" isLoading={isSubmitting}>Reset Password</Button>
+                </>
+            )}
+        </Container>
+    );
 }
+
+export default RecoverPassword;
