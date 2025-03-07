@@ -61,6 +61,11 @@ export type UpdatePassword = {
   new_password: string
 }
 
+export type UpdatePin = {
+  current_pin: string
+  new_pin: string
+}
+
 export type UserCreate = {
   email: string
   phone_number: string | null
@@ -68,6 +73,7 @@ export type UserCreate = {
   is_superuser?: boolean
   full_name?: string | null
   auto_logout?: number
+  is_2fa_enabled?: boolean | null
   password: string
 }
 
@@ -78,6 +84,7 @@ export type UserPublic = {
   is_superuser?: boolean
   full_name?: string | null
   auto_logout?: number
+  is_2fa_enabled?: boolean | null
   id: string
 }
 
@@ -101,7 +108,9 @@ export type UserUpdate = {
   is_superuser?: boolean
   full_name?: string | null
   auto_logout?: number | null
+  is_2fa_enabled?: boolean | null
   password?: string | null
+  pin?: string | null
 }
 
 export type UserUpdateMe = {
@@ -154,6 +163,13 @@ export type LoginLoginAccessTokenData = {
 
 export type LoginLoginAccessTokenResponse = Token
 
+export type LoginLoginAccessTokenPinData = {
+  email: string
+  pin: string
+}
+
+export type LoginLoginAccessTokenPinResponse = Token
+
 export type LoginTestTokenResponse = UserPublic
 
 export type LoginRecoverPasswordData = {
@@ -193,6 +209,12 @@ export type UsersCreateUserData = {
 
 export type UsersCreateUserResponse = UserPublic
 
+export type UsersReadUserByEmailData = {
+  email: string
+}
+
+export type UsersReadUserByEmailResponse = UserPublic
+
 export type UsersReadUserMeResponse = UserPublic
 
 export type UsersDeleteUserMeResponse = Message
@@ -208,6 +230,18 @@ export type UsersUpdatePasswordMeData = {
 }
 
 export type UsersUpdatePasswordMeResponse = Message
+
+export type UsersUpdateUserPinData = {
+  requestBody: UpdatePin
+}
+
+export type UsersUpdateUserPinResponse = Message
+
+export type UsersVerifyUserPinData = {
+  pin: string
+}
+
+export type UsersVerifyUserPinResponse = Message
 
 export type UsersRegisterUserData = {
   requestBody: UserRegister
@@ -233,6 +267,12 @@ export type UsersDeleteUserData = {
 }
 
 export type UsersDeleteUserResponse = Message
+
+export type UsersUpdate2FaStatusData = {
+  enabled: boolean
+}
+
+export type UsersUpdate2FaStatusResponse = UserPublic
 
 export type UtilsTestEmailData = {
   emailTo: string
