@@ -2,19 +2,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import {useState, useRef, useEffect} from "react"
 
-import { AxiosError } from "axios"
+import {AxiosError} from "axios"
 import {
-  type Body_login_login_access_token as AccessToken,
-  type ApiError,
-  LoginService,
-  type UserPublic,
-  type UserRegister,
-  UsersService,
+    type Body_login_login_access_token as AccessToken,
+    type ApiError,
+    LoginService,
+    type UserPublic,
+    type UserRegister,
+    UsersService,
 } from "../client"
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
   return localStorage.getItem("access_token") !== null
+}
+
+export interface PinLogin {
+    email: string;
+    pin: string;
 }
 
 const useAuth = () => {
@@ -63,6 +68,14 @@ const useAuth = () => {
     localStorage.setItem("access_token", response.access_token)
   }
 
+  const loginWithPin = async (data: PinLogin) => {
+        const response = await LoginService.loginAccessTokenPin({
+            email: data.email,
+            pin: data.pin
+        });
+        localStorage.setItem("access_token", response.access_token);
+    };
+
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: () => {
@@ -80,6 +93,26 @@ const useAuth = () => {
       }
 
       setError(errDetail)
+    },
+  })
+
+  const loginWithPinMutation = useMutation({
+    mutationFn: loginWithPin,
+    onSuccess: () => {
+      navigate({ to: "/" });
+    },
+    onError: (err: ApiError) => {
+      let errDetail = (err.body as any)?.detail;
+
+      if (err instanceof AxiosError) {
+        errDetail = err.message;
+      }
+
+      if (Array.isArray(errDetail)) {
+        errDetail = "Something went wrong";
+      }
+
+      setError(errDetail);
     },
   })
 
@@ -116,6 +149,7 @@ const useAuth = () => {
   return {
     signUpMutation,
     loginMutation,
+    loginWithPinMutation,
     logout,
     user,
     isLoading,
