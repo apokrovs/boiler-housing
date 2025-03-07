@@ -26,7 +26,7 @@ export type ConversationPublic = {
   created_at: string
   last_message?: string | null
   last_message_time?: string | null
-  unread_count: number
+  unread_count?: number
   participants: Array<ConversationParticipantPublic>
 }
 
