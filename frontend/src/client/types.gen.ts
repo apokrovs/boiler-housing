@@ -9,6 +9,32 @@ export type Body_login_login_access_token = {
   client_secret?: string | null
 }
 
+export type ConversationCreate = {
+  name?: string | null
+  is_group?: boolean
+  participant_ids: Array<string>
+}
+
+export type ConversationParticipantPublic = {
+  user_id: string
+}
+
+export type ConversationPublic = {
+  name?: string | null
+  is_group?: boolean
+  id: string
+  created_at: string
+  last_message?: string | null
+  last_message_time?: string | null
+  unread_count?: number
+  participants: Array<ConversationParticipantPublic>
+}
+
+export type ConversationsPublic = {
+  data: Array<ConversationPublic>
+  count: number
+}
+
 export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
@@ -39,6 +65,31 @@ export type Message = {
   message: string
 }
 
+export type MessageCreate = {
+  content: string
+  conversation_id: string
+}
+
+export type MessagePublic = {
+  content: string
+  id: string
+  sender_id: string
+  conversation_id: string
+  created_at: string
+  updated_at?: string | null
+  deleted: boolean
+  read_by?: Array<ReadReceipt>
+}
+
+export type MessagesPublic = {
+  data: Array<MessagePublic>
+  count: number
+}
+
+export type MessageUpdate = {
+  content?: string | null
+}
+
 export type NewPassword = {
   token: string
   new_password: string
@@ -49,6 +100,11 @@ export type PrivateUserCreate = {
   password: string
   full_name: string
   is_verified?: boolean
+}
+
+export type ReadReceipt = {
+  user_id: string
+  read_at: string
 }
 
 export type Token = {
@@ -64,6 +120,10 @@ export type UpdatePassword = {
 export type UpdatePin = {
   current_pin: string
   new_pin: string
+}
+
+export type UserBlockCreate = {
+  blocked_id: string
 }
 
 export type UserCreate = {
@@ -189,6 +249,88 @@ export type LoginRecoverPasswordHtmlContentData = {
 }
 
 export type LoginRecoverPasswordHtmlContentResponse = string
+
+export type MessagesCreateConversationData = {
+  requestBody: ConversationCreate
+}
+
+export type MessagesCreateConversationResponse = ConversationPublic
+
+export type MessagesGetConversationsData = {
+  limit?: number
+  skip?: number
+}
+
+export type MessagesGetConversationsResponse = ConversationsPublic
+
+export type MessagesCreateMessageData = {
+  requestBody: MessageCreate
+}
+
+export type MessagesCreateMessageResponse = MessagePublic
+
+export type MessagesUpdateMessageData = {
+  messageId: string
+  requestBody: MessageUpdate
+}
+
+export type MessagesUpdateMessageResponse = MessagePublic
+
+export type MessagesDeleteMessageData = {
+  messageId: string
+}
+
+export type MessagesDeleteMessageResponse = MessagePublic
+
+export type MessagesGetConversationMessagesData = {
+  conversationId: string
+  includeDeleted?: boolean
+  limit?: number
+  skip?: number
+}
+
+export type MessagesGetConversationMessagesResponse = MessagesPublic
+
+export type MessagesGetConversationByIdData = {
+  conversationId: string
+}
+
+export type MessagesGetConversationByIdResponse = ConversationPublic
+
+export type MessagesGetUnreadCountData = {
+  /**
+   * Filter by conversation
+   */
+  conversationId?: string
+}
+
+export type MessagesGetUnreadCountResponse = number
+
+export type MessagesMarkMessageReadData = {
+  messageId: string
+}
+
+export type MessagesMarkMessageReadResponse = boolean
+
+export type MessagesMarkConversationReadData = {
+  conversationId: string
+}
+
+export type MessagesMarkConversationReadResponse = number
+
+export type MessagesBlockUserData = {
+  requestBody: UserBlockCreate
+}
+
+export type MessagesBlockUserResponse = {
+  [key: string]: unknown
+}
+
+export type MessagesUnblockUserData = {
+  userId: string
+}
+
+export type MessagesUnblockUserResponse = boolean
 
 export type PrivateCreateUserData = {
   requestBody: PrivateUserCreate

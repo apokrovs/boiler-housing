@@ -25,6 +25,30 @@ import type {
   LoginResetPasswordResponse,
   LoginRecoverPasswordHtmlContentData,
   LoginRecoverPasswordHtmlContentResponse,
+  MessagesCreateConversationData,
+  MessagesCreateConversationResponse,
+  MessagesGetConversationsData,
+  MessagesGetConversationsResponse,
+  MessagesCreateMessageData,
+  MessagesCreateMessageResponse,
+  MessagesUpdateMessageData,
+  MessagesUpdateMessageResponse,
+  MessagesDeleteMessageData,
+  MessagesDeleteMessageResponse,
+  MessagesGetConversationMessagesData,
+  MessagesGetConversationMessagesResponse,
+  MessagesGetConversationByIdData,
+  MessagesGetConversationByIdResponse,
+  MessagesGetUnreadCountData,
+  MessagesGetUnreadCountResponse,
+  MessagesMarkMessageReadData,
+  MessagesMarkMessageReadResponse,
+  MessagesMarkConversationReadData,
+  MessagesMarkConversationReadResponse,
+  MessagesBlockUserData,
+  MessagesBlockUserResponse,
+  MessagesUnblockUserData,
+  MessagesUnblockUserResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
   UsersReadUsersData,
@@ -301,6 +325,294 @@ export class LoginService {
       url: "/api/v1/password-recovery-html-content/{email}",
       path: {
         email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
+
+export class MessagesService {
+  /**
+   * Create Conversation
+   * Create a new conversation.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns ConversationPublic Successful Response
+   * @throws ApiError
+   */
+  public static createConversation(
+    data: MessagesCreateConversationData,
+  ): CancelablePromise<MessagesCreateConversationResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/conversations",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Conversations
+   * Get all conversations for the current user.
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns ConversationsPublic Successful Response
+   * @throws ApiError
+   */
+  public static getConversations(
+    data: MessagesGetConversationsData = {},
+  ): CancelablePromise<MessagesGetConversationsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/messages/conversations",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create Message
+   * Create a new message.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns MessagePublic Successful Response
+   * @throws ApiError
+   */
+  public static createMessage(
+    data: MessagesCreateMessageData,
+  ): CancelablePromise<MessagesCreateMessageResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/messages",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Message
+   * Update a message.
+   * @param data The data for the request.
+   * @param data.messageId
+   * @param data.requestBody
+   * @returns MessagePublic Successful Response
+   * @throws ApiError
+   */
+  public static updateMessage(
+    data: MessagesUpdateMessageData,
+  ): CancelablePromise<MessagesUpdateMessageResponse> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/messages/messages/{message_id}",
+      path: {
+        message_id: data.messageId,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Message
+   * Delete a message.
+   * @param data The data for the request.
+   * @param data.messageId
+   * @returns MessagePublic Successful Response
+   * @throws ApiError
+   */
+  public static deleteMessage(
+    data: MessagesDeleteMessageData,
+  ): CancelablePromise<MessagesDeleteMessageResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/messages/messages/{message_id}",
+      path: {
+        message_id: data.messageId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Conversation Messages
+   * Get messages for a specific conversation.
+   * @param data The data for the request.
+   * @param data.conversationId
+   * @param data.skip
+   * @param data.limit
+   * @param data.includeDeleted
+   * @returns MessagesPublic Successful Response
+   * @throws ApiError
+   */
+  public static getConversationMessages(
+    data: MessagesGetConversationMessagesData,
+  ): CancelablePromise<MessagesGetConversationMessagesResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/messages/conversations/{conversation_id}/messages",
+      path: {
+        conversation_id: data.conversationId,
+      },
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+        include_deleted: data.includeDeleted,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Conversation By Id
+   * Get a specific conversation by id.
+   * @param data The data for the request.
+   * @param data.conversationId
+   * @returns ConversationPublic Successful Response
+   * @throws ApiError
+   */
+  public static getConversationById(
+    data: MessagesGetConversationByIdData,
+  ): CancelablePromise<MessagesGetConversationByIdResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/messages/conversations/{conversation_id}",
+      path: {
+        conversation_id: data.conversationId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Unread Count
+   * Get count of unread messages for the current user.
+   * @param data The data for the request.
+   * @param data.conversationId Filter by conversation
+   * @returns number Successful Response
+   * @throws ApiError
+   */
+  public static getUnreadCount(
+    data: MessagesGetUnreadCountData = {},
+  ): CancelablePromise<MessagesGetUnreadCountResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/messages/unread",
+      query: {
+        conversation_id: data.conversationId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Mark Message Read
+   * Mark a message as read.
+   * @param data The data for the request.
+   * @param data.messageId
+   * @returns boolean Successful Response
+   * @throws ApiError
+   */
+  public static markMessageRead(
+    data: MessagesMarkMessageReadData,
+  ): CancelablePromise<MessagesMarkMessageReadResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/messages/{message_id}/read",
+      path: {
+        message_id: data.messageId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Mark Conversation Read
+   * Mark all messages in a conversation as read.
+   * @param data The data for the request.
+   * @param data.conversationId
+   * @returns number Successful Response
+   * @throws ApiError
+   */
+  public static markConversationRead(
+    data: MessagesMarkConversationReadData,
+  ): CancelablePromise<MessagesMarkConversationReadResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/conversations/{conversation_id}/read",
+      path: {
+        conversation_id: data.conversationId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Block User
+   * Block a user.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static blockUser(
+    data: MessagesBlockUserData,
+  ): CancelablePromise<MessagesBlockUserResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/users/block",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Unblock User
+   * Unblock a user.
+   * @param data The data for the request.
+   * @param data.userId
+   * @returns boolean Successful Response
+   * @throws ApiError
+   */
+  public static unblockUser(
+    data: MessagesUnblockUserData,
+  ): CancelablePromise<MessagesUnblockUserResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/users/{user_id}/unblock",
+      path: {
+        user_id: data.userId,
       },
       errors: {
         422: "Validation Error",

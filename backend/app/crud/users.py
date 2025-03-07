@@ -52,6 +52,12 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
+def get_user(*, session: Session, id: uuid.UUID) -> User | None:
+    statement = select(User).where(User.id == id)
+    session_user = session.exec(statement).first()
+    if not session_user:
+        return None
+    return session_user
 def authenticate_with_pin(
         session: Session, *, email: str, pin: str
 ) -> User | None:

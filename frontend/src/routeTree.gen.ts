@@ -19,7 +19,9 @@ import { Route as LoginImport } from './routes/login'
 import { Route as LayoutImport } from './routes/_layout'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
+import { Route as LayoutMessagingImport } from './routes/_layout/messaging'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
+import { Route as LayoutChatImport } from './routes/_layout/chat'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
 
 // Create/Update Routes
@@ -64,8 +66,18 @@ const LayoutSettingsRoute = LayoutSettingsImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutMessagingRoute = LayoutMessagingImport.update({
+  path: '/messaging',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutItemsRoute = LayoutItemsImport.update({
   path: '/items',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutChatRoute = LayoutChatImport.update({
+  path: '/chat',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -106,8 +118,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/chat': {
+      preLoaderRoute: typeof LayoutChatImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/items': {
       preLoaderRoute: typeof LayoutItemsImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/messaging': {
+      preLoaderRoute: typeof LayoutMessagingImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/settings': {
@@ -126,7 +146,9 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
     LayoutAdminRoute,
+    LayoutChatRoute,
     LayoutItemsRoute,
+    LayoutMessagingRoute,
     LayoutSettingsRoute,
     LayoutIndexRoute,
   ]),

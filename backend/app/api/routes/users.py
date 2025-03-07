@@ -37,8 +37,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
+    response_model=UsersPublic
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
@@ -216,11 +215,11 @@ def read_user_by_id(
     user = session.get(User, user_id)
     if user == current_user:
         return user
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
+    # if not current_user.is_superuser:
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="The user doesn't have enough privileges",
+    #     )
     return user
 
 
