@@ -28,8 +28,8 @@ const ProfileVisibility = () => {
 
   useEffect(() => {
     if (typeof currentUser?.profile_visibility === "boolean") {
-    setShowProfile(currentUser.profile_visibility)
-  }
+      setShowProfile(currentUser.profile_visibility)
+    }
   }, [currentUser])
 
   const mutation = useMutation({
@@ -59,7 +59,6 @@ const ProfileVisibility = () => {
           <FormLabel htmlFor="show-name" mb="0">
             Hide Profile:
           </FormLabel>
-          {}
           <Switch
             id="show-name"
             isChecked={!showProfile}
@@ -82,6 +81,20 @@ const ProfileVisibility = () => {
       <Text>
         Profile is {showProfile ? "visible" : "hidden"}
       </Text>
+
+      {/* Profile Details Section */}
+      <Heading size="md" mt={6}>
+        Profile Information:
+      </Heading>
+      {showProfile ? (
+        <Stack spacing={2}>
+          <Text>Name: {currentUser?.full_name}</Text>
+          <Text>Email: {currentUser?.email}</Text>
+          <Text>Bio: {currentUser?.bio}</Text>
+        </Stack>
+      ) : (
+        <Text>This user is anonymous.</Text>
+      )}
     </Container>
   )
 }
