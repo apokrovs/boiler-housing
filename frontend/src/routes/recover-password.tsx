@@ -1,4 +1,12 @@
 import {
+  Box,
+  Button, Center,
+  Container,
+  FormControl,
+  FormErrorMessage,
+  Heading, HStack, Image,
+  Input, Link,
+  Text,
     Button,
     Container,
     FormControl,
@@ -7,9 +15,9 @@ import {
     Input,
     Text,
 } from "@chakra-ui/react"
-import {useMutation} from "@tanstack/react-query"
-import {createFileRoute, redirect} from "@tanstack/react-router"
-import {type SubmitHandler, useForm} from "react-hook-form"
+import { useMutation } from "@tanstack/react-query"
+import {createFileRoute, Link as RouterLink, redirect} from "@tanstack/react-router"
+import { type SubmitHandler, useForm } from "react-hook-form"
 
 import {type ApiError, LoginService} from "../client"
 import {isLoggedIn} from "../hooks/useAuth"
@@ -103,61 +111,60 @@ function RecoverPassword() {
         mutation.mutate(data)
     }
 
-    return (
-        <Container
-            as="form"
-            onSubmit={handleSubmit(onSubmit)}
-            h="100vh"
-            maxW="sm"
-            alignItems="stretch"
-            justifyContent="center"
-            gap={4}
-            centerContent
-        >
-            <Heading size="xl" color="ui.main" textAlign="center" mb={2}>
-                Password Recovery
-            </Heading>
-            <Text align="center">
-                A password recovery email will be sent to the registered account.
-            </Text>
-
-            <FormControl isInvalid={!!errors.email}>
-                <Input
-                    id="email"
-                    {...register("email", {
-                        required: "Email is required",
-                        pattern: emailPattern,
-                    })}
-                    placeholder="Email"
-                    type="email"
-                    isDisabled={isOtpSent} // Disable input after OTP is sent
-                    value={userEmail} // Persist email value
-                    onChange={(e) => setUserEmail(e.target.value)} // Update state on change
-                />
-                {errors.email && (
-                    <FormErrorMessage>{errors.email.message}</FormErrorMessage>
-                )}
-            </FormControl>
-
-            {!isOtpSent ? (
-                <Button variant="primary" type="submit" isLoading={isSubmitting}>
-                    Continue
-                </Button>
-            ) : (
-                <>
-                    <FormControl mt={4}>
-                        <Input
-                            id="otp"
-                            placeholder="Enter OTP"
-                            value={inputOTP}
-                            onChange={(e) => setInputOTP(e.target.value)}
-                        />
-                    </FormControl>
-                    <Button variant="primary" onClick={verifyOTP} mt={2}>
-                        Verify OTP
-                    </Button>
-                </>
-            )}
-        </Container>
-    )
+  return (
+      <>
+        <Box
+            boxShadow={'md'}
+            height={"100px"}
+            width={"100%"}>
+          <HStack gap={90}>
+            <Image pl={4} pt={"15px"} src={"/assets/images/BoilerHousingCropped.png"}></Image>
+          </HStack>
+        </Box>
+    <Container
+      as="form"
+      onSubmit={handleSubmit(onSubmit)}
+      h="75vh"
+      maxW="sm"
+      alignItems="stretch"
+      justifyContent="center"
+      gap={4}
+      centerContent
+    >
+      <Heading size="xl" color={"#CEB888"}textAlign="center" mb={2}>
+        Password Recovery
+      </Heading>
+      <Text align="center">
+        A password recovery email will be sent to the registered account.
+      </Text>
+      <FormControl isInvalid={!!errors.email}>
+        <Input
+          id="email"
+          {...register("email", {
+            required: "Email is required",
+            pattern: emailPattern,
+          })}
+          placeholder="Email"
+          type="email"
+        />
+        {errors.email && (
+          <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+        )}
+      </FormControl>
+      <Button variant="primary" type="submit" isLoading={isSubmitting}>
+        Continue
+      </Button>
+      <Center>
+        <Link
+            as={RouterLink}
+            to={"/login"}
+            variant={'underline'}
+            color={'#CEB888'}
+            fontSize={'md'}>
+          Remembered password?
+        </Link>
+      </Center>
+    </Container>
+        </>
+  )
 }

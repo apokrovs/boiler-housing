@@ -1,4 +1,7 @@
+import smtplib
 import uuid
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -24,6 +27,7 @@ from app.models.users import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+    UpdatePin,
     ChangePassword
 )
 
@@ -35,14 +39,12 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
+    response_model=UsersPublic
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
     Retrieve users.
     """
-
     count_statement = select(func.count()).select_from(User)
     count = session.exec(count_statement).one()
 
@@ -79,6 +81,17 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     return user
 
 
+@router.get("/by-email/{email}", response_model=UserPublic)
+def read_user_by_email(*, email: str, session: SessionDep) -> Any:
+    """
+    Get a specific user by email.
+    """
+    user = crud_users.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return user
+
+
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
@@ -86,7 +99,6 @@ def update_user_me(
     """
     Update own user.
     """
-
     if user_in.email:
         existing_user = crud_users.get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != current_user.id:
@@ -136,6 +148,41 @@ def update_password_me(
     session.add(current_user)
     session.commit()
     return Message(message="Password updated successfully")
+
+
+@router.post("/me/pin", response_model=Message)
+def update_user_pin(
+    *, session: SessionDep, body: UpdatePin, current_user: CurrentUser
+) -> Any:
+    """
+    Set or update the user's PIN.
+    """
+    if not body.new_pin.isdigit() or len(body.new_pin) != 4:
+        raise HTTPException(
+            status_code=400, detail="PIN must be a 4-digit number"
+        )
+
+    hashed_pin = get_password_hash(body.new_pin)
+    current_user.hashed_pin = hashed_pin
+    session.add(current_user)
+    session.commit()
+    return Message(message="PIN updated successfully")
+
+
+@router.post("/me/verify-pin", response_model=Message)
+def verify_user_pin(
+    *, session: SessionDep, pin: str, current_user: CurrentUser
+) -> Any:
+    """
+    Verify the user's PIN.
+    """
+    if not current_user.hashed_pin:
+        raise HTTPException(status_code=400, detail="PIN not set")
+
+    if not verify_password(pin, current_user.hashed_pin):
+        raise HTTPException(status_code=401, detail="Incorrect PIN")
+
+    return Message(message="PIN verified successfully")
 
 
 @router.get("/me", response_model=UserPublic)
@@ -193,17 +240,18 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     Create new user without the need to be logged in.
     """
     user = crud_users.get_user_by_email(session=session, email=user_in.email)
-    if user:
+    user2 = crud_users.get_user_by_phone_number(session=session, phone_number=user_in.phone_number)
+    if user or user2:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system",
+            detail="The user with this email or phone number already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
     user = crud_users.create_user(session=session, user_create=user_create)
     return user
 
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get("/by-id/{user_id}", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -213,11 +261,11 @@ def read_user_by_id(
     user = session.get(User, user_id)
     if user == current_user:
         return user
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
+    # if not current_user.is_superuser:
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="The user doesn't have enough privileges",
+    #     )
     return user
 
 
@@ -235,7 +283,6 @@ def update_user(
     """
     Update a user.
     """
-
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(
@@ -267,7 +314,8 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
+    # Directly reference the model attribute for filtering
+    statement = delete(Item).where(Item.owner_id == user_id)
     session.exec(statement)  # type: ignore
     session.delete(user)
     session.commit()
@@ -292,3 +340,17 @@ def change_password(
     updated_user = update_user(session=db, db_user=current_user, user_in=user_update)
 
     return {"detail": "Password updated successfully"}
+
+
+@router.patch("/me/2fa", response_model=UserPublic)
+def update_2fa_status(
+    *, session: SessionDep, current_user: CurrentUser, enabled: bool
+) -> Any:
+    """
+    Enable or disable two-factor authentication for the current user.
+    """
+    current_user.is_2fa_enabled = enabled
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user

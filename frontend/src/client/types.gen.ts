@@ -9,10 +9,30 @@ export type Body_login_login_access_token = {
   client_secret?: string | null
 }
 
-export type ChangePassword = {
-  current_password: string
-  new_password: string
-  confirm_new_password: string
+export type ConversationCreate = {
+  name?: string | null
+  is_group?: boolean
+  participant_ids: Array<string>
+}
+
+export type ConversationParticipantPublic = {
+  user_id: string
+}
+
+export type ConversationPublic = {
+  name?: string | null
+  is_group?: boolean
+  id: string
+  created_at: string
+  last_message?: string | null
+  last_message_time?: string | null
+  unread_count?: number
+  participants: Array<ConversationParticipantPublic>
+}
+
+export type ConversationsPublic = {
+  data: Array<ConversationPublic>
+  count: number
 }
 
 export type HTTPValidationError = {
@@ -45,6 +65,31 @@ export type Message = {
   message: string
 }
 
+export type MessageCreate = {
+  content: string
+  conversation_id: string
+}
+
+export type MessagePublic = {
+  content: string
+  id: string
+  sender_id: string
+  conversation_id: string
+  created_at: string
+  updated_at?: string | null
+  deleted: boolean
+  read_by?: Array<ReadReceipt>
+}
+
+export type MessagesPublic = {
+  data: Array<MessagePublic>
+  count: number
+}
+
+export type MessageUpdate = {
+  content?: string | null
+}
+
 export type NewPassword = {
   token: string
   new_password: string
@@ -57,48 +102,9 @@ export type PrivateUserCreate = {
   is_verified?: boolean
 }
 
-export type RenterPreferenceCreate = {
-  num_bedrooms?: Array<string> | null
-  num_bathrooms?: Array<string> | null
-  address?: string | null
-  realty_company?: string | null
-  min_price?: number | null
-  max_price?: number | null
-  included_utilities?: Array<string> | null
-  security_deposit?: string | null
-  amenities?: Array<string> | null
-  lease_start_date?: string | null
-  lease_end_date?: string | null
-}
-
-export type RenterPreferencePublic = {
-  num_bedrooms?: Array<string> | null
-  num_bathrooms?: Array<string> | null
-  address?: string | null
-  realty_company?: string | null
-  min_price?: number | null
-  max_price?: number | null
-  included_utilities?: Array<string> | null
-  security_deposit?: string | null
-  amenities?: Array<string> | null
-  lease_start_date?: string | null
-  lease_end_date?: string | null
-  id: string
-  owner_id: string
-}
-
-export type RenterPreferenceUpdate = {
-  num_bedrooms?: Array<string> | null
-  num_bathrooms?: Array<string> | null
-  address?: string | null
-  realty_company?: string | null
-  min_price?: number | null
-  max_price?: number | null
-  included_utilities?: Array<string> | null
-  security_deposit?: string | null
-  amenities?: Array<string> | null
-  lease_start_date?: string | null
-  lease_end_date?: string | null
+export type ReadReceipt = {
+  user_id: string
+  read_at: string
 }
 
 export type Token = {
@@ -107,47 +113,47 @@ export type Token = {
 }
 
 export type UpdatePassword = {
-  recovery_email?: string | null
-  recovery_phone_number?: string | null
   current_password: string
   new_password: string
-  confirm_new_password: string
+}
+
+export type UpdatePin = {
+  current_pin: string
+  new_pin: string
+}
+
+export type UserBlockCreate = {
+  blocked_id: string
 }
 
 export type UserCreate = {
   email: string
-  phone_number?: string | null
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
-  profile_visibility?: boolean | null
-  recovery_email?: string | null
-  recovery_phone_number?: string | null
-  active_profile_type?: string | null
+  auto_logout?: number
+  is_2fa_enabled?: boolean | null
   password: string
 }
 
 export type UserPublic = {
   email: string
-  phone_number?: string | null
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
-  profile_visibility?: boolean | null
-  recovery_email?: string | null
-  recovery_phone_number?: string | null
-  active_profile_type?: string | null
+  auto_logout?: number
+  is_2fa_enabled?: boolean | null
   id: string
 }
 
 export type UserRegister = {
   email: string
+  phone_number: string | null
   password: string
   full_name?: string | null
+  auto_logout?: number
 }
 
 export type UsersPublic = {
@@ -157,28 +163,20 @@ export type UsersPublic = {
 
 export type UserUpdate = {
   email?: string | null
-  phone_number?: string | null
+  phone_number: string | null
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
-  profile_visibility?: boolean | null
-  recovery_email?: string | null
-  recovery_phone_number?: string | null
-  active_profile_type?: string | null
+  auto_logout?: number | null
+  is_2fa_enabled?: boolean | null
   password?: string | null
+  pin?: string | null
 }
 
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
-  phone_number?: string | null
-  bio?: string | null
-  profile_type?: string | null
-  profile_visibility?: boolean | null
-  recovery_email?: string | null
-  recovery_phone_number?: string | null
+  auto_logout?: number | null
 }
 
 export type ValidationError = {
@@ -225,6 +223,13 @@ export type LoginLoginAccessTokenData = {
 
 export type LoginLoginAccessTokenResponse = Token
 
+export type LoginLoginAccessTokenPinData = {
+  email: string
+  pin: string
+}
+
+export type LoginLoginAccessTokenPinResponse = Token
+
 export type LoginTestTokenResponse = UserPublic
 
 export type LoginRecoverPasswordData = {
@@ -245,30 +250,101 @@ export type LoginRecoverPasswordHtmlContentData = {
 
 export type LoginRecoverPasswordHtmlContentResponse = string
 
+export type MessagesCreateConversationData = {
+  requestBody: ConversationCreate
+}
+
+export type MessagesCreateConversationResponse = ConversationPublic
+
+export type MessagesGetConversationsData = {
+  limit?: number
+  skip?: number
+}
+
+export type MessagesGetConversationsResponse = ConversationsPublic
+
+export type MessagesCreateMessageData = {
+  requestBody: MessageCreate
+}
+
+export type MessagesCreateMessageResponse = MessagePublic
+
+export type MessagesUpdateMessageData = {
+  messageId: string
+  requestBody: MessageUpdate
+}
+
+export type MessagesUpdateMessageResponse = MessagePublic
+
+export type MessagesDeleteMessageData = {
+  messageId: string
+}
+
+export type MessagesDeleteMessageResponse = MessagePublic
+
+export type MessagesGetConversationMessagesData = {
+  conversationId: string
+  includeDeleted?: boolean
+  limit?: number
+  skip?: number
+}
+
+export type MessagesGetConversationMessagesResponse = MessagesPublic
+
+export type MessagesGetConversationByIdData = {
+  conversationId: string
+}
+
+export type MessagesGetConversationByIdResponse = ConversationPublic
+
+export type MessagesGetUnreadCountData = {
+  /**
+   * Filter by conversation
+   */
+  conversationId?: string
+}
+
+export type MessagesGetUnreadCountResponse = number
+
+export type MessagesMarkMessageReadData = {
+  messageId: string
+}
+
+export type MessagesMarkMessageReadResponse = boolean
+
+export type MessagesMarkConversationReadData = {
+  conversationId: string
+}
+
+export type MessagesMarkConversationReadResponse = number
+
+export type MessagesBlockUserData = {
+  requestBody: UserBlockCreate
+}
+
+export type MessagesBlockUserResponse = {
+  [key: string]: unknown
+}
+
+export type MessagesUnblockUserData = {
+  userId: string
+}
+
+export type MessagesUnblockUserResponse = boolean
+
+export type MessagesGetBlockedUsersResponse = Array<string>
+
+export type MessagesCheckUserBlockedData = {
+  userId: string
+}
+
+export type MessagesCheckUserBlockedResponse = boolean
+
 export type PrivateCreateUserData = {
   requestBody: PrivateUserCreate
 }
 
 export type PrivateCreateUserResponse = UserPublic
-
-export type RenterPreferencesReadRenterPreferenceResponse =
-  RenterPreferencePublic
-
-export type RenterPreferencesUpdateRenterPreferenceData = {
-  requestBody: RenterPreferenceUpdate
-}
-
-export type RenterPreferencesUpdateRenterPreferenceResponse =
-  RenterPreferencePublic
-
-export type RenterPreferencesCreateRenterPreferenceData = {
-  requestBody: RenterPreferenceCreate
-}
-
-export type RenterPreferencesCreateRenterPreferenceResponse =
-  RenterPreferencePublic
-
-export type RenterPreferencesDeleteRenterPreferenceResponse = Message
 
 export type UsersReadUsersData = {
   limit?: number
@@ -283,6 +359,12 @@ export type UsersCreateUserData = {
 
 export type UsersCreateUserResponse = UserPublic
 
+export type UsersReadUserByEmailData = {
+  email: string
+}
+
+export type UsersReadUserByEmailResponse = UserPublic
+
 export type UsersReadUserMeResponse = UserPublic
 
 export type UsersDeleteUserMeResponse = Message
@@ -293,17 +375,23 @@ export type UsersUpdateUserMeData = {
 
 export type UsersUpdateUserMeResponse = UserPublic
 
-export type UsersUpdateActiveProfileResponse = UserPublic
-
 export type UsersUpdatePasswordMeData = {
   requestBody: UpdatePassword
 }
 
 export type UsersUpdatePasswordMeResponse = Message
 
-export type UsersDeleteRenterMeResponse = Message
+export type UsersUpdateUserPinData = {
+  requestBody: UpdatePin
+}
 
-export type UsersDeleteLeaserMeResponse = Message
+export type UsersUpdateUserPinResponse = Message
+
+export type UsersVerifyUserPinData = {
+  pin: string
+}
+
+export type UsersVerifyUserPinResponse = Message
 
 export type UsersRegisterUserData = {
   requestBody: UserRegister
@@ -330,11 +418,11 @@ export type UsersDeleteUserData = {
 
 export type UsersDeleteUserResponse = Message
 
-export type UsersChangePasswordData = {
-  requestBody: ChangePassword
+export type UsersUpdate2FaStatusData = {
+  enabled: boolean
 }
 
-export type UsersChangePasswordResponse = unknown
+export type UsersUpdate2FaStatusResponse = UserPublic
 
 export type UtilsTestEmailData = {
   emailTo: string

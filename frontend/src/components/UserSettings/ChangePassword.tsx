@@ -1,4 +1,4 @@
-import {useState} from "react"
+import {useEffect, useState} from "react"
 
 import {
     Button,
@@ -10,8 +10,26 @@ import {
     Stack,
     RadioGroup,
     Radio,
-    Text
+    Text,
+    FormErrorMessage, Switch,
 } from "@chakra-ui/react"
+import useAuth from "../../hooks/useAuth.ts";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import useCustomToast from "../../hooks/useCustomToast.ts";
+import {handleError} from "../../utils.ts";
+import {ApiError, UpdatePin, UserPublic, UsersService, UserUpdateMe, type UsersUpdate2FaStatusData} from "../../client";
+import {type SubmitHandler, useForm} from "react-hook-form"
+/*
+import {useMutation} from "@tanstack/react-query"
+import {type SubmitHandler, useForm} from "react-hook-form"
+
+import {type ApiError, type UpdatePassword, UsersService} from "../../client"
+import useCustomToast from "../../hooks/useCustomToast"
+import {confirmPasswordRules, handleError, passwordRules} from "../../utils"
+
+interface UpdatePasswordForm extends UpdatePassword {
+    confirm_password: string
+}*/
 import useAuth from "../../hooks/useAuth.ts";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {UsersService, UsersUpdatePasswordMeData, UserUpdateMe} from "../../client";
@@ -21,6 +39,8 @@ const ChangePassword = () => {
     const {user} = useAuth()
     const queryClient = useQueryClient()
     const showToast = useCustomToast()
+
+    const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
 
     const [currPassword, setCurrPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
@@ -66,6 +86,27 @@ const ChangePassword = () => {
     });
 
 
+    useEffect(() => {
+        if(user?.auto_logout) {
+            setAutoLogout(String(user.auto_logout))
+        }
+    }, [user])
+
+    const updateUserMutation = useMutation({
+        mutationFn: (updatedUser: UserUpdateMe) =>
+            UsersService.updateUserMe({requestBody: updatedUser}),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["currentUser"] })
+            showToast("Success!", "Auto logout time updated successfully.", "success")
+    },
+        onError: (error) => {
+            console.error("Failed to update auto logout time.", error)
+            alert("Failed to update auto logout time.")
+        }
+    })
+
+    const [isEnabled, setIsEnabled] = useState(currentUser?.is_2fa_enabled);
+
     const handleChangePassword = () => {
         if (newPassword !== confirmPassword) {
             showToast("Error", "New passwords do not match.", "error");
@@ -90,10 +131,7 @@ const ChangePassword = () => {
 
     const handleUpdateLogout = () => {
         console.log("Auto logout time: ", autoLogout)
-        if (user) {
-            const updatedUser = {...user, auto_logout: Number(autoLogout)}
-            updateUserMutation.mutate(updatedUser)
-        }
+        alert("Automatic logout time updated!")
     }
 
     return (
@@ -162,6 +200,62 @@ const ChangePassword = () => {
                     Update Recovery Info
                 </Button>
             </Stack>
+
+            <Heading size="md" mb={4}>Login Via PIN</Heading>
+            <Stack spacing={4} mb={4} as="form" onSubmit={handleSubmit(onSubmit)}>
+                <FormControl isInvalid={!!errors.current_pin}>
+                    <FormLabel>Enter 4-digit PIN</FormLabel>
+                    <Input
+                        id="current_pin"
+                        {...register("current_pin", {
+                            required: "PIN is required",
+                            minLength: {value: 4, message: "PIN must be exactly 4 digits"},
+                            maxLength: {value: 4, message: "PIN must be exactly 4 digits"},
+                            pattern: {value: /^\d{4}$/, message: "PIN must be numeric"},
+                        })}
+                        type="password"
+                        maxLength={4}
+                    />
+                    <FormErrorMessage>{errors.current_pin?.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.new_pin}>
+                    <FormLabel>Confirm PIN</FormLabel>
+                    <Input
+                        id="new_pin"
+                        {...register("new_pin", {
+                            required: "Confirm PIN is required",
+                            validate: (value) => {
+                                const currentPin = watch("current_pin");
+                                return currentPin === value || "PINs do not match";
+                            },
+                        })}
+                        type="password"
+                        maxLength={4}
+                    />
+                    <FormErrorMessage>{errors.new_pin?.message}</FormErrorMessage>
+
+                </FormControl>
+                <Button
+                    type="submit"
+                    colorScheme="blue"
+                    isLoading={isSubmitting}
+                >
+                    Set PIN
+                </Button>
+            </Stack>
+
+            <Heading size="md" mb={4} pt={4}>
+                Two-Factor Authentication
+            </Heading>
+            <FormControl display="flex" pb={4}>
+                <FormLabel>
+                    Enable 2FA:
+                </FormLabel>
+                <Switch
+                    isChecked={isEnabled ?? false}
+                    onChange={handleToggle}
+                />
+            </FormControl>
 
             <Heading size="md" mb={4}>
                 Automatic Logout Time

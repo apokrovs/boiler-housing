@@ -3,7 +3,7 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from app.core.security import get_password_hash, verify_password
+from app.core.security import get_password_hash, verify_password, verify_pin
 from app.models.users import User, UserCreate, UserUpdate
 
 
@@ -37,6 +37,12 @@ def get_user_by_email(*, session: Session, email: str) -> User | None:
     return session_user
 
 
+def get_user_by_phone_number(*, session: Session, phone_number: str) -> User | None:
+    statement = select(User).where(User.phone_number == phone_number)
+    session_user = session.exec(statement).first()
+    return session_user
+
+
 def authenticate(*, session: Session, email: str, password: str) -> User | None:
     db_user = get_user_by_email(session=session, email=email)
     if not db_user:
@@ -45,3 +51,21 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
         return None
     return db_user
 
+
+def get_user(*, session: Session, id: uuid.UUID) -> User | None:
+    statement = select(User).where(User.id == id)
+    session_user = session.exec(statement).first()
+    if not session_user:
+        return None
+    return session_user
+def authenticate_with_pin(
+        session: Session, *, email: str, pin: str
+) -> User | None:
+    user = get_user_by_email(session=session, email=email)
+    if not user:
+        return None
+    if not user.hashed_pin:
+        return None
+    if not verify_pin(plain_pin=pin, hashed_pin=user.hashed_pin):
+        return None
+    return user

@@ -101,6 +101,20 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
                 <FormErrorMessage>{errors.email.message}</FormErrorMessage>
               )}
             </FormControl>
+            <FormControl mt={4} isRequired isInvalid={!!errors.phone_number}>
+              <FormLabel htmlFor="phone">Phone Number</FormLabel>
+              <Input
+                id="phone"
+                {...register("phone_number", {
+                  required: "Phone number is required",
+                })}
+                placeholder="Phone"
+                type="phone"
+              />
+              {errors.phone_number && (
+                <FormErrorMessage>{errors.phone_number.message}</FormErrorMessage>
+              )}
+            </FormControl>
             <FormControl mt={4} isInvalid={!!errors.full_name}>
               <FormLabel htmlFor="name">Full name</FormLabel>
               <Input

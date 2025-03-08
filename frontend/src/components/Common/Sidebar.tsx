@@ -15,7 +15,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query"
 import { FiLogOut, FiMenu } from "react-icons/fi"
 
-import Logo from "/assets/images/fastapi-logo.svg"
+import Logo from "/assets/images/BoilerHousingCropped.png"
 import type { UserPublic } from "../../client"
 import useAuth from "../../hooks/useAuth"
 import SidebarItems from "./SidebarItems"
@@ -94,7 +94,7 @@ const Sidebar = () => {
           align={"center"}
           w={'100%'}
         >
-          <Image src={Logo} alt="Logo" w="180px" maxW="2xs" p={6} />
+          <Image src={Logo} alt="Logo" w="300px" maxW="2xs" p={6} />
           <Box>
             <SidebarItems />
           </Box>

@@ -7,10 +7,10 @@ import {
     TabPanels,
     Tabs,
 } from "@chakra-ui/react"
-import {useQueryClient} from "@tanstack/react-query"
-import {createFileRoute} from "@tanstack/react-router"
+import { useQueryClient } from "@tanstack/react-query"
+import { createFileRoute } from "@tanstack/react-router"
 
-import type {UserPublic} from "../../client"
+import type { UserPublic } from "../../client"
 import Appearance from "../../components/UserSettings/Appearance"
 import ChangePassword from "../../components/UserSettings/ChangePassword"
 import DeleteAccount from "../../components/UserSettings/DeleteAccount"
@@ -46,7 +46,39 @@ function UserSettings() {
         }
         return true;
     });
+    const queryClient = useQueryClient()
+    const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
+    const finalTabs = currentUser?.is_superuser
+        ? tabsConfig.slice(0, 6)
+        : tabsConfig
 
+    if (!currentUser?.is_2fa_enabled) {
+        setTimeout(() => {
+            alert("For better security, we recommend enabling Two-Factor Authentication.");
+        }, 2000);
+    }
+
+    return (
+        <Container maxW="full" p={4}>
+            <Heading size="lg" textAlign={{base: "center", md: "left"}} p={4}>
+                User Settings
+            </Heading>
+            <Tabs variant="enclosed" p={2}>
+                <TabList>
+                    {finalTabs.map((tab, index) => (
+                        <Tab key={index}>{tab.title}</Tab>
+                    ))}
+                </TabList>
+                <TabPanels>
+                    {finalTabs.map((tab, index) => (
+                        <TabPanel key={index}>
+                            <tab.component/>
+                        </TabPanel>
+                    ))}
+                </TabPanels>
+            </Tabs>
+        </Container>
+    )
     return (
         <Container maxW="full" p={4}>
             <Heading size="lg" textAlign={{base: "center", md: "left"}} p={4}>

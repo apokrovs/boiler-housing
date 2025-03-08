@@ -34,6 +34,8 @@ services:
       - --api
       # Enable the Dashboard and API in insecure mode for local development
       - --api.insecure=true
+      - --ping
+      - --ping.entryPoint=http
     labels:
       # Enable Traefik for this service, to make it available in the public network
       - traefik.enable=true
@@ -87,6 +89,25 @@ services:
       SMTP_TLS: "false"
       EMAILS_FROM_EMAIL: "noreply@example.com"
 
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.backend.rule=Host(`localhost.com`)
+      - traefik.http.services.backend.loadbalancer.server.port=8000
+      # WebSocket specific configuration
+      - traefik.http.routers.backend-ws.entrypoints=http
+      - traefik.http.middlewares.websocket.headers.customrequestheaders.Connection=Upgrade
+      - traefik.http.middlewares.websocket.headers.customrequestheaders.Upgrade=websocket
+      - traefik.http.routers.backend-ws.rule=Host(`localhost`) && PathPrefix(`/api/v1/messages/ws`)
+      - traefik.http.routers.backend-ws.service=backend
+      - traefik.http.routers.backend-ws.middlewares=websocket
+      - traefik.http.middlewares.cors.headers.accessControlAllowOrigins=*
+      - traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS
+      - traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type,Authorization
+      - traefik.http.routers.backend-ws.middlewares=websocket,cors
+    networks:
+      - traefik-public
+      - default
   mailcatcher:
     image: schickling/mailcatcher
     ports:
@@ -99,13 +120,14 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
       - ./frontend/package.json:/app/package.json
       - ./frontend/vite.config.ts:/app/vite.config.ts
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
       args:
-        - VITE_API_URL=http://localhost:8000
+        - VITE_API_URL=http://localhost
         - NODE_ENV=development
 
   playwright:
