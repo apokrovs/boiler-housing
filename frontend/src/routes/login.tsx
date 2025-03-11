@@ -121,9 +121,8 @@ function Login() {
 
         resetError()
 
-        const loginUser = await UsersService.readUserByEmail({email: data.username});
-
         try {
+            const loginUser = await UsersService.readUserByEmail({email: data.username});
             if (loginUser.is_2fa_enabled) {
                 const otp = generateOTP(); // Generate OTP and store it in a variable
                 setStoredOtp(otp); // Update state with the OTP
