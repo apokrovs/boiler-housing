@@ -6,12 +6,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 # Shared properties
 class ListingBase(SQLModel):
-    num_bedrooms: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))
-    num_bathrooms: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))
+    num_bedrooms: Optional[str] | None = Field(default=None)
+    num_bathrooms: Optional[str] | None = Field(default=None)
     address: Optional[str] | None = Field(default=None, max_length=255)
     realty_company: Optional[str] | None = Field(default=None, max_length=255)
-    min_price: Optional[float] | None = Field(default=None, ge=0)
-    max_price: Optional[float] | None = Field(default=None, ge=0)
+    rent: Optional[float] | None = Field(default=None, ge=0)
     included_utilities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))
     security_deposit: Optional[str] | None = Field(default=None)
     amenities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))
