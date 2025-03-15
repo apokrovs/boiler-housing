@@ -28,7 +28,7 @@ import {
 } from './websocket';
 import {MessagesService, UsersService} from '../../client';
 import {MessagePublic} from '../../client/types.gen';
-import {sendEmailNotification} from "../../client/emailService.ts";
+import {sendEmail} from "../../client/mailcatcher.ts";
 
 function debounce(func: Function, wait: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -214,13 +214,13 @@ export const ChatWindow = ({
             // Update temp message with confirmed data
             if (data.conversation_id === conversationId) {
                 setMessages(prev => prev.map(msg =>
-                        msg.tempId === data.message_id || msg.id === data.message_id
-                                ? {
-                                    ...msg,
-                                    id: data.message_id,
-                                    status: 'sent'
-                                }
-                                : msg
+                    msg.tempId === data.message_id || msg.id === data.message_id
+                        ? {
+                            ...msg,
+                            id: data.message_id,
+                            status: 'sent'
+                        }
+                        : msg
                 ));
             }
         });
@@ -230,13 +230,13 @@ export const ChatWindow = ({
             data = data.data
             if (data.conversation_id === conversationId) {
                 setMessages(prev => prev.map(msg =>
-                        msg.id === data.id
-                                ? {
-                                    ...msg,
-                                    content: data.content,
-                                    updated_at: data.updated_at
-                                }
-                                : msg
+                    msg.id === data.id
+                        ? {
+                            ...msg,
+                            content: data.content,
+                            updated_at: data.updated_at
+                        }
+                        : msg
                 ));
             }
         });
@@ -245,13 +245,13 @@ export const ChatWindow = ({
         const unsubMessageDelete = subscribeToMessageType('message_delete', (data) => {
             if (data.conversation_id === conversationId) {
                 setMessages(prev => prev.map(msg =>
-                        msg.id === data.message_id
-                                ? {
-                                    ...msg,
-                                    deleted: true,
-                                    content: "This message was deleted"
-                                }
-                                : msg
+                    msg.id === data.message_id
+                        ? {
+                            ...msg,
+                            deleted: true,
+                            content: "This message was deleted"
+                        }
+                        : msg
                 ));
             }
         });
@@ -283,7 +283,7 @@ export const ChatWindow = ({
                     if (msg.id === data.message_id) {
                         // Check if this receipt already exists
                         const existingReceipt = msg.read_by?.some(
-                                receipt => receipt.user_id === data.reader_id
+                            receipt => receipt.user_id === data.reader_id
                         );
 
                         if (!existingReceipt) {
@@ -335,9 +335,9 @@ export const ChatWindow = ({
 
     // Debounced typing notification
     const debouncedTypingNotification = useRef(
-            debounce(() => {
-                sendTypingIndicator(conversationId);
-            }, 500)
+        debounce(() => {
+            sendTypingIndicator(conversationId);
+        }, 500)
     ).current;
 
     // Handle message input change
@@ -377,8 +377,13 @@ export const ChatWindow = ({
         if (participants && user.full_name) {
             for (const participant of participants) {
                 if (participant !== user.id) {
-                    const userData = await UsersService.readUserById({userId: participant});
-                    await sendEmailNotification(userData.email, user.full_name, messageText);
+                    try {
+                        const userData = await UsersService.readUserById({userId: participant});
+                        await sendEmail(userData.email, user.full_name, messageText);
+                    }
+                    catch (err) {
+                        console.error("Error sending emailvia Mailcatcher:", err);
+                    }
                 }
             }
         }
@@ -401,9 +406,9 @@ export const ChatWindow = ({
 
                 // Mark the message as failed
                 setMessages(prev => prev.map(msg =>
-                        msg.tempId === tempId
-                                ? {...msg, status: 'sent'}
-                                : msg
+                    msg.tempId === tempId
+                        ? {...msg, status: 'sent'}
+                        : msg
                 ));
             }
         }
@@ -451,11 +456,11 @@ export const ChatWindow = ({
 
             // Optimistically update UI
             setMessages(prevMessages =>
-                    prevMessages.map(msg =>
-                            msg.id === message.id
-                                    ? {...msg, deleted: true, content: "This message was deleted"}
-                                    : msg
-                    )
+                prevMessages.map(msg =>
+                    msg.id === message.id
+                        ? {...msg, deleted: true, content: "This message was deleted"}
+                        : msg
+                )
             );
         }
     };
@@ -484,11 +489,11 @@ export const ChatWindow = ({
 
         // Optimistically update UI
         setMessages(prevMessages =>
-                prevMessages.map(msg =>
-                        msg.id === editingMessage.id
-                                ? {...msg, content: editText, updated_at: new Date().toISOString()}
-                                : msg
-                )
+            prevMessages.map(msg =>
+                msg.id === editingMessage.id
+                    ? {...msg, content: editText, updated_at: new Date().toISOString()}
+                    : msg
+            )
         );
 
         setEditingMessage(null);
@@ -505,200 +510,200 @@ export const ChatWindow = ({
     };
 
     return (
-            <Box
-                    height="85vh"
-                    width="100%"
-                    display="flex"
-                    flexDirection="column"
-                    bg={useColorModeValue('white', 'gray.800')}
+        <Box
+            height="85vh"
+            width="100%"
+            display="flex"
+            flexDirection="column"
+            bg={useColorModeValue('white', 'gray.800')}
+        >
+            {/* Header */}
+            <Flex
+                p={4}
+                borderBottom="1px solid"
+                borderColor="gray.200"
+                alignItems="center"
+                bg={useColorModeValue('white', 'gray.800')}
             >
-                {/* Header */}
-                <Flex
-                        p={4}
-                        borderBottom="1px solid"
-                        borderColor="gray.200"
-                        alignItems="center"
-                        bg={useColorModeValue('white', 'gray.800')}
-                >
-                    <Avatar
-                            size="sm"
-                            name={conversationName || 'Conversation'}
-                            mr={3}
-                            bg={isGroup ? 'green.500' : 'yellow.500'}
-                    />
-                    <Box flex="1">
-                        <Text fontWeight="bold">{conversationName || (isGroup ? 'Group Chat' : 'Direct Message')}</Text>
-                        {typingUsers.size > 0 && (
-                                <Text fontSize="xs" color="gray.500">
-                                    {isGroup && typingUsers.size > 1
-                                            ? 'Several people are typing...'
-                                            : 'Typing...'}
-                                </Text>
-                        )}
-                    </Box>
-                    {!isGroup && (
-                            <Button
-                                    size="sm"
-                                    colorScheme={isBlocked ? "green" : "red"}
-                                    onClick={isBlocked ? handleUnblockUser : handleBlockUser}
-                            >
-                                {isBlocked ? "Unblock" : "Block"}
-                            </Button>
+                <Avatar
+                    size="sm"
+                    name={conversationName || 'Conversation'}
+                    mr={3}
+                    bg={isGroup ? 'green.500' : 'yellow.500'}
+                />
+                <Box flex="1">
+                    <Text fontWeight="bold">{conversationName || (isGroup ? 'Group Chat' : 'Direct Message')}</Text>
+                    {typingUsers.size > 0 && (
+                        <Text fontSize="xs" color="gray.500">
+                            {isGroup && typingUsers.size > 1
+                                ? 'Several people are typing...'
+                                : 'Typing...'}
+                        </Text>
                     )}
-                </Flex>
-
-                {/* Messages */}
-                <Box
-                        flex="1"
-                        overflowY="auto"
-                        p={4}
-                        ref={messagesContainerRef}
-                        onScroll={handleScroll}
-                        bg={useColorModeValue('gray.50', 'gray.900')}
-                >
-                    {isLoadingMore && (
-                            <Flex justify="center" mb={4}>
-                                <Spinner size="sm"/>
-                            </Flex>
-                    )}
-
-                    {hasMore && !isLoadingMore && (
-                            <Flex justify="center" mb={4}>
-                                <Button size="xs" onClick={loadMoreMessages} variant="ghost">
-                                    Load older messages
-                                </Button>
-                            </Flex>
-                    )}
-
-                    {isLoading ? (
-                            <Flex justify="center" align="center" height="100%">
-                                <Spinner/>
-                            </Flex>
-                    ) : (
-                            isBlocked ? (
-                                    <Flex justify="center" align="center" height="100%">
-                                        <Text color="red.500">You have blocked this user.</Text>
-                                        <Button onClick={handleUnblockUser} ml={2}>Unblock</Button>
-                                    </Flex>
-                            ) : (
-                                    <>
-                                        {messages.length === 0 ? (
-                                                <Flex justify="center" align="center" height="100%">
-                                                    <Text color="gray.500">No messages yet</Text>
-                                                </Flex>
-                                        ) : (
-                                                messages.map((message) => (
-                                                        <Flex
-                                                                key={message.id || message.tempId}
-                                                                mb={3}
-                                                                flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
-                                                                alignItems="flex-end"
-                                                        >
-                                                            {!message.isFromMe && (
-                                                                    <Avatar
-                                                                            size="xs"
-                                                                            // name={message.sender_id.substring(0, 2)}
-                                                                            mr={message.isFromMe ? 0 : 2}
-                                                                            ml={message.isFromMe ? 2 : 0}
-                                                                    />
-                                                            )}
-
-                                                            <Menu placement="bottom"
-                                                                  portalProps={{appendToParentPortal: false}}>
-                                                                <MenuButton
-                                                                        as={Button}
-                                                                        p={0}  // Remove padding so the content controls the width
-                                                                        bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
-                                                                        color="black"
-                                                                        borderRadius="lg"
-                                                                        maxW="70%"
-                                                                        h={"100%"}
-                                                                        display="inline-block"
-                                                                        textAlign="left"
-                                                                        whiteSpace="pre-wrap"
-                                                                        wordBreak="break-word"
-                                                                        _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
-                                                                        isDisabled={message.deleted}
-                                                                >
-                                                                    <Box
-                                                                            p={3}  // Add padding inside the box, not the button itself
-                                                                            whiteSpace="pre-wrap"
-                                                                            wordBreak="break-word"
-                                                                            w="100%"  // Let the box grow to fill the button's width
-                                                                    >
-                                                                        {editingMessage?.id === message.id ? (
-                                                                                <Input
-                                                                                        size="sm"
-                                                                                        value={editText}
-                                                                                        onChange={(e) => setEditText(e.target.value)}
-                                                                                        onBlur={handleSaveEdit}
-                                                                                        onKeyPress={(e) => e.key === 'Enter' && handleSaveEdit()}
-                                                                                        autoFocus
-                                                                                />
-                                                                        ) : (
-                                                                                <Text
-                                                                                        fontSize="md"
-                                                                                        lineHeight="short"
-                                                                                        color={message.deleted ? "gray.500" : "inherit"}
-                                                                                        fontStyle={message.deleted ? "italic" : "normal"}
-                                                                                >
-                                                                                    {message.content}
-                                                                                    {message.updated_at && !message.deleted && (
-                                                                                            <Text as="span"
-                                                                                                  fontSize="xs"
-                                                                                                  color="gray.500"
-                                                                                                  ml={1}>
-                                                                                                (edited)
-                                                                                            </Text>
-                                                                                    )}
-                                                                                </Text>
-                                                                        )}
-                                                                    </Box>
-                                                                </MenuButton>
-
-                                                                <MenuList zIndex="popover">
-                                                                    {message.isFromMe && !message.deleted && (
-                                                                            <>
-                                                                                <MenuItem
-                                                                                        onClick={() => handleEditMessage(message)}>Edit</MenuItem>
-                                                                                <MenuItem
-                                                                                        onClick={() => handleDeleteMessage(message)}>Delete</MenuItem>
-                                                                            </>
-                                                                    )}
-                                                                </MenuList>
-                                                            </Menu>
-                                                        </Flex>
-                                                ))
-                                        )}
-                                        <div ref={messagesEndRef}/>
-                                    </>
-                            ))}
                 </Box>
-
-                {/* Input */}
-                <Flex
-                        p={4}
-                        borderTop="1px solid"
-                        borderColor="gray.200"
-                        bg={useColorModeValue('white', 'gray.800')}
-                >
-                    <Input
-                            placeholder={isBlocked ? "You cannot send messages to this user" : "Type a message..."}
-                            value={messageText}
-                            onChange={handleMessageChange}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                            mr={2}
-                            isDisabled={isBlocked}
-                            focusBorderColor="yellow.500"
-                    />
+                {!isGroup && (
                     <Button
-                            colorScheme="yellow"
-                            onClick={handleSendMessage}
-                            isDisabled={!messageText.trim() || isBlocked}
+                        size="sm"
+                        colorScheme={isBlocked ? "green" : "red"}
+                        onClick={isBlocked ? handleUnblockUser : handleBlockUser}
                     >
-                        Send
+                        {isBlocked ? "Unblock" : "Block"}
                     </Button>
-                </Flex>
+                )}
+            </Flex>
+
+            {/* Messages */}
+            <Box
+                flex="1"
+                overflowY="auto"
+                p={4}
+                ref={messagesContainerRef}
+                onScroll={handleScroll}
+                bg={useColorModeValue('gray.50', 'gray.900')}
+            >
+                {isLoadingMore && (
+                    <Flex justify="center" mb={4}>
+                        <Spinner size="sm"/>
+                    </Flex>
+                )}
+
+                {hasMore && !isLoadingMore && (
+                    <Flex justify="center" mb={4}>
+                        <Button size="xs" onClick={loadMoreMessages} variant="ghost">
+                            Load older messages
+                        </Button>
+                    </Flex>
+                )}
+
+                {isLoading ? (
+                    <Flex justify="center" align="center" height="100%">
+                        <Spinner/>
+                    </Flex>
+                ) : (
+                    isBlocked ? (
+                        <Flex justify="center" align="center" height="100%">
+                            <Text color="red.500">You have blocked this user.</Text>
+                            <Button onClick={handleUnblockUser} ml={2}>Unblock</Button>
+                        </Flex>
+                    ) : (
+                        <>
+                            {messages.length === 0 ? (
+                                <Flex justify="center" align="center" height="100%">
+                                    <Text color="gray.500">No messages yet</Text>
+                                </Flex>
+                            ) : (
+                                messages.map((message) => (
+                                    <Flex
+                                        key={message.id || message.tempId}
+                                        mb={3}
+                                        flexDirection={message.isFromMe ? 'row-reverse' : 'row'}
+                                        alignItems="flex-end"
+                                    >
+                                        {!message.isFromMe && (
+                                            <Avatar
+                                                size="xs"
+                                                // name={message.sender_id.substring(0, 2)}
+                                                mr={message.isFromMe ? 0 : 2}
+                                                ml={message.isFromMe ? 2 : 0}
+                                            />
+                                        )}
+
+                                        <Menu placement="bottom"
+                                              portalProps={{appendToParentPortal: false}}>
+                                            <MenuButton
+                                                as={Button}
+                                                p={0}  // Remove padding so the content controls the width
+                                                bg={message.isFromMe ? 'yellow.500' : 'gray.100'}
+                                                color="black"
+                                                borderRadius="lg"
+                                                maxW="70%"
+                                                h={"100%"}
+                                                display="inline-block"
+                                                textAlign="left"
+                                                whiteSpace="pre-wrap"
+                                                wordBreak="break-word"
+                                                _hover={{bg: message.isFromMe ? 'yellow.600' : 'gray.200'}}
+                                                isDisabled={message.deleted}
+                                            >
+                                                <Box
+                                                    p={3}  // Add padding inside the box, not the button itself
+                                                    whiteSpace="pre-wrap"
+                                                    wordBreak="break-word"
+                                                    w="100%"  // Let the box grow to fill the button's width
+                                                >
+                                                    {editingMessage?.id === message.id ? (
+                                                        <Input
+                                                            size="sm"
+                                                            value={editText}
+                                                            onChange={(e) => setEditText(e.target.value)}
+                                                            onBlur={handleSaveEdit}
+                                                            onKeyPress={(e) => e.key === 'Enter' && handleSaveEdit()}
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        <Text
+                                                            fontSize="md"
+                                                            lineHeight="short"
+                                                            color={message.deleted ? "gray.500" : "inherit"}
+                                                            fontStyle={message.deleted ? "italic" : "normal"}
+                                                        >
+                                                            {message.content}
+                                                            {message.updated_at && !message.deleted && (
+                                                                <Text as="span"
+                                                                      fontSize="xs"
+                                                                      color="gray.500"
+                                                                      ml={1}>
+                                                                    (edited)
+                                                                </Text>
+                                                            )}
+                                                        </Text>
+                                                    )}
+                                                </Box>
+                                            </MenuButton>
+
+                                            <MenuList zIndex="popover">
+                                                {message.isFromMe && !message.deleted && (
+                                                    <>
+                                                        <MenuItem
+                                                            onClick={() => handleEditMessage(message)}>Edit</MenuItem>
+                                                        <MenuItem
+                                                            onClick={() => handleDeleteMessage(message)}>Delete</MenuItem>
+                                                    </>
+                                                )}
+                                            </MenuList>
+                                        </Menu>
+                                    </Flex>
+                                ))
+                            )}
+                            <div ref={messagesEndRef}/>
+                        </>
+                    ))}
             </Box>
+
+            {/* Input */}
+            <Flex
+                p={4}
+                borderTop="1px solid"
+                borderColor="gray.200"
+                bg={useColorModeValue('white', 'gray.800')}
+            >
+                <Input
+                    placeholder={isBlocked ? "You cannot send messages to this user" : "Type a message..."}
+                    value={messageText}
+                    onChange={handleMessageChange}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    mr={2}
+                    isDisabled={isBlocked}
+                    focusBorderColor="yellow.500"
+                />
+                <Button
+                    colorScheme="yellow"
+                    onClick={handleSendMessage}
+                    isDisabled={!messageText.trim() || isBlocked}
+                >
+                    Send
+                </Button>
+            </Flex>
+        </Box>
     );
 };

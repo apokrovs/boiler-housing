@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { findLastEmail } from "./utils/mailcatcher"
+import { findLastEmail } from "../src/client/mailcatcher.ts"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, signUpNewUser } from "./utils/user"
 

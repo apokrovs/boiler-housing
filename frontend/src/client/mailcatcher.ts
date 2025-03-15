@@ -57,3 +57,30 @@ export function findLastEmail({
 
   return Promise.race([timeoutPromise, checkEmails()])
 }
+
+export async function sendEmail(toEmail: string | null | undefined,
+  fromName: string,
+  messageContent: string,){
+  try {
+  const response = await fetch(`${process.env.MAILCATCHER_HOST}/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: `${fromName} <no-reply@example.com>`,
+      to: [toEmail],
+      subject: "New Chat Message",
+      body: messageContent
+    })
+  });
+
+  if (!response.ok){
+    throw new Error(`Failed to send enail about new message Mailcatcher: ${response.statusText}`);
+  }
+
+   console.log(`Email sent to ${toEmail} via Mailcatcher`);
+    } catch (error) {
+        console.error("Mailcatcher email send error:", error);
+    }
+}
