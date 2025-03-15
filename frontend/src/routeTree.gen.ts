@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignupImport } from './routes/signup'
 import { Route as SettingsImport } from './routes/settings'
+import { Route as RoommateQuizImport } from './routes/roommate-quiz'
 import { Route as ResetPasswordImport } from './routes/reset-password'
 import { Route as RecoverPasswordImport } from './routes/recover-password'
 import { Route as LoginImport } from './routes/login'
@@ -34,6 +35,11 @@ const SignupRoute = SignupImport.update({
 
 const SettingsRoute = SettingsImport.update({
   path: '/settings',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const RoommateQuizRoute = RoommateQuizImport.update({
+  path: '/roommate-quiz',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -112,6 +118,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordImport
       parentRoute: typeof rootRoute
     }
+    '/roommate-quiz': {
+      preLoaderRoute: typeof RoommateQuizImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       preLoaderRoute: typeof SettingsImport
       parentRoute: typeof rootRoute
@@ -166,6 +176,7 @@ export const routeTree = rootRoute.addChildren([
   LoginRoute,
   RecoverPasswordRoute,
   ResetPasswordRoute,
+  RoommateQuizRoute,
   SettingsRoute,
   SignupRoute,
 ])
