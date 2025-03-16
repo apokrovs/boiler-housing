@@ -24,19 +24,29 @@ class EmailData:
 
 def render_email_template(*, template_name: str, context: dict[str, Any]) -> str:
     template_str = (
-        Path(__file__).parent / "email-templates" / "build" / template_name
+            Path(__file__).parent / "email-templates" / "build" / template_name
     ).read_text()
     html_content = Template(template_str).render(context)
     return html_content
 
 
 def send_email(
-    *,
-    email_to: str,
-    subject: str = "",
-    html_content: str = "",
+        *,
+        email_to: str,
+        subject: str = "",
+        html_content: str = "",
 ) -> None:
     assert settings.emails_enabled, "no provided configuration for email variables"
+
+    # Add detailed logging of all settings
+    logger.info(f"SMTP_HOST: {settings.SMTP_HOST}")
+    logger.info(f"SMTP_PORT: {settings.SMTP_PORT}")
+    logger.info(f"SMTP_USER: {settings.SMTP_USER}")
+    logger.info(f"SMTP_PASSWORD: {'*' * 8 if settings.SMTP_PASSWORD else 'None'}")
+    logger.info(f"SMTP_TLS: {settings.SMTP_TLS}")
+    logger.info(f"SMTP_SSL: {settings.SMTP_SSL}")
+    logger.info(f"EMAILS_FROM_EMAIL: {settings.EMAILS_FROM_EMAIL}")
+
     message = emails.Message(
         subject=subject,
         html=html_content,
@@ -51,8 +61,24 @@ def send_email(
         smtp_options["user"] = settings.SMTP_USER
     if settings.SMTP_PASSWORD:
         smtp_options["password"] = settings.SMTP_PASSWORD
-    response = message.send(to=email_to, smtp=smtp_options)
-    logger.info(f"send email result: {response}")
+
+    # Log complete SMTP options
+    safe_smtp_options = smtp_options.copy()
+    if 'password' in safe_smtp_options:
+        safe_smtp_options['password'] = '******'
+    logger.info(f"SMTP options: {safe_smtp_options}")
+
+    try:
+        response = message.send(to=email_to, smtp=smtp_options)
+        logger.info(f"Email sent to {email_to}")
+        logger.info(f"send email result: {response}")
+        response_dict = response.__dict__.copy() if hasattr(response, '__dict__') else {}
+        if 'smtp_options' in response_dict and 'password' in response_dict['smtp_options']:
+            response_dict['smtp_options'] = {**response_dict['smtp_options'], 'password': '******'}
+        logger.info(f"Response details: {response_dict}")
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
+        raise
 
 
 def generate_test_email(email_to: str) -> EmailData:
@@ -83,7 +109,7 @@ def generate_reset_password_email(email_to: str, email: str, token: str) -> Emai
 
 
 def generate_new_account_email(
-    email_to: str, username: str, password: str
+        email_to: str, username: str, password: str
 ) -> EmailData:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account for user {username}"
