@@ -4,6 +4,15 @@ import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
 import type {
+  FaqGetAllFaqsResponse,
+  FaqCreateFaqData,
+  FaqCreateFaqResponse,
+  FaqGetFaqData,
+  FaqGetFaqResponse,
+  FaqUpdateFaqData,
+  FaqUpdateFaqResponse,
+  FaqDeleteFaqData,
+  FaqDeleteFaqResponse,
   ItemsReadItemsData,
   ItemsReadItemsResponse,
   ItemsCreateItemData,
@@ -84,6 +93,110 @@ import type {
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
 } from "./types.gen"
+
+export class FaqService {
+  /**
+   * Get All Faqs
+   * @returns FAQsPublic Successful Response
+   * @throws ApiError
+   */
+  public static getAllFaqs(): CancelablePromise<FaqGetAllFaqsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/faq/",
+    })
+  }
+
+  /**
+   * Create Faq
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns FAQPublic Successful Response
+   * @throws ApiError
+   */
+  public static createFaq(
+    data: FaqCreateFaqData,
+  ): CancelablePromise<FaqCreateFaqResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/faq/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Faq
+   * @param data The data for the request.
+   * @param data.faqId
+   * @returns FAQPublic Successful Response
+   * @throws ApiError
+   */
+  public static getFaq(
+    data: FaqGetFaqData,
+  ): CancelablePromise<FaqGetFaqResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/faq/{faq_id}",
+      path: {
+        faq_id: data.faqId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Faq
+   * @param data The data for the request.
+   * @param data.faqId
+   * @param data.requestBody
+   * @returns FAQPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateFaq(
+    data: FaqUpdateFaqData,
+  ): CancelablePromise<FaqUpdateFaqResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/faq/{faq_id}",
+      path: {
+        faq_id: data.faqId,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Faq
+   * @param data The data for the request.
+   * @param data.faqId
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static deleteFaq(
+    data: FaqDeleteFaqData,
+  ): CancelablePromise<FaqDeleteFaqResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/faq/{faq_id}",
+      path: {
+        faq_id: data.faqId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
 
 export class ItemsService {
   /**
