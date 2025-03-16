@@ -2,8 +2,11 @@ import uuid
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
-from typing import List, Optional
+from typing import List
+
+from app.models.files import File
 from app.models.items import Item
+from app.models.messages import UserBlock
 
 
 # Shared properties
@@ -61,7 +64,6 @@ class User(UserBase, table=True):
     is_2fa_enabled: bool | None = Field(default=False)
     latest_otp: str | None = Field(default=None)
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
-    items: List["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
     # Add these fields for user blocking
     blocked_users: List["UserBlock"] = Relationship(
@@ -70,6 +72,9 @@ class User(UserBase, table=True):
     blocked_by_users: List["UserBlock"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[UserBlock.blocked_id]", "back_populates": "blocked"}
     )
+
+    files: List["File"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete"})
+
 
 
 class PinLogin(SQLModel):
