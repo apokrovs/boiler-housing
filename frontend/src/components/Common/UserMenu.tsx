@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react"
 import { Link } from "@tanstack/react-router"
 import { FaBars } from "react-icons/fa"
-import { FiLogOut, FiUser } from "react-icons/fi"
+import { FiLogOut, FiUser, FiHelpCircle } from "react-icons/fi"
 
 import useAuth from "../../hooks/useAuth"
 
@@ -40,6 +40,9 @@ const UserMenu = () => {
           <MenuList>
             <MenuItem icon={<FiUser fontSize="18px" />} as={Link} to="settings">
               My profile
+            </MenuItem>
+            <MenuItem icon={<FiHelpCircle fontSize="18px" />} as={Link} to="/faq">
+              FAQ
             </MenuItem>
             <MenuItem
               icon={<FiLogOut fontSize="18px" />}
