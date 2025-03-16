@@ -2,6 +2,7 @@ import { Box, Flex, Icon, Text, useColorModeValue } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { FiBriefcase, FiHome, FiSettings, FiUsers, FiMessageCircle } from "react-icons/fi"
+import { IoIosPaper } from "react-icons/io";
 
 import type { UserPublic } from "../../client"
 
@@ -10,6 +11,7 @@ const items = [
   { icon: FiBriefcase, title: "Items", path: "/items" },
   { icon: FiSettings, title: "User Settings", path: "/settings" },
   { icon: FiMessageCircle, title: "Messages", path: "/chat" },
+  { icon: FiMessageCircle, title: "Roommate Agreement", path: "agreements" },
 
 ]
 

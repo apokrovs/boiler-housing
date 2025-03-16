@@ -23,6 +23,7 @@ import { Route as LayoutMessagingImport } from './routes/_layout/messaging'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutChatImport } from './routes/_layout/chat'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
+import { Route as LayoutRoommateAgreementImport } from './routes/_layout/agreements'
 
 // Create/Update Routes
 
@@ -86,6 +87,11 @@ const LayoutAdminRoute = LayoutAdminImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutRoommateAgreementRoute = LayoutRoommateAgreementImport.update({
+  path: '/agreements',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -134,6 +140,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/agreements': {
+      preLoaderRoute: typeof LayoutRoommateAgreementRoute
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/': {
       preLoaderRoute: typeof LayoutIndexImport
       parentRoute: typeof LayoutImport
@@ -142,7 +152,6 @@ declare module '@tanstack/react-router' {
 }
 
 // Create and export the route tree
-
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
     LayoutAdminRoute,
@@ -151,6 +160,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutMessagingRoute,
     LayoutSettingsRoute,
     LayoutIndexRoute,
+    LayoutRoommateAgreementRoute,
   ]),
   LoginRoute,
   RecoverPasswordRoute,
