@@ -13,7 +13,6 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignupImport } from './routes/signup'
 import { Route as SettingsImport } from './routes/settings'
-import { Route as RoommateQuizImport } from './routes/roommate-quiz'
 import { Route as ResetPasswordImport } from './routes/reset-password'
 import { Route as RecoverPasswordImport } from './routes/recover-password'
 import { Route as LoginImport } from './routes/login'
@@ -21,6 +20,7 @@ import { Route as LayoutImport } from './routes/_layout'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutRoommatesImport } from './routes/_layout/roommates'
+import { Route as LayoutRoommateQuizImport } from './routes/_layout/roommate-quiz'
 import { Route as LayoutMessagingImport } from './routes/_layout/messaging'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutChatImport } from './routes/_layout/chat'
@@ -35,11 +35,6 @@ const SignupRoute = SignupImport.update({
 
 const SettingsRoute = SettingsImport.update({
   path: '/settings',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const RoommateQuizRoute = RoommateQuizImport.update({
-  path: '/roommate-quiz',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -75,6 +70,11 @@ const LayoutSettingsRoute = LayoutSettingsImport.update({
 
 const LayoutRoommatesRoute = LayoutRoommatesImport.update({
   path: '/roommates',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutRoommateQuizRoute = LayoutRoommateQuizImport.update({
+  path: '/roommate-quiz',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -118,10 +118,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordImport
       parentRoute: typeof rootRoute
     }
-    '/roommate-quiz': {
-      preLoaderRoute: typeof RoommateQuizImport
-      parentRoute: typeof rootRoute
-    }
     '/settings': {
       preLoaderRoute: typeof SettingsImport
       parentRoute: typeof rootRoute
@@ -144,6 +140,10 @@ declare module '@tanstack/react-router' {
     }
     '/_layout/messaging': {
       preLoaderRoute: typeof LayoutMessagingImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/roommate-quiz': {
+      preLoaderRoute: typeof LayoutRoommateQuizImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/roommates': {
@@ -169,6 +169,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutChatRoute,
     LayoutItemsRoute,
     LayoutMessagingRoute,
+    LayoutRoommateQuizRoute,
     LayoutRoommatesRoute,
     LayoutSettingsRoute,
     LayoutIndexRoute,
@@ -176,7 +177,6 @@ export const routeTree = rootRoute.addChildren([
   LoginRoute,
   RecoverPasswordRoute,
   ResetPasswordRoute,
-  RoommateQuizRoute,
   SettingsRoute,
   SignupRoute,
 ])
