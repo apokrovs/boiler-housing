@@ -7,7 +7,8 @@ from app.api.routes import (
     users,
     utils,
     private,
-    messages
+    messages,
+    faq
 )
 
 api_router = APIRouter()
@@ -16,6 +17,7 @@ api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(items.router)
 api_router.include_router(messages.router)
+api_router.include_router(faq.router)
 
 if settings.ENVIRONMENT == "local":
     api_router.include_router(private.router)
