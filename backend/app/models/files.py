@@ -33,7 +33,7 @@ class File(FileBase, table=True):
     )
 
     # Foreign key relationships
-    user_id: Optional[str] = Field(default=None, foreign_key="users.id")
+    owner_id: Optional[str] = Field(default=None, foreign_key="users.id")
 
 
 class FileRead(FileBase):
