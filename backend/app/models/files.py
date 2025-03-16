@@ -26,21 +26,20 @@ class FileBase(SQLModel):
 
 
 class File(FileBase, table=True):
-    id: Optional[str] = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        primary_key=True,
-        index=True,
-    )
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
     # Foreign key relationships
     owner_id: Optional[str] = Field(default=None, foreign_key="users.id")
 
 
-class FileRead(FileBase):
-    id: str
-    user_id: Optional[str] = None
-    housing_id: Optional[str] = None
+class FilePublic(FileBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
 
+
+class FilesPublic(SQLModel):
+    data: list[FilePublic]
+    count: int
 
 class FileCreate(FileBase):
     pass
