@@ -1,28 +1,26 @@
-import { useEffect, useState } from "react";
-import { Box, Text, VStack, Spinner, Alert, AlertIcon } from "@chakra-ui/react";
-
-interface FAQ {
-  id: number;
-  question: string;
-  answer: string | null;
-}
+import { useState, useEffect } from "react";
+import { Box, Text, VStack, Spinner } from "@chakra-ui/react";
+import { FaqService } from "../../client/sdk.gen";
 
 const FAQList = () => {
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [faqs, setFaqs] = useState<{ id: string; question: string; answer: string }[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const response = await fetch("/api/faqs");
-        if (!response.ok) {
-          throw new Error("Failed to fetch FAQs");
-        }
-        const data: FAQ[] = await response.json();
-        setFaqs(data);
+        const response = await FaqService.getAllFaqs();
+
+        const formattedFaqs = response.data.map((faq) => ({
+          id: faq.id,
+          question: faq.question,
+          answer: faq.answer ?? "",
+        }));
+
+        setFaqs(formattedFaqs);
       } catch (err) {
-        setError((err as Error).message);
+        setError("Failed to load FAQs");
       } finally {
         setLoading(false);
       }
@@ -31,22 +29,8 @@ const FAQList = () => {
     fetchFAQs();
   }, []);
 
-  if (loading) {
-    return (
-      <Box textAlign="center" mt={4}>
-        <Spinner size="lg" />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert status="error" mt={4}>
-        <AlertIcon />
-        {error}
-      </Alert>
-    );
-  }
+  if (loading) return <Spinner size="xl" />;
+  if (error) return <Text color="red.500">Error: {error}</Text>;
 
   return (
     <VStack spacing={4} align="stretch" p={4}>
@@ -54,13 +38,7 @@ const FAQList = () => {
         faqs.map((faq) => (
           <Box key={faq.id} p={4} borderWidth={1} borderRadius="lg">
             <Text fontWeight="bold">{faq.question}</Text>
-            {faq.answer ? (
-              <Text mt={2}>{faq.answer}</Text>
-            ) : (
-              <Text mt={2} fontStyle="italic" color="gray.500">
-                No answer yet
-              </Text>
-            )}
+            <Text mt={2}>{faq.answer}</Text>
           </Box>
         ))
       ) : (
