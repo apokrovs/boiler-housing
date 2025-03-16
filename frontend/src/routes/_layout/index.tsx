@@ -4,6 +4,7 @@ import {
     Text,
     Textarea,
     Input,
+    Button,
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router"
 
@@ -30,6 +31,7 @@ function Dashboard() {
                         <Heading size={"md"}>Roommate Agreement</Heading>
                         <Textarea mt={5} size={"md"} placeholder={"Roommate Agreement"}></Textarea>
                         <Input mt={8} placeholder="Signature" size="md"/>
+                        <Button mt={3}>Submit</Button>
                     </Box>
                 </Stack>
             </Container>
