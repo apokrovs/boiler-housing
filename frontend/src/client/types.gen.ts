@@ -145,6 +145,13 @@ export type UserPublic = {
   full_name?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   id: string
 }
 

@@ -15,6 +15,13 @@ class UserBase(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     auto_logout: float = Field(default=30)
     is_2fa_enabled: bool | None = Field(default=False)
+    hasTakenRoommateQuiz: bool | None = Field(default=False)
+    cleanScore: int | None = Field(default=None)
+    visitScore: int | None = Field(default=None)
+    sleepTime: int | None = Field(default=None)
+    pets: int | None = Field(default=None)
+    smoking: int | None = Field(default=None)
+    alcoholScore: int | None = Field(default=None)
 
 
 # Properties to receive via API on creation
@@ -37,12 +44,26 @@ class UserUpdate(UserBase):
     auto_logout: float | None  = Field(default=30)
     pin: str | None = Field(default=None, min_length=4, max_length=4)
     is_2fa_enabled: bool | None = Field(default=False)
+    hasTakenRoommateQuiz: bool | None = Field(default=False)
+    cleanScore: int | None = Field(default=None)
+    visitScore: int | None = Field(default=None)
+    sleepTime: int | None = Field(default=None)
+    pets: int | None = Field(default=None)
+    smoking: int | None = Field(default=None)
+    alcoholScore: int | None = Field(default=None)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     auto_logout: float | None = Field(default=30)
+    hasTakenRoommateQuiz: bool | None = Field(default=False)
+    cleanScore: int | None = Field(default=None)
+    visitScore: int | None = Field(default=None)
+    sleepTime: int | None = Field(default=None)
+    pets: int | None = Field(default=None)
+    smoking: int | None = Field(default=None)
+    alcoholScore: int | None = Field(default=None)
 
 
 class UpdatePassword(SQLModel):
