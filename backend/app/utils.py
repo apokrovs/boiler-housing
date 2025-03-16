@@ -121,3 +121,15 @@ def verify_password_reset_token(token: str) -> str | None:
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
+
+def new_message_email(email_to: str, name: str, message: str) -> EmailData:
+    subject = f"New message from {name}"
+    html_content = render_email_template(
+        template_name="new_message.html",
+        context={
+            "username": name,
+            "email": email_to,
+            "message": message,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
