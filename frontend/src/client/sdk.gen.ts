@@ -3,7 +3,7 @@
 import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
-import type {
+import {
   ItemsReadItemsData,
   ItemsReadItemsResponse,
   ItemsCreateItemData,
@@ -82,7 +82,7 @@ import type {
   UsersUpdate2FaStatusResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
-  UtilsHealthCheckResponse,
+  UtilsHealthCheckResponse, NewMessageEmail, NewMessageEmailResponse,
 } from "./types.gen"
 
 export class ItemsService {
@@ -290,6 +290,7 @@ export class LoginService {
     })
   }
 
+
   /**
    * Reset Password
    * Reset password
@@ -337,6 +338,30 @@ export class LoginService {
 }
 
 export class MessagesService {
+
+   /**
+   * New message email
+   * @param data The data for the request.
+   * @param data.email
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static newMessageEmail(
+    data: NewMessageEmail,
+  ): CancelablePromise<NewMessageEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/new-message/{email}",
+      path: {
+        email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+
   /**
    * Create Conversation
    * Create a new conversation.

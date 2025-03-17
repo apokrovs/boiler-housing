@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, status, Body
 from starlette.websockets import WebSocketState
-
+from app.crud import users as crud_users
 from app.api.deps import SessionDep
 from app.crud import messages as message_crud
 from app.crud import users as user_crud
@@ -25,7 +25,11 @@ from app.api.websockets import manager
 import json
 import logging
 from datetime import datetime
-
+from app.models.utils import Message
+from app.utils import (
+new_message_email,
+send_email
+)
 router = APIRouter(prefix="/messages", tags=["messages"])
 logger = logging.getLogger(__name__)
 
@@ -1137,3 +1141,22 @@ def check_user_blocked(
         user_id=current_user.id,
         target_id=user_id
     )
+@router.post("/new-message/{email}")
+def new_message_email(email: str, session: SessionDep) -> Message:
+    """
+    Password Recovery
+    """
+    user = crud_users.get_user_by_email(session=session, email=email)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+    email_data = new_message_email(email_to=user.email, name=str, message=str)
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+    return

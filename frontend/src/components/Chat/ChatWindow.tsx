@@ -26,9 +26,9 @@ import {
     blockUser,
     unblockUser
 } from './websocket';
-import {MessagesService, UsersService} from '../../client';
+import {LoginService, MessagesService, UsersService} from '../../client';
 import {MessagePublic} from '../../client/types.gen';
-import {sendEmail} from "../../client/mailcatcher.ts";
+import {sendEmail} from '../../client/core/mailgun.ts';
 
 function debounce(func: Function, wait: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -376,14 +376,11 @@ export const ChatWindow = ({
         // First, get the emails of the participants
         if (participants && user.full_name) {
             for (const participant of participants) {
+
                 if (participant !== user.id) {
-                    try {
-                        const userData = await UsersService.readUserById({userId: participant});
-                        await sendEmail(userData.email, user.full_name, messageText);
-                    }
-                    catch (err) {
-                        console.error("Error sending emailvia Mailcatcher:", err);
-                    }
+                    await LoginService.resetPassword({
+                        requestBody: {new_password: data.new_password},
+                    })
                 }
             }
         }
