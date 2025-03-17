@@ -348,6 +348,8 @@ export class MessagesService {
    */
   public static newMessageEmail(
     data: NewMessageEmail,
+    from_name: str,
+    message: str
   ): CancelablePromise<NewMessageEmailResponse> {
     return __request(OpenAPI, {
       method: "POST",
