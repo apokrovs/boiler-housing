@@ -9,7 +9,8 @@ import {
 } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import FAQList from "../../components/FAQ/FAQList";
-//import AskQuestion from "../../components/FAQ/AskQuestion";
+import AskQuestion from "../../components/FAQ/AskQuestion";
+import AnswerQuestion from "../../components/FAQ/AnswerQuestion";
 
 export const Route = createFileRoute("/_layout/faq")({
   component: FAQPage,
@@ -25,10 +26,17 @@ function FAQPage() {
         <TabList>
           <Tab>View FAQs</Tab>
           <Tab>Ask a Question</Tab>
+          <Tab>Answer a Question</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
             <FAQList />
+          </TabPanel>
+          <TabPanel>
+            <AskQuestion />
+          </TabPanel>
+          <TabPanel>
+            <AnswerQuestion />
           </TabPanel>
         </TabPanels>
       </Tabs>
