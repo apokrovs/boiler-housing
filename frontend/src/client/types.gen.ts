@@ -433,7 +433,9 @@ export type UtilsTestEmailResponse = Message
 export type UtilsHealthCheckResponse = boolean
 
 export type NewMessageEmail = {
+  from_name: string;
   email: string
+  message:string
 }
 
 export type NewMessageEmailResponse = Message

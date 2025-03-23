@@ -343,19 +343,21 @@ export class MessagesService {
    * New message email
    * @param data The data for the request.
    * @param data.email
+    * @param data.from_name
+    * @param data.message
    * @returns Message Successful Response
    * @throws ApiError
    */
   public static newMessageEmail(
     data: NewMessageEmail,
-    from_name: str,
-    message: str
   ): CancelablePromise<NewMessageEmailResponse> {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/new-message/{email}",
       path: {
         email: data.email,
+        from_name: data.from_name,
+        message: data.message
       },
       errors: {
         422: "Validation Error",

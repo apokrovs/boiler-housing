@@ -378,8 +378,9 @@ export const ChatWindow = ({
             for (const participant of participants) {
 
                 if (participant !== user.id) {
-                    await LoginService.resetPassword({
-                        requestBody: {new_password: data.new_password},
+                    const userData = await UsersService.readUserById({userId: participant});
+                    await MessagesService.newMessageEmail({
+                       email: userData.email, from_name: user.full_name, message: messageText
                     })
                 }
             }
