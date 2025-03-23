@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import { useState } from "react"
 import {
     Container,
     Heading,
@@ -6,17 +6,23 @@ import {
     FormControl,
     FormLabel,
     Switch,
-    Button
+    Button,
+    Box,
+    Text
 } from "@chakra-ui/react"
+import useAuth from "../../hooks/useAuth"
 
 const ProfileVisibility = () => {
-    const [showName, setShowName] = useState(true)
-    const [showEmail, setShowEmail] = useState(true)
-    const [showPhone, setShowPhone] = useState(true)
-    const [showBio, setShowBio] = useState(true)
+    const { user: currentUser } = useAuth()
+    const [isAnonymous, setIsAnonymous] = useState(false)
 
     const handleUpdateVisibility = () => {
-        alert("Visibility settings updated")
+        alert("Profile visibility updated")
+    }
+
+    const getVisibleValue = (value?: string | null, fallback = "Hidden") => {
+        if (isAnonymous || !value) return fallback
+        return value
     }
 
     return (
@@ -26,51 +32,31 @@ const ProfileVisibility = () => {
             </Heading>
 
             <Stack spacing={4} mb={6}>
-                //Name
                 <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-name" mb="0">
-                        Hide Name:
+                    <FormLabel htmlFor="profile-anonymous" mb="0">
+                        Make Profile Anonymous
                     </FormLabel>
-                    <Switch id="show-name" onChange={() => setShowName(!showName)}/>
+                    <Switch
+                        id="profile-anonymous"
+                        isChecked={isAnonymous}
+                        onChange={() => setIsAnonymous(!isAnonymous)}
+                    />
                 </FormControl>
 
-                //Email
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-email" mb="0">
-                        Hide Email:
-                    </FormLabel>
-                    <Switch id="show-email" onChange={() => setShowEmail(!showEmail)}/>
-                </FormControl>
-
-                //Phone Number
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-phone" mb="0">
-                        Hide Phone Number:
-                    </FormLabel>
-                    <Switch id="show-phone" onChange={() => setShowPhone(!showPhone)}/>
-                </FormControl>
-
-                //Bio
-                <FormControl display="flex" alignItems="center">
-                    <FormLabel htmlFor="show-bio" mb="0">
-                        Hide Bio:
-                    </FormLabel>
-                    <Switch id="show-bio" onChange={() => setShowBio(!showBio)}/>
-                </FormControl>
-
-                <Button colorScheme="blue" onClick={handleUpdateVisibility}>
+                <Button colorScheme="yellow" onClick={handleUpdateVisibility}>
                     Update Visibility
                 </Button>
             </Stack>
 
             <Heading size="md" mb={4}>
-                Current Settings:
+                What Others See:
             </Heading>
-            <p>Name is {showName ? 'visible' : 'hidden'}</p>
-            <p>Email is {showEmail ? 'visible' : 'hidden'}</p>
-            <p>Phone is {showPhone ? 'visible' : 'hidden'}</p>
-            <p>Bio is {showBio ? 'visible' : 'hidden'}</p>
+            <Box p={4} borderWidth="1px" borderRadius="md">
+                <Text><strong>Name:</strong> {getVisibleValue(currentUser?.full_name, "Anonymous")}</Text>
+                <Text><strong>Email:</strong> {getVisibleValue(currentUser?.email)}</Text>
+            </Box>
         </Container>
     )
 }
+
 export default ProfileVisibility
