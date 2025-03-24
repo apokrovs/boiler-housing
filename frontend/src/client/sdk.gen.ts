@@ -3,7 +3,7 @@
 import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
-import {
+import type {
   ItemsReadItemsData,
   ItemsReadItemsResponse,
   ItemsCreateItemData,
@@ -52,6 +52,8 @@ import {
   MessagesGetBlockedUsersResponse,
   MessagesCheckUserBlockedData,
   MessagesCheckUserBlockedResponse,
+  MessagesNewMessageEmailData,
+  MessagesNewMessageEmailResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
   UsersReadUsersData,
@@ -82,7 +84,7 @@ import {
   UsersUpdate2FaStatusResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
-  UtilsHealthCheckResponse, NewMessageEmail, NewMessageEmailResponse,
+  UtilsHealthCheckResponse,
 } from "./types.gen"
 
 export class ItemsService {
@@ -290,7 +292,6 @@ export class LoginService {
     })
   }
 
-
   /**
    * Reset Password
    * Reset password
@@ -338,34 +339,6 @@ export class LoginService {
 }
 
 export class MessagesService {
-
-   /**
-   * New message email
-   * @param data The data for the request.
-   * @param data.email
-    * @param data.from_name
-    * @param data.message
-   * @returns Message Successful Response
-   * @throws ApiError
-   */
-  public static newMessageEmail(
-    data: NewMessageEmail,
-  ): CancelablePromise<NewMessageEmailResponse> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/new-message/{email}",
-      path: {
-        email: data.email,
-        from_name: data.from_name,
-        message: data.message
-      },
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-
   /**
    * Create Conversation
    * Create a new conversation.
@@ -681,6 +654,35 @@ export class MessagesService {
       url: "/api/v1/messages/users/{user_id}/blocked",
       path: {
         user_id: data.userId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * New Message Email
+   * Password Recovery
+   * @param data The data for the request.
+   * @param data.email
+   * @param data.senderName
+   * @param data.message
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static newMessageEmail(
+    data: MessagesNewMessageEmailData,
+  ): CancelablePromise<MessagesNewMessageEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/new-message/{email}",
+      path: {
+        email: data.email,
+      },
+      query: {
+        sender_name: data.senderName,
+        message: data.message,
       },
       errors: {
         422: "Validation Error",

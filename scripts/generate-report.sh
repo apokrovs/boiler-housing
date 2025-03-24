@@ -30,7 +30,7 @@ fi
 echo "Fetching latest changes from remote repositories..."
 git fetch --all
 
-# Get repository name from remote
+# Get repository sender_name from remote
 REPO_NAME=$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')
 echo "Repository: $REPO_NAME"
 

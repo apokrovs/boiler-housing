@@ -340,6 +340,14 @@ export type MessagesCheckUserBlockedData = {
 
 export type MessagesCheckUserBlockedResponse = boolean
 
+export type MessagesNewMessageEmailData = {
+  email: string
+  message: string
+  senderName: string
+}
+
+export type MessagesNewMessageEmailResponse = Message
+
 export type PrivateCreateUserData = {
   requestBody: PrivateUserCreate
 }
@@ -431,11 +439,3 @@ export type UtilsTestEmailData = {
 export type UtilsTestEmailResponse = Message
 
 export type UtilsHealthCheckResponse = boolean
-
-export type NewMessageEmail = {
-  from_name: string;
-  email: string
-  message:string
-}
-
-export type NewMessageEmailResponse = Message

@@ -53,7 +53,7 @@ class UpdatePin(SQLModel):
     current_pin: str = Field(min_length=4, max_length=4)
     new_pin: str = Field(min_length=4, max_length=4)
 
-# Database model, database table inferred from class name
+# Database model, database table inferred from class sender_name
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str

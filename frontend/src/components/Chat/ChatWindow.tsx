@@ -26,9 +26,8 @@ import {
     blockUser,
     unblockUser
 } from './websocket';
-import {LoginService, MessagesService, UsersService} from '../../client';
-import {MessagePublic} from '../../client/types.gen';
-import {sendEmail} from '../../client/core/mailgun.ts';
+import { MessagesService, UsersService} from '../../client';
+import {MessagePublic} from '../../client';
 
 function debounce(func: Function, wait: number) {
     let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -374,13 +373,17 @@ export const ChatWindow = ({
         setMessages(prev => [...prev, tempMessage]);
 
         // First, get the emails of the participants
+        console.log("Does htis part run?");
         if (participants && user.full_name) {
+            console.log("i forgot admin no username");
             for (const participant of participants) {
 
                 if (participant !== user.id) {
                     const userData = await UsersService.readUserById({userId: participant});
-                    await MessagesService.newMessageEmail({
-                       email: userData.email, from_name: user.full_name, message: messageText
+                    MessagesService.newMessageEmail({
+                        senderName: user.full_name,
+                        email: userData.email,
+                        message: messageText
                     })
                 }
             }
@@ -600,7 +603,7 @@ export const ChatWindow = ({
                                         {!message.isFromMe && (
                                             <Avatar
                                                 size="xs"
-                                                // name={message.sender_id.substring(0, 2)}
+                                                // sender_name={message.sender_id.substring(0, 2)}
                                                 mr={message.isFromMe ? 0 : 2}
                                                 ml={message.isFromMe ? 2 : 0}
                                             />
