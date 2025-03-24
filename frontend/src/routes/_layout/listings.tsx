@@ -18,42 +18,30 @@ import {createFileRoute} from "@tanstack/react-router";
 import AddListing from "../../components/Listings/AddListing.tsx";
 import EditListing from "../../components/Listings/EditListing.tsx"
 import Navbar from "../../components/Common/Navbar.tsx";
+import {ListingsService} from "../../client";
+import {useQuery} from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_layout/listings")({
     component: Listings,
 })
 
-const listings = [
-    {
-        id: 1,
-        address: '123 Main St, Springfield',
-        num_bedrooms: '2',
-        num_bathrooms: '1',
-        rent: 1200,
-        security_deposit: '1200',
-        realty_company: 'Dream Homes Realty',
-        included_utilities: ['Water', 'Trash'],
-        amenities: ['Pool', 'Gym'],
-        lease_start_date: '2025-06-01',
-        lease_end_date: '2026-06-01',
-    },
-    {
-        id: 2,
-        address: '456 Oak Ave, Metropolis',
-        num_bedrooms: '3',
-        num_bathrooms: '2',
-        rent: 1800,
-        security_deposit: '1800',
-        realty_company: 'Urban Living LLC',
-        included_utilities: ['Gas', 'Internet'],
-        amenities: ['Rooftop', 'Doorman'],
-        lease_start_date: '2025-07-01',
-        lease_end_date: '2026-07-01',
-    },
-];
+function getListingsQueryOptions() {
+    return {
+        queryFn: () =>
+            ListingsService.readListings({skip: 0, limit: 50}),
+        queryKey: ["listings"]
+    }
+}
 
 function Listings() {
-    const {isOpen, onOpen, onClose} = useDisclosure();
+    const {isOpen, onOpen, onClose} = useDisclosure()
+
+    const {
+        data: listings
+    } = useQuery({
+        ...getListingsQueryOptions(),
+        placeholderData: (prevData) => prevData,
+    })
 
     return (
         <Container maxW="full">
@@ -63,12 +51,12 @@ function Listings() {
             <Navbar type={"Listing"} addModalAs={AddListing}/>
             <Box overflowX="auto" whiteSpace="nowrap" p={4}>
                 <Flex gap={4}>
-                    {listings.length === 0 ? (
+                    {listings?.data.length === 0 ? (
                         <Text textAlign="center" fontSize="lg" color="gray.500">
                             No listings available
                         </Text>
                     ) : (
-                        listings.map((listing) => (
+                        listings?.data.map((listing) => (
                             <Card
                                 key={listing.id}
                                 width="300px"
@@ -90,7 +78,7 @@ function Listings() {
 
                                         {/* Bedrooms & Bathrooms */}
                                         <HStack spacing={2}>
-                                            <Badge colorScheme="blue">{listing.num_bedrooms} Bed</Badge>
+                                            <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
                                             <Badge colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
                                         </HStack>
 
@@ -99,7 +87,7 @@ function Listings() {
                                             Rent: ${listing.rent?.toLocaleString()}
                                         </Text>
                                         <Text fontSize="sm">
-                                            Security Deposit: ${listing.security_deposit}
+                                            Security Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
                                         </Text>
 
                                         {/* Included Utilities */}

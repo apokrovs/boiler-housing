@@ -11,6 +11,7 @@ import {
     ModalCloseButton,
     Flex,
     FormControl,
+    FormErrorMessage,
     FormLabel,
     HStack,
     Input,
@@ -23,6 +24,11 @@ import {
     Text,
 } from '@chakra-ui/react'
 import {useState} from "react";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import useCustomToast from "../../hooks/useCustomToast.ts";
+import {type SubmitHandler, useForm} from "react-hook-form";
+import {type ApiError, ListingCreate, ListingsService} from "../../client";
+import {handleError} from "../../utils.ts";
 
 interface AddListingProps {
     isOpen: boolean
@@ -39,51 +45,189 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
     const amenities = ["Maintenance", "Trash Removal", "Fitness Center", "Pool", "Furnished", "Laundry", "Parking", "Balcony", "Pets", "Other"];
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
     const [otherAmenity, setOtherAmenity] = useState('');
+    const [leaseStartDate, setLeaseStartDate] = useState("");
+    const [leaseEndDate, setLeaseEndDate] = useState("");
+    const [dateError, setDateError] = useState("");
+
+    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLeaseStartDate(e.target.value);
+        if (leaseEndDate && e.target.value >= leaseEndDate) {
+            setDateError("End date must be after the start date.");
+        } else {
+            setDateError("");
+        }
+    };
+
+    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLeaseEndDate(e.target.value);
+        if (leaseStartDate && e.target.value <= leaseStartDate) {
+            setDateError("End date must be after the start date.");
+        } else {
+            setDateError("");
+        }
+    };
+
+    const queryClient = useQueryClient()
+    const showToast = useCustomToast()
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: {errors, isSubmitting},
+    } = useForm<ListingCreate>({
+        mode: "onBlur",
+        criteriaMode: "all",
+        defaultValues: {
+            num_bedrooms: "",
+            num_bathrooms: "",
+            address: "",
+            realty_company: "",
+            rent: 0,
+            included_utilities: [],
+            security_deposit: "",
+            amenities: [],
+            lease_start_date: "",
+            lease_end_date: ""
+        },
+    })
+
+    const mutation = useMutation({
+        mutationFn: (data: ListingCreate) =>
+            ListingsService.createListing({requestBody: data}),
+        onSuccess: () => {
+            showToast("Success!", "Listing created successfully.", "success")
+            reset()
+            setSelectedUtilities([]);
+            setOtherUtility("");
+            setSelectedAmenities([]);
+            setOtherAmenity("");
+            setLeaseStartDate("");
+            setLeaseEndDate("");
+            setIsSecurityDeposit(false);
+            onClose();
+        },
+        onError: (err: ApiError) => {
+            handleError(err, showToast)
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({queryKey: ["listings"]})
+        },
+    })
+
+    const onSubmit: SubmitHandler<ListingCreate> = (data) => {
+        data.included_utilities = selectedUtilities.includes("Other")
+            ? [...selectedUtilities.filter(u => u !== "Other"), otherUtility]
+            : selectedUtilities;
+
+        data.amenities = selectedAmenities.includes("Other")
+            ? [...selectedAmenities.filter(a => a !== "Other"), otherAmenity]
+            : selectedAmenities;
+
+        console.log(data)
+        mutation.mutate(data)
+    }
 
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} scrollBehavior={'inside'}>
                 <ModalOverlay/>
-                <ModalContent>
+                <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
                     <ModalHeader>Add Listing</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody pb={6}>
-                        <FormControl isRequired>
+                        {/* Address */}
+                        <FormControl isRequired isInvalid={!!errors.address}>
                             <FormLabel>Address</FormLabel>
+                            <Input
+                                id="address"
+                                {...register("address", {
+                                    required: "Address is required.",
+                                })}
+                                placeholder="Street address"
+                                type="text"
+                            />
+                            {errors.address && (
+                                <FormErrorMessage>{errors.address.message}</FormErrorMessage>
+                            )}
                         </FormControl>
-                        <Input type="text" placeholder="Street address"/>
+
+                        {/* Realty Company */}
                         <FormLabel mt={2}>Realty Company</FormLabel>
-                        <Input type="text" placeholder="Company name"/>
-                        <FormControl isRequired>
+                        <Input
+                            id="realty_company"
+                            type="text"
+                            {...register("realty_company")}
+                            placeholder="Company name"
+                        />
+
+                        {/* Bedrooms */}
+                        <FormControl isRequired isInvalid={!!errors.num_bedrooms}>
                             <FormLabel mt={2}>Bedroom</FormLabel>
-                            <Select name="bedroom" placeholder="Select bedroom amount">
+                            <Select
+                                id="num_bedrooms"
+                                {...register("num_bedrooms", {
+                                    required: "Number of bedrooms is required.",
+                                })}
+                                placeholder="Select bedroom amount"
+                            >
                                 {bedrooms.map((bedroom) => (
                                     <option key={bedroom} value={bedroom}>
                                         {bedroom}
                                     </option>
                                 ))}
                             </Select>
+                            {errors.num_bedrooms && (
+                                <FormErrorMessage>{errors.num_bedrooms.message}</FormErrorMessage>
+                            )}
+                        </FormControl>
+
+                        {/* Bathrooms */}
+                        <FormControl isRequired isInvalid={!!errors.num_bathrooms}>
                             <FormLabel mt={2}>Bathroom</FormLabel>
-                            <Select name="bathroom" placeholder="Select bathroom amount">
+                            <Select
+                                id="num_bathrooms"
+                                {...register("num_bathrooms", {
+                                    required: "Number of bathrooms is required.",
+                                })}
+                                placeholder="Select bathroom amount"
+                            >
                                 {bathrooms.map((bathroom) => (
                                     <option key={bathroom} value={bathroom}>
                                         {bathroom} Bath
                                     </option>
                                 ))}
                             </Select>
+                            {errors.num_bathrooms && (
+                                <FormErrorMessage>{errors.num_bathrooms.message}</FormErrorMessage>
+                            )}
+                        </FormControl>
+
+                        {/* Rent */}
+                        <FormControl isRequired isInvalid={!!errors.rent}>
                             <FormLabel mt={2}>Monthly Rent</FormLabel>
                             <NumberInput
                                 min={0}
                                 precision={2}
                                 step={50}
                             >
-                                <NumberInputField placeholder="Enter amount"/>
+                                <NumberInputField
+                                    id="rent"
+                                    {...register("rent", {
+                                        required: "Monthly rent is required.",
+                                    })}
+                                    placeholder="Enter amount"
+                                />
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
                                     <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
+                            {errors.rent && (
+                                <FormErrorMessage>{errors.rent.message}</FormErrorMessage>
+                            )}
                         </FormControl>
+
+                        {/* Security deposit */}
                         <Flex>
                             <FormLabel mt={2}>Security Deposit</FormLabel>
                             <Checkbox
@@ -96,13 +240,19 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                 precision={2}
                                 step={50}
                             >
-                                <NumberInputField placeholder="Enter amount"/>
+                                <NumberInputField
+                                    id="security_deposit"
+                                    {...register("security_deposit")}
+                                    placeholder="Enter amount"
+                                />
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
                                     <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
                         )}
+
+                        {/* Included utilities */}
                         <FormLabel mt={2}>Included Utilities</FormLabel>
                         <CheckboxGroup
                             value={selectedUtilities}
@@ -127,6 +277,8 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                 )}
                             </Flex>
                         </CheckboxGroup>
+
+                        {/* Included amenities */}
                         <FormLabel mt={2}>Included Amenities</FormLabel>
                         <CheckboxGroup
                             value={selectedAmenities}
@@ -151,22 +303,33 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                 )}
                             </Flex>
                         </CheckboxGroup>
-                        <FormControl isRequired>
+
+                        {/* Lease dates */}
+                        <FormControl isRequired isInvalid={!!dateError}>
                             <FormLabel mt={2}>Lease Dates</FormLabel>
                             <HStack spacing={4}>
                                 <Input
+                                    id="lease_start_date"
                                     type="date"
+                                    {...register("lease_start_date")}
+                                    value={leaseStartDate}
+                                    onChange={handleStartDateChange}
                                 />
                                 <Text>-</Text>
                                 <Input
+                                    id="lease_end_date"
                                     type="date"
+                                    {...register("lease_end_date")}
+                                    value={leaseEndDate}
+                                    onChange={handleEndDateChange}
                                 />
                             </HStack>
+                            {dateError && <FormErrorMessage>{dateError}</FormErrorMessage>}
                         </FormControl>
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button colorScheme='blue' mr={3}>
+                        <Button colorScheme='blue' mr={3} type="submit" isLoading={isSubmitting}>
                             Add Listing
                         </Button>
                         <Button variant='ghost' onClick={onClose}>Cancel</Button>
