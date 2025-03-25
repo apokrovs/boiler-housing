@@ -17,10 +17,11 @@ import {
 import {createFileRoute} from "@tanstack/react-router";
 import AddListing from "../../components/Listings/AddListing.tsx";
 import Navbar from "../../components/Common/Navbar.tsx";
-import {ListingsService} from "../../client";
+import {ListingPublic, ListingsService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 import React from "react";
 import Delete from "../../components/Common/DeleteAlert.tsx";
+import EditListing from "../../components/Listings/EditListing.tsx";
 
 export const Route = createFileRoute("/_layout/listings")({
     component: Listings,
@@ -35,12 +36,19 @@ function getListingsQueryOptions() {
 }
 
 function Listings() {
-    const {isOpen, onOpen, onClose} = useDisclosure()
+    const editListingModal = useDisclosure()
+    const deleteModal = useDisclosure()
     const [deleteListingId, setDeleteListingId] = React.useState<string | null>(null)
+    const [editListing, setEditListing] = React.useState<ListingPublic | null>(null)
 
     const handleDeleteClick = (id: string) => {
         setDeleteListingId(id)
-        onOpen() // Open the delete modal
+        deleteModal.onOpen()
+    }
+
+    const handleEditClick = (listing: ListingPublic) => {
+        setEditListing(listing)
+        editListingModal.onOpen()
     }
 
     const {
@@ -142,6 +150,7 @@ function Listings() {
                                         <Button
                                             colorScheme="blue"
                                             size="sm"
+                                            onClick={() => handleEditClick(listing)}
                                         >
                                             Edit Listing
                                         </Button>
@@ -165,8 +174,17 @@ function Listings() {
                 <Delete
                     type="Listing"
                     id={deleteListingId}
-                    isOpen={isOpen}
-                    onClose={onClose}
+                    isOpen={deleteModal.isOpen}
+                    onClose={deleteModal.onClose}
+                />
+            )}
+
+            {/* Edit Modal */}
+            {editListing && (
+                <EditListing
+                    listing={editListing}
+                    isOpen={editListingModal.isOpen}
+                    onClose={editListingModal.onClose}
                 />
             )}
         </Container>
