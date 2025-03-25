@@ -118,6 +118,11 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
         mutation.mutate(data)
     }
 
+    const onCancel = () => {
+        reset()
+        onClose()
+    }
+
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} scrollBehavior={'inside'}>
@@ -307,7 +312,7 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                         <Button colorScheme='blue' mr={3} type="submit" isLoading={isSubmitting}>
                             Add Listing
                         </Button>
-                        <Button variant='ghost' onClick={onClose}>Cancel</Button>
+                        <Button variant='ghost' onClick={onCancel}>Cancel</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>

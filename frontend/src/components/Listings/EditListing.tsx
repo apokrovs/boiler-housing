@@ -95,6 +95,9 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
     })
 
     const onSubmit: SubmitHandler<ListingUpdate> = (data) => {
+        if (!isSecurityDeposit) {
+            data.security_deposit = null;
+        }
         data.included_utilities = selectedUtilities;
         data.amenities = selectedAmenities;
 
