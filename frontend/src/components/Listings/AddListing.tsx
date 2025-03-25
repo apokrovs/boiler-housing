@@ -39,12 +39,10 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
     const bedrooms = ['Studio', '1 Bed', '2 Bed', '3+ Bed'];
     const bathrooms = ['1', '2', '3+'];
     const [isSecurityDeposit, setIsSecurityDeposit] = useState(false);
-    const utilities = ["Water", "Sewage", "Garbage", "Electricity", "Gas", "Internet/Cable", "Other"];
+    const utilities = ["Water", "Sewage", "Garbage", "Electricity", "Gas", "Internet/Cable"];
     const [selectedUtilities, setSelectedUtilities] = useState<string[]>([]);
-    const [otherUtility, setOtherUtility] = useState('');
-    const amenities = ["Maintenance", "Trash Removal", "Fitness Center", "Pool", "Furnished", "Laundry", "Parking", "Balcony", "Pets", "Other"];
+    const amenities = ["Maintenance", "Trash Removal", "Fitness Center", "Pool", "Furnished", "Laundry", "Parking", "Balcony", "Pets"];
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-    const [otherAmenity, setOtherAmenity] = useState('');
     const [leaseStartDate, setLeaseStartDate] = useState("");
     const [leaseEndDate, setLeaseEndDate] = useState("");
     const [dateError, setDateError] = useState("");
@@ -98,9 +96,7 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
             showToast("Success!", "Listing created successfully.", "success")
             reset()
             setSelectedUtilities([]);
-            setOtherUtility("");
             setSelectedAmenities([]);
-            setOtherAmenity("");
             setLeaseStartDate("");
             setLeaseEndDate("");
             setIsSecurityDeposit(false);
@@ -115,13 +111,8 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
     })
 
     const onSubmit: SubmitHandler<ListingCreate> = (data) => {
-        data.included_utilities = selectedUtilities.includes("Other")
-            ? [...selectedUtilities.filter(u => u !== "Other"), otherUtility]
-            : selectedUtilities;
-
-        data.amenities = selectedAmenities.includes("Other")
-            ? [...selectedAmenities.filter(a => a !== "Other"), otherAmenity]
-            : selectedAmenities;
+        data.included_utilities = selectedUtilities;
+        data.amenities =  selectedAmenities;
 
         console.log(data)
         mutation.mutate(data)
@@ -267,14 +258,6 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                         {utility}
                                     </Checkbox>
                                 ))}
-
-                                {selectedUtilities.includes("Other") && (
-                                    <Input
-                                        value={otherUtility}
-                                        onChange={(e) => setOtherUtility(e.target.value)}
-                                        placeholder="Please specify"
-                                    />
-                                )}
                             </Flex>
                         </CheckboxGroup>
 
@@ -293,14 +276,6 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                         {amenity}
                                     </Checkbox>
                                 ))}
-
-                                {selectedAmenities.includes("Other") && (
-                                    <Input
-                                        value={otherAmenity}
-                                        onChange={(e) => setOtherAmenity(e.target.value)}
-                                        placeholder="Please specify"
-                                    />
-                                )}
                             </Flex>
                         </CheckboxGroup>
 

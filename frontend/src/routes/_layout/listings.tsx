@@ -82,12 +82,18 @@ function Listings() {
                                 flexShrink={0}
                             >
                                 <CardHeader>
-                                    <Heading size="md">{listing.address}</Heading>
+                                    <Heading
+                                        size="md"
+                                        whiteSpace="normal"
+                                        wordBreak="break-word"
+                                    >
+                                        {listing.address}
+                                    </Heading>
                                 </CardHeader>
                                 <CardBody>
                                     <VStack align="start" spacing={2}>
                                         {/* Realty Company */}
-                                        <Text fontSize="sm">
+                                        <Text fontSize="sm" whiteSpace="normal" wordBreak="break-word">
                                             {listing.realty_company}
                                         </Text>
 
@@ -112,7 +118,7 @@ function Listings() {
                                                 <Text fontSize="sm" fontWeight="semibold">
                                                     Utilities:
                                                 </Text>
-                                                <HStack spacing={1}>
+                                                <HStack wrap="wrap" spacing={1}>
                                                     {listing.included_utilities.map((utility) => (
                                                         <Badge key={utility} colorScheme="green">
                                                             {utility}
@@ -128,7 +134,7 @@ function Listings() {
                                                 <Text fontSize="sm" fontWeight="semibold">
                                                     Amenities:
                                                 </Text>
-                                                <HStack spacing={1}>
+                                                <HStack wrap="wrap" spacing={1}>
                                                     {listing.amenities.map((amenity) => (
                                                         <Badge key={amenity} colorScheme="pink">
                                                             {amenity}
@@ -184,7 +190,10 @@ function Listings() {
                 <EditListing
                     listing={editListing}
                     isOpen={editListingModal.isOpen}
-                    onClose={editListingModal.onClose}
+                    onClose={() => {
+                        setEditListing(null);
+                        editListingModal.onClose();
+                    }}
                 />
             )}
         </Container>

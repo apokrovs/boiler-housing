@@ -23,7 +23,7 @@ import {
     NumberInputStepper,
     Text,
 } from '@chakra-ui/react'
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast.ts";
 import {type SubmitHandler, useForm} from "react-hook-form";
@@ -40,24 +40,13 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
     const bedrooms = ['Studio', '1 Bed', '2 Bed', '3+ Bed'];
     const bathrooms = ['1', '2', '3+'];
     const [isSecurityDeposit, setIsSecurityDeposit] = useState(!!listing.security_deposit);
-    const utilities = ["Water", "Sewage", "Garbage", "Electricity", "Gas", "Internet/Cable", "Other"];
+    const utilities = ["Water", "Sewage", "Garbage", "Electricity", "Gas", "Internet/Cable"];
     const [selectedUtilities, setSelectedUtilities] = useState<string[]>(listing.included_utilities ?? []);
-    const [otherUtility, setOtherUtility] = useState('');
-    const amenities = ["Maintenance", "Trash Removal", "Fitness Center", "Pool", "Furnished", "Laundry", "Parking", "Balcony", "Pets", "Other"];
+    const amenities = ["Maintenance", "Trash Removal", "Fitness Center", "Pool", "Furnished", "Laundry", "Parking", "Balcony", "Pets"];
     const [selectedAmenities, setSelectedAmenities] = useState<string[]>(listing.amenities ?? []);
-    const [otherAmenity, setOtherAmenity] = useState('');
     const [leaseStartDate, setLeaseStartDate] = useState(listing.lease_start_date);
     const [leaseEndDate, setLeaseEndDate] = useState(listing.lease_end_date);
     const [dateError, setDateError] = useState("");
-
-    useEffect(() => {
-        if (selectedUtilities.includes("Other")) {
-            setOtherUtility(selectedUtilities.find(u => u !== "Other") || '');
-        }
-        if (selectedAmenities.includes("Other")) {
-            setOtherAmenity(selectedAmenities.find(a => a !== "Other") || '');
-        }
-    }, [selectedUtilities, selectedAmenities]);
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLeaseStartDate(e.target.value);
@@ -106,13 +95,8 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
     })
 
     const onSubmit: SubmitHandler<ListingUpdate> = (data) => {
-        data.included_utilities = selectedUtilities.includes("Other")
-            ? [...selectedUtilities.filter(u => u !== "Other"), otherUtility]
-            : selectedUtilities;
-
-        data.amenities = selectedAmenities.includes("Other")
-            ? [...selectedAmenities.filter(a => a !== "Other"), otherAmenity]
-            : selectedAmenities;
+        data.included_utilities = selectedUtilities;
+        data.amenities = selectedAmenities;
 
         console.log(data)
         mutation.mutate(data)
@@ -263,14 +247,6 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
                                         {utility}
                                     </Checkbox>
                                 ))}
-
-                                {selectedUtilities.includes("Other") && (
-                                    <Input
-                                        value={otherUtility}
-                                        onChange={(e) => setOtherUtility(e.target.value)}
-                                        placeholder="Please specify"
-                                    />
-                                )}
                             </Flex>
                         </CheckboxGroup>
 
@@ -289,14 +265,6 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
                                         {amenity}
                                     </Checkbox>
                                 ))}
-
-                                {selectedAmenities.includes("Other") && (
-                                    <Input
-                                        value={otherAmenity}
-                                        onChange={(e) => setOtherAmenity(e.target.value)}
-                                        placeholder="Please specify"
-                                    />
-                                )}
                             </Flex>
                         </CheckboxGroup>
 
