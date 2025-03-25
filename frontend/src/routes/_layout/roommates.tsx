@@ -1,7 +1,7 @@
 import {Link as RouterLink, createFileRoute} from "@tanstack/react-router";
-import {Center, Container, Heading, VStack, Text, Button} from "@chakra-ui/react";
-import {useQuery, useQueryClient} from "@tanstack/react-query";
-import {UserPublic, UsersService} from "../../client";
+import {Center, Container, Heading, VStack, Text, Button, HStack} from "@chakra-ui/react";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {UserPublic, UsersService, UserUpdateMe} from "../../client";
 
 export const Route = createFileRoute("/_layout/roommates")({
     component: RoommatePage
@@ -28,6 +28,35 @@ function RoommatePage() {
             queryClient.getQueryData<UserPublic[]>(["users"]) ?? [],
         enabled: !!currentUser?.hasTakenRoommateQuiz
     });
+
+    const updateUserMutation = useMutation({
+        mutationFn: (updatedUser: UserUpdateMe) =>
+            UsersService.updateUserMe({requestBody: updatedUser}),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["currentUser"]})
+        },
+        onError: (error) => {
+            console.error("Failed to update auto logout time.", error)
+            alert("Failed to update auto logout time.")
+        }
+    })
+
+
+    const handleReset = () => {
+        if (currentUser) {
+            const updatedUser = {
+                ...currentUser,
+                hasTakenRoommateQuiz: false,
+                cleanScore: null,
+                visitScore: null,
+                sleepTime: null,
+                pets: null,
+                smoking: null,
+                alcoholScore: null
+            }
+            updateUserMutation.mutate(updatedUser)
+        }
+    };
 
     console.log(!!currentUser?.hasTakenRoommateQuiz);
 
@@ -95,7 +124,10 @@ function RoommatePage() {
                         <VStack>
                             <Heading color={"#CEB888"}>Welcome to Roommates!</Heading>
                             <Text pb={4}>Feel free to retake your roommate quiz if your preferences change.</Text>
-                            <Button as={RouterLink} to={'/roommate-quiz'}>Take the quiz</Button>
+                            <HStack>
+                                <Button onClick={handleReset}>Reset my selections</Button>
+                                <Button as={RouterLink} to={'/roommate-quiz'}>Take the quiz</Button>
+                            </HStack>
                             <Heading pt={4} color={"#CEB888"}>Roommate Suggestions</Heading>
                             <Text pb={4}>Here are your three closest roommate matches.</Text>
                             <Text fontSize={20} pb={2}>1. {bestMatch}</Text>
