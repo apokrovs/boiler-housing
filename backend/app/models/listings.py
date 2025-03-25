@@ -1,21 +1,19 @@
 import uuid
 from typing import Optional, List
-from sqlmodel import Field, Relationship, SQLModel
-from sqlalchemy import Column
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Field, Relationship, SQLModel, JSON
 
 # Shared properties
 class ListingBase(SQLModel):
-    num_bedrooms: Optional[str] | None = Field(default=None)
-    num_bathrooms: Optional[str] | None = Field(default=None)
-    address: Optional[str] | None = Field(default=None, max_length=255)
-    realty_company: Optional[str] | None = Field(default=None, max_length=255)
-    rent: Optional[float] | None = Field(default=None, ge=0)
-    included_utilities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))
-    security_deposit: Optional[str] | None = Field(default=None)
-    amenities: Optional[List[str]] | None = Field(default=None, sa_column=Column(JSONB))
-    lease_start_date: Optional[str] | None = Field(default=None)
-    lease_end_date: Optional[str] | None = Field(default=None)
+    num_bedrooms: str | None = Field(default=None)
+    num_bathrooms: str | None = Field(default=None)
+    address: str | None = Field(default=None, max_length=255)
+    realty_company: str | None = Field(default=None, max_length=255)
+    rent: float | None = Field(default=None, ge=0)
+    included_utilities: List[str] | None = Field(default=None, sa_type=JSON)
+    security_deposit: str | None = Field(default=None)
+    amenities: List[str] | None = Field(default=None, sa_type=JSON)
+    lease_start_date: str | None = Field(default=None)
+    lease_end_date: str | None = Field(default=None)
 
 
 # Properties to receive on listing creation
@@ -44,5 +42,5 @@ class ListingPublic(ListingBase):
 
 
 class ListingsPublic(SQLModel):
-    data: list[ListingPublic]
+    data: List[ListingPublic]
     count: int
