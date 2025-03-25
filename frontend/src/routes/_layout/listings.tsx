@@ -16,10 +16,11 @@ import {
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router";
 import AddListing from "../../components/Listings/AddListing.tsx";
-import EditListing from "../../components/Listings/EditListing.tsx"
 import Navbar from "../../components/Common/Navbar.tsx";
 import {ListingsService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
+import React from "react";
+import Delete from "../../components/Common/DeleteAlert.tsx";
 
 export const Route = createFileRoute("/_layout/listings")({
     component: Listings,
@@ -35,6 +36,12 @@ function getListingsQueryOptions() {
 
 function Listings() {
     const {isOpen, onOpen, onClose} = useDisclosure()
+    const [deleteListingId, setDeleteListingId] = React.useState<string | null>(null)
+
+    const handleDeleteClick = (id: string) => {
+        setDeleteListingId(id)
+        onOpen() // Open the delete modal
+    }
 
     const {
         data: listings
@@ -87,7 +94,8 @@ function Listings() {
                                             Rent: ${listing.rent?.toLocaleString()}
                                         </Text>
                                         <Text fontSize="sm">
-                                            Security Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
+                                            Security
+                                            Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
                                         </Text>
 
                                         {/* Included Utilities */}
@@ -134,12 +142,15 @@ function Listings() {
                                         <Button
                                             colorScheme="blue"
                                             size="sm"
-                                            onClick={onOpen}
                                         >
                                             Edit Listing
                                         </Button>
 
-                                        <Button colorScheme="red" size="sm">
+                                        <Button
+                                            colorScheme="red"
+                                            size="sm"
+                                            onClick={() => handleDeleteClick(listing.id)}
+                                        >
                                             Delete Listing
                                         </Button>
                                     </HStack>
@@ -149,10 +160,15 @@ function Listings() {
                     )}
                 </Flex>
             </Box>
-            <EditListing
-                isOpen={isOpen}
-                onClose={onClose}
-            />
+            {/* Delete Modal */}
+            {deleteListingId && (
+                <Delete
+                    type="Listing"
+                    id={deleteListingId}
+                    isOpen={isOpen}
+                    onClose={onClose}
+                />
+            )}
         </Container>
     )
 }
