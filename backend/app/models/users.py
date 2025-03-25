@@ -60,7 +60,6 @@ class User(UserBase, table=True):
     hashed_pin: str | None = Field(default=None)
     is_2fa_enabled: bool | None = Field(default=False)
     latest_otp: str | None = Field(default=None)
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
     items: List["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
     # Add these fields for user blocking
@@ -70,6 +69,8 @@ class User(UserBase, table=True):
     blocked_by_users: List["UserBlock"] = Relationship(
         sa_relationship_kwargs={"foreign_keys": "[UserBlock.blocked_id]", "back_populates": "blocked"}
     )
+
+    listings: List["Listing"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 class PinLogin(SQLModel):
