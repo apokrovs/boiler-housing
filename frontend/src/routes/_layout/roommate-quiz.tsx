@@ -3,6 +3,7 @@ import {createFileRoute, Link as RouterLink, useNavigate} from "@tanstack/react-
 import {useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {UserPublic, UsersService, UserUpdateMe} from "../../client";
+import useCustomToast from "../../hooks/useCustomToast"
 
 
 export const Route = createFileRoute("/_layout/roommate-quiz")({
@@ -13,6 +14,8 @@ function RoommateQuiz() {
     const queryClient = useQueryClient()
     const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
     const navigate = useNavigate();
+
+    const showToast = useCustomToast();
 
     const [cleanScore, setCleanScore] = useState(currentUser?.cleanScore ?? "")
     const [visitScore, setVisitScore] = useState(currentUser?.visitScore ?? "")
@@ -37,6 +40,10 @@ function RoommateQuiz() {
 
     const handleSubmitQuiz = () => {
         if (currentUser) {
+            if (cleanScore == "" || visitScore == "" || sleepTime == "" || pets == "" || smoking == "" || alcoholScore == "") {
+                showToast("Quiz submission failed", "Please select an answer to all questions", "error")
+                return;
+            }
             const updatedUser = {
                 ...currentUser,
                 hasTakenRoommateQuiz: true,
