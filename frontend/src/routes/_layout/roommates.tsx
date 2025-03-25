@@ -123,10 +123,9 @@ function RoommatePage() {
                     <Center>
                         <VStack>
                             <Heading color={"#CEB888"}>Welcome to Roommates!</Heading>
-                            <Text pb={4}>Feel free to retake your roommate quiz if your preferences change.</Text>
+                            <Text pb={4}>Feel free to reset your selections if your preferences change.</Text>
                             <HStack>
                                 <Button onClick={handleReset}>Reset my selections</Button>
-                                <Button as={RouterLink} to={'/roommate-quiz'}>Take the quiz</Button>
                             </HStack>
                             <Heading pt={4} color={"#CEB888"}>Roommate Suggestions</Heading>
                             <Text pb={4}>Here are your three closest roommate matches.</Text>
