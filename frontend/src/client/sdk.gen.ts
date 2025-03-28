@@ -15,7 +15,9 @@ import type {
   ItemsDeleteItemData,
   ItemsDeleteItemResponse,
   ListingsReadListingsData,
+  ListingsReadAllListingsData,
   ListingsReadListingsResponse,
+  ListingsReadAllListingsResponse,
   ListingsCreateListingData,
   ListingsCreateListingResponse,
   ListingsReadListingData,
@@ -229,6 +231,30 @@ export class ListingsService {
   public static readListings(
     data: ListingsReadListingsData = {},
   ): CancelablePromise<ListingsReadListingsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+  /**
+   * Read Listings
+   * Retrieve listings.
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns ListingsPublic Successful Response
+   * @throws ApiError
+   */
+  public static readAllListings(
+    data: ListingsReadAllListingsData = {},
+  ): CancelablePromise<ListingsReadAllListingsResponse> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/listings/",
