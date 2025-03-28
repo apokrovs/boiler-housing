@@ -272,17 +272,10 @@ export type ItemsDeleteItemData = {
 
 export type ItemsDeleteItemResponse = Message
 
-export type ListingsReadListingsData = {
-  limit?: number
-  skip?: number
-}
-
 export type ListingsReadAllListingsData = {
   limit?: number
   skip?: number
 }
-
-export type ListingsReadListingsResponse = ListingsPublic
 
 export type ListingsReadAllListingsResponse = ListingsPublic
 
