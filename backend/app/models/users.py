@@ -2,7 +2,7 @@ import uuid
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
-from typing import List, Optional
+from typing import List
 from app.models.items import Item
 
 
@@ -13,6 +13,8 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    bio: str | None = Field(default=None, max_length=255)
+    profile_type: str | None = Field(default=None, max_length=255)
     auto_logout: float = Field(default=30)
     is_2fa_enabled: bool | None = Field(default=False)
 
@@ -42,6 +44,9 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    phone_number: str | None = Field(index=True, unique=True, max_length=10)
+    bio: str | None = Field(default=None, max_length=255)
+    profile_type: str | None = Field(default=None, max_length=255)
     auto_logout: float | None = Field(default=30)
 
 

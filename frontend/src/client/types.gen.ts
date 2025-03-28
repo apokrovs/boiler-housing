@@ -178,6 +178,8 @@ export type UserCreate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  bio?: string | null
+  profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
   password: string
@@ -189,6 +191,8 @@ export type UserPublic = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  bio?: string | null
+  profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
   id: string
@@ -213,6 +217,8 @@ export type UserUpdate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
+  bio?: string | null
+  profile_type?: string | null
   auto_logout?: number | null
   is_2fa_enabled?: boolean | null
   password?: string | null
@@ -222,6 +228,9 @@ export type UserUpdate = {
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
+  phone_number: string | null
+  bio?: string | null
+  profile_type?: string | null
   auto_logout?: number | null
 }
 
