@@ -1,40 +1,38 @@
-//import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons"
 import {
     Box,
     Button,
-    //Container,
     FormControl,
-    //FormErrorMessage,
+    FormErrorMessage,
     Heading,
     HStack,
-    //Icon,
     Image,
     Input,
+    InputGroup,
+    InputRightElement,
     Link,
     Text,
     Stack,
     Center,
     Alert,
-    AlertIcon, FormErrorMessage,
-    Radio, RadioGroup
-    //useBoolean
+    AlertIcon,
+    Radio,
+    RadioGroup,
 } from "@chakra-ui/react"
 import {
     Link as RouterLink,
     createFileRoute,
     redirect,
 } from "@tanstack/react-router"
-import {type SubmitHandler, useForm} from "react-hook-form"
+import { type SubmitHandler, useForm } from "react-hook-form"
+import { useState } from "react"
 
-//const Logo = "/assets/images/BoilerHousingCropped.png"
 import {
     Body_login_login_access_token as AccessToken,
     UsersService,
 } from "../client"
-import useAuth, {isLoggedIn, PinLogin} from "../hooks/useAuth"
-import {emailPattern} from "../utils"
-import {useState} from "react";
-import {sendOTPNotification} from "../client/emailService.ts";
+import useAuth, { isLoggedIn, PinLogin } from "../hooks/useAuth"
+import { emailPattern } from "../utils"
+import { sendOTPNotification } from "../client/emailService.ts"
 
 export const Route = createFileRoute("/login")({
     component: Login,
@@ -49,29 +47,28 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
     const [loginMethod, setLoginMethod] = useState<'password' | 'pin'>('password')
-    const {loginMutation, loginWithPinMutation, error, resetError} = useAuth()
-
+    const { loginMutation, loginWithPinMutation, error, resetError } = useAuth()
     const [isOtpSent, setIsOtpSent] = useState(false)
     const [inputOTP, setInputOTP] = useState("")
-
-    const [storedOtp, setStoredOtp] = useState("");
+    const [storedOtp, setStoredOtp] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
+    const [showPin, setShowPin] = useState(false)
     let futureTime = new Date(Date.now() + 10 * 60 * 1000)
 
     function generateOTP(): string {
-        return Math.floor(100000 + Math.random() * 900000).toString();
+        return Math.floor(100000 + Math.random() * 900000).toString()
     }
 
-    // Define a type that includes all possible fields
     type LoginFormData = {
-        username: string;
-        password: string;
-        pin?: string;
+        username: string
+        password: string
+        pin?: string
     }
 
     const {
         register,
         handleSubmit,
-        formState: {errors, isSubmitting},
+        formState: { errors, isSubmitting },
     } = useForm<LoginFormData>({
         mode: "onBlur",
         criteriaMode: "all",
@@ -84,23 +81,17 @@ function Login() {
 
     const handleOtpSubmit: SubmitHandler<LoginFormData> = async (data) => {
         try {
-            console.log("Current Time:", Date.now());
-            console.log("Future Time:", futureTime.getTime());
-            console.log("Input otp:", inputOTP);
-            console.log("Stored otp:", storedOtp);
             if ((inputOTP === storedOtp) && (Date.now() <= futureTime.getTime())) {
                 if (loginMethod === 'password') {
-                    // Use only username and password fields for password login
                     const passwordData: AccessToken = {
                         username: data.username,
                         password: data.password
                     }
                     await loginMutation.mutateAsync(passwordData)
                 } else {
-                    // For PIN login, transform data to PinLogin format
                     const pinData: PinLogin = {
-                        email: data.username,  // Use username field for email
-                        pin: data.password || ""    // Use pin field for PIN
+                        email: data.username,
+                        pin: data.password || ""
                     }
                     await loginWithPinMutation.mutateAsync(pinData)
                 }
@@ -111,79 +102,57 @@ function Login() {
                 setIsOtpSent(false)
                 setInputOTP("")
             }
-        } catch {
-            // Handle error if OTP verification fails
-        }
+        } catch { }
     };
 
     const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
         if (isSubmitting) return
-
         resetError()
 
         try {
-            const loginUser = await UsersService.readUserByEmail({email: data.username});
+            const loginUser = await UsersService.readUserByEmail({ email: data.username });
             if (loginUser.is_2fa_enabled) {
-                const otp = generateOTP(); // Generate OTP and store it in a variable
-                setStoredOtp(otp); // Update state with the OTP
-                console.log("Generated OTP:", otp); // Log the correct OTP
-
-                await sendOTPNotification(
-                    data.username,
-                    "User",
-                    otp
-                );
-
-                futureTime = new Date(Date.now() + 10 * 60 * 1000);
-                setIsOtpSent(true);
-                return; // Prevent normal login from executing until OTP is verified
+                const otp = generateOTP()
+                setStoredOtp(otp)
+                await sendOTPNotification(data.username, "User", otp)
+                futureTime = new Date(Date.now() + 10 * 60 * 1000)
+                setIsOtpSent(true)
+                return
             } else {
                 if (loginMethod === 'password') {
-                    // Use only username and password fields for password login
                     const passwordData: AccessToken = {
                         username: data.username,
                         password: data.password
                     }
                     await loginMutation.mutateAsync(passwordData)
                 } else {
-                    // For PIN login, transform data to PinLogin format
                     const pinData: PinLogin = {
-                        email: data.username,  // Use username field for email
-                        pin: data.password || ""    // Use pin field for PIN
+                        email: data.username,
+                        pin: data.password || ""
                     }
                     await loginWithPinMutation.mutateAsync(pinData)
                 }
             }
-        } catch {
-            // error is handled by useAuth hook
-        }
+        } catch { }
     }
 
     return (
         <>
-            <Box
-                boxShadow={'md'}
-                height={"100px"}
-                //background={"black"}
-                width={"100%"}>
+            <Box boxShadow={'md'} height={"100px"} width={"100%"}>
                 <HStack gap={90}>
                     <Image pl={4} pt={"15px"} src={"/assets/images/BoilerHousingCropped.png"}></Image>
                 </HStack>
             </Box>
-            <Center p={12} //bg={'white'}
-            >
+            <Center p={12}>
                 <Stack
                     as={"form"}
                     onSubmit={isOtpSent ? handleSubmit(handleOtpSubmit) : handleSubmit(onSubmit)}
                     rounded={'lg'}
                     boxShadow={'lg'}
-                    //bg={"white"}
                     p={20}
-                    gap={6}>
-                    <Heading
-                        fontSize={"3xl"}
-                        color={"#CEB888"}
-                    >
+                    gap={6}
+                >
+                    <Heading fontSize={"3xl"} color={"#CEB888"}>
                         Welcome Back!
                     </Heading>
                     <Text fontSize={"md"}>
@@ -194,10 +163,11 @@ function Login() {
 
                     {error && (
                         <Alert status="error">
-                            <AlertIcon/>
+                            <AlertIcon />
                             {error}
                         </Alert>
                     )}
+
                     <FormControl id={"username"} isInvalid={!!errors.username || !!error}>
                         <Input
                             {...register("username", {
@@ -207,48 +177,62 @@ function Login() {
                             placeholder={"Email"}
                             type={"email"}
                             id={"username"}
-                            disabled={isOtpSent} // Disable input after sending OTP
-                        >
-                        </Input>
+                            disabled={isOtpSent}
+                        />
                         {errors.username && (
                             <FormErrorMessage>{errors.username.message}</FormErrorMessage>
                         )}
                     </FormControl>
+
                     {!isOtpSent ? (
                         <>
                             {loginMethod === "password" && (
                                 <FormControl id={"password"} isInvalid={!!error}>
-                                    <Input
-                                        {...register("password", {required: "Password is required"})}
-                                        placeholder={"Password"}
-                                        type={"password"}
-                                    />
+                                    <InputGroup>
+                                        <Input
+                                            {...register("password", { required: "Password is required" })}
+                                            placeholder={"Password"}
+                                            type={showPassword ? "text" : "password"}
+                                        />
+                                        <InputRightElement width="4.5rem">
+                                            <Button h="1.75rem" size="sm" onClick={() => setShowPassword(!showPassword)}>
+                                                {showPassword ? "Hide" : "Show"}
+                                            </Button>
+                                        </InputRightElement>
+                                    </InputGroup>
                                 </FormControl>
                             )}
 
                             {loginMethod === "pin" && (
                                 <FormControl id={"pin"} isInvalid={!!error}>
-                                    <Input
-                                        {...register("password", {required: "PIN is required"})}
-                                        placeholder={"PIN"}
-                                        type={"password"}
-                                        maxLength={4}
-                                    />
+                                    <InputGroup>
+                                        <Input
+                                            {...register("password", { required: "PIN is required" })}
+                                            placeholder={"PIN"}
+                                            type={showPin ? "text" : "password"}
+                                            maxLength={4}
+                                        />
+                                        <InputRightElement width="4.5rem">
+                                            <Button h="1.75rem" size="sm" onClick={() => setShowPin(!showPin)}>
+                                                {showPin ? "Hide" : "Show"}
+                                            </Button>
+                                        </InputRightElement>
+                                    </InputGroup>
                                 </FormControl>
                             )}
                         </>
                     ) : (
-                        // OTP Input when OTP is Sent
                         <FormControl id="otp">
                             <Input
                                 value={inputOTP}
                                 placeholder="Enter OTP"
                                 type="password"
-                                maxLength={6} // Typical OTP length
+                                maxLength={6}
                                 onChange={(e) => setInputOTP(e.target.value)}
                             />
                         </FormControl>
                     )}
+
                     <HStack gap={19}>
                         {!isOtpSent ? (
                             <>
@@ -278,11 +262,11 @@ function Login() {
                             </Button>
                         )}
                     </HStack>
+
                     {!isOtpSent && (
                         <HStack>
                             <Text fontSize={"md"}>New here?</Text>
-                            <Link as={RouterLink} to={"/signup"} variant={'underline'} color={'#CEB888'}
-                                  fontSize={'md'}>
+                            <Link as={RouterLink} to={"/signup"} variant={'underline'} color={'#CEB888'} fontSize={'md'}>
                                 Create an account
                             </Link>
                         </HStack>
@@ -305,5 +289,5 @@ function Login() {
                 </Stack>
             </Center>
         </>
-    );
+    )
 }
