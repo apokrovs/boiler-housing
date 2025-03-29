@@ -41,7 +41,7 @@ def read_listings(
 
     return ListingsPublic(data=listings, count=count)
 
-@router.get("/", response_model=ListingsPublic)
+@router.get("/all", response_model=ListingsPublic)
 def read_all_listings(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:

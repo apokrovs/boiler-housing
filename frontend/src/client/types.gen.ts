@@ -272,18 +272,25 @@ export type ItemsDeleteItemData = {
 
 export type ItemsDeleteItemResponse = Message
 
-export type ListingsReadAllListingsData = {
+export type ListingsReadListingsData = {
   limit?: number
   skip?: number
 }
 
-export type ListingsReadAllListingsResponse = ListingsPublic
+export type ListingsReadListingsResponse = ListingsPublic
 
 export type ListingsCreateListingData = {
   requestBody: ListingCreate
 }
 
 export type ListingsCreateListingResponse = ListingPublic
+
+export type ListingsReadAllListingsData = {
+  limit?: number
+  skip?: number
+}
+
+export type ListingsReadAllListingsResponse = ListingsPublic
 
 export type ListingsReadListingData = {
   id: string
