@@ -6,18 +6,22 @@ import {
     FormLabel,
     Heading,
     Input,
+    InputGroup,
+    InputRightElement,
     Text,
 } from "@chakra-ui/react"
-import {useMutation} from "@tanstack/react-query"
-import {createFileRoute, redirect, useNavigate} from "@tanstack/react-router"
-import {type SubmitHandler, useForm} from "react-hook-form"
+import { useMutation } from "@tanstack/react-query"
+import { createFileRoute, redirect, useNavigate, useSearch } from "@tanstack/react-router"
+import { type SubmitHandler, useForm } from "react-hook-form"
+import { useState } from "react"
 
-import {type ApiError, LoginService, type NewPassword} from "../client"
-import {isLoggedIn} from "../hooks/useAuth"
+import { type ApiError, LoginService } from "../client"
+import { isLoggedIn } from "../hooks/useAuth"
 import useCustomToast from "../hooks/useCustomToast"
-import {confirmPasswordRules, handleError, passwordRules} from "../utils"
+import { confirmPasswordRules, handleError, passwordRules } from "../utils"
 
-interface NewPasswordForm extends NewPassword {
+interface NewPasswordForm {
+    new_password: string
     confirm_password: string
 }
 
@@ -25,9 +29,7 @@ export const Route = createFileRoute("/reset-password")({
     component: ResetPassword,
     beforeLoad: async () => {
         if (isLoggedIn()) {
-            throw redirect({
-                to: "/",
-            })
+            throw redirect({ to: "/" })
         }
     },
 })
@@ -38,22 +40,39 @@ function ResetPassword() {
         handleSubmit,
         getValues,
         reset,
-        formState: {errors},
+        formState: { errors },
     } = useForm<NewPasswordForm>({
         mode: "onBlur",
         criteriaMode: "all",
         defaultValues: {
             new_password: "",
+            confirm_password: "",
         },
     })
+
     const showToast = useCustomToast()
     const navigate = useNavigate()
+    const search = useSearch({ from: "/reset-password" }) as { email?: string }
 
-    const resetPassword = async (data: NewPassword) => {
-        const token = new URLSearchParams(window.location.search).get("token")
-        if (!token) return
+    const email = search.email
+
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+    const togglePasswordVisibility = () => setShowPassword(!showPassword)
+    const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword)
+
+    if (!email) {
+        showToast("Error", "Missing email parameter.", "error")
+        return null
+    }
+
+    const resetPassword = async (data: NewPasswordForm) => {
         await LoginService.resetPassword({
-            requestBody: {new_password: data.new_password, token: token},
+            requestBody: {
+                email: email,
+                new_password: data.new_password,
+            },
         })
     }
 
@@ -62,7 +81,7 @@ function ResetPassword() {
         onSuccess: () => {
             showToast("Success!", "Password updated successfully.", "success")
             reset()
-            navigate({to: "/login"})
+            navigate({ to: "/login" })
         },
         onError: (err: ApiError) => {
             handleError(err, showToast)
@@ -88,33 +107,50 @@ function ResetPassword() {
                 Reset Password
             </Heading>
             <Text textAlign="center">
-                Please enter your new password and confirm it to reset your password.
+                Enter your new password and confirm it.
             </Text>
+
             <FormControl mt={4} isInvalid={!!errors.new_password}>
-                <FormLabel htmlFor="password">Set Password</FormLabel>
-                <Input
-                    id="password"
-                    {...register("new_password", passwordRules())}
-                    placeholder="Password"
-                    type="password"
-                />
+                <FormLabel htmlFor="password">New Password</FormLabel>
+                <InputGroup>
+                    <Input
+                        id="password"
+                        {...register("new_password", passwordRules())}
+                        placeholder="New Password"
+                        type={showPassword ? "text" : "password"}
+                    />
+                    <InputRightElement width="4.5rem">
+                        <Button h="1.75rem" size="sm" onClick={togglePasswordVisibility}>
+                            {showPassword ? "Hide" : "Show"}
+                        </Button>
+                    </InputRightElement>
+                </InputGroup>
                 {errors.new_password && (
                     <FormErrorMessage>{errors.new_password.message}</FormErrorMessage>
                 )}
             </FormControl>
+
             <FormControl mt={4} isInvalid={!!errors.confirm_password}>
                 <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
-                <Input
-                    id="confirm_password"
-                    {...register("confirm_password", confirmPasswordRules(getValues))}
-                    placeholder="Password"
-                    type="password"
-                />
+                <InputGroup>
+                    <Input
+                        id="confirm_password"
+                        {...register("confirm_password", confirmPasswordRules(getValues))}
+                        placeholder="Confirm Password"
+                        type={showConfirmPassword ? "text" : "password"}
+                    />
+                    <InputRightElement width="4.5rem">
+                        <Button h="1.75rem" size="sm" onClick={toggleConfirmPasswordVisibility}>
+                            {showConfirmPassword ? "Hide" : "Show"}
+                        </Button>
+                    </InputRightElement>
+                </InputGroup>
                 {errors.confirm_password && (
                     <FormErrorMessage>{errors.confirm_password.message}</FormErrorMessage>
                 )}
             </FormControl>
-            <Button variant="primary" type="submit">
+
+            <Button variant="primary" type="submit" mt={4}>
                 Reset Password
             </Button>
         </Container>

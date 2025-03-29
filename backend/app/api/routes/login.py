@@ -19,6 +19,12 @@ from app.utils import (
     verify_password_reset_token,
 )
 
+from pydantic import BaseModel
+
+class ResetPasswordNoToken(BaseModel):
+    email: str
+    new_password: str
+
 router = APIRouter(tags=["login"])
 
 
@@ -97,30 +103,6 @@ def recover_password(email: str, session: SessionDep) -> Message:
     )
     return Message(message="Password recovery email sent")
 
-
-@router.post("/reset-password/")
-def reset_password(session: SessionDep, body: NewPassword) -> Message:
-    """
-    Reset password
-    """
-    email = verify_password_reset_token(token=body.token)
-    if not email:
-        raise HTTPException(status_code=400, detail="Invalid token")
-    user = crud_users.get_user_by_email(session=session, email=email)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this email does not exist in the system.",
-        )
-    elif not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    hashed_password = get_password_hash(password=body.new_password)
-    user.hashed_password = hashed_password
-    session.add(user)
-    session.commit()
-    return Message(message="Password updated successfully")
-
-
 @router.post(
     "/password-recovery-html-content/{email}",
     dependencies=[Depends(get_current_active_superuser)],
@@ -145,3 +127,23 @@ def recover_password_html_content(email: str, session: SessionDep) -> Any:
     return HTMLResponse(
         content=email_data.html_content, headers={"subject:": email_data.subject}
     )
+
+@router.post("/reset-password/")
+def reset_password(session: SessionDep, body: ResetPasswordNoToken) -> Message:
+    """
+    Reset password (frontend-verified OTP).
+    """
+    user = crud_users.get_user_by_email(session=session, email=body.email)
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+
+    hashed_password = get_password_hash(password=body.new_password)
+    user.hashed_password = hashed_password
+    session.add(user)
+    session.commit()
+    return Message(message="Password updated successfully")

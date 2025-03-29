@@ -90,11 +90,6 @@ export type MessageUpdate = {
   content?: string | null
 }
 
-export type NewPassword = {
-  token: string
-  new_password: string
-}
-
 export type PrivateUserCreate = {
   email: string
   password: string
@@ -105,6 +100,11 @@ export type PrivateUserCreate = {
 export type ReadReceipt = {
   user_id: string
   read_at: string
+}
+
+export type ResetPasswordNoToken = {
+  email: string
+  new_password: string
 }
 
 export type Token = {
@@ -238,17 +238,17 @@ export type LoginRecoverPasswordData = {
 
 export type LoginRecoverPasswordResponse = Message
 
-export type LoginResetPasswordData = {
-  requestBody: NewPassword
-}
-
-export type LoginResetPasswordResponse = Message
-
 export type LoginRecoverPasswordHtmlContentData = {
   email: string
 }
 
 export type LoginRecoverPasswordHtmlContentResponse = string
+
+export type LoginResetPasswordData = {
+  requestBody: ResetPasswordNoToken
+}
+
+export type LoginResetPasswordResponse = Message
 
 export type MessagesCreateConversationData = {
   requestBody: ConversationCreate

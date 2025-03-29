@@ -21,10 +21,10 @@ import type {
   LoginTestTokenResponse,
   LoginRecoverPasswordData,
   LoginRecoverPasswordResponse,
-  LoginResetPasswordData,
-  LoginResetPasswordResponse,
   LoginRecoverPasswordHtmlContentData,
   LoginRecoverPasswordHtmlContentResponse,
+  LoginResetPasswordData,
+  LoginResetPasswordResponse,
   MessagesCreateConversationData,
   MessagesCreateConversationResponse,
   MessagesGetConversationsData,
@@ -291,28 +291,6 @@ export class LoginService {
   }
 
   /**
-   * Reset Password
-   * Reset password
-   * @param data The data for the request.
-   * @param data.requestBody
-   * @returns Message Successful Response
-   * @throws ApiError
-   */
-  public static resetPassword(
-    data: LoginResetPasswordData,
-  ): CancelablePromise<LoginResetPasswordResponse> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/reset-password/",
-      body: data.requestBody,
-      mediaType: "application/json",
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-  /**
    * Recover Password Html Content
    * HTML Content for Password Recovery
    * @param data The data for the request.
@@ -329,6 +307,28 @@ export class LoginService {
       path: {
         email: data.email,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Reset Password
+   * Reset password (frontend-verified OTP).
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static resetPassword(
+    data: LoginResetPasswordData,
+  ): CancelablePromise<LoginResetPasswordResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/reset-password/",
+      body: data.requestBody,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },
