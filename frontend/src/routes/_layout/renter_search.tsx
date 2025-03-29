@@ -2,7 +2,7 @@ import {
     Box,
     Container, Heading, Stack,
     Text,
-    Button, Flex, Card, CardBody, CardHeader, Badge, HStack, CardFooter, VStack, Divider,
+    Button, Flex, Card, CardBody, CardHeader, Badge, HStack, CardFooter, VStack, Divider, RadioGroup, Radio, Checkbox,
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
@@ -10,7 +10,7 @@ import {UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_layout/renter_search")({
-  component: Dashboard,
+  component: RenterSearch,
 })
 
 // const roommates = [
@@ -36,18 +36,40 @@ function getRenterQueryOptions() {
     queryKey: ["renters"],
   }
 }
-function Dashboard() {
+const quiz_items = [
+  { label: "Cleanliness", value: "1" },
+  { label: "Visitors", value: "2" },
+  { label: "Sleep Schedule", value: "3" },
+    { label: "Pets", value: "4" },
+    { label: "Smoking", value: "5" },
+    { label: "Alcohol", value: "6" },
+]
+function RenterSearch() {
     const {
          data: renters
      } = useQuery({
          ...getRenterQueryOptions(),
          placeholderData: (prevData) => prevData,
      })
+
     return (
          <Container maxW="full">
              <Heading padding={5} size="lg" textAlign={{base: "center", md: "left"}} pt={12}>
                  Potential Roommates
              </Heading>
+             <Heading padding={3} marginX={2} size="sm" textAlign={{base: "center", md: "left"}}>
+                 Filtered Search
+             </Heading>
+              <HStack gap="6" marginX={5} marginBottom={3}>
+                {quiz_items.map((quiz_item) => (
+                  <Checkbox key={quiz_item.value} value={quiz_item.value}>
+                    {quiz_item.label}
+                  </Checkbox>
+                ))}
+                  <Button bgColor={"#CEB888"} size="md">
+                      Apply
+                  </Button>
+              </HStack>
              <Box overflowX="auto" whiteSpace="normal" p={4}>
                  <Flex gap={4} wrap={"wrap"}>
                      {renters?.data.map((roommates) => (
