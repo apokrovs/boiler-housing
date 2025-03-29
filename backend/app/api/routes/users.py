@@ -35,6 +35,19 @@ from app.utils import generate_new_account_email, send_email
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+@router.get("/renter", response_model=UsersPublic)
+def read_renters(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+    """
+    Retrieve renter profiles.
+    """
+    count_statement = select(func.count()).select_from(User).where((User.profile_type == "Renter") | (User.profile_type == "Both"))
+    count = session.exec(count_statement).one()
+
+    statement = select(User).where((User.profile_type == "Renter") | (User.profile_type == "Both")).offset(skip).limit(limit)
+    users = session.exec(statement).all()
+
+    return UsersPublic(data=users, count=count)
+
 @router.get(
     "/",
     response_model=UsersPublic

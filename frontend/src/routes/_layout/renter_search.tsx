@@ -5,29 +5,43 @@ import {
     Button, Flex, Card, CardBody, CardHeader, Badge, HStack, CardFooter, VStack, Divider,
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router"
+import {UsersService} from "../../client";
+import {useQuery} from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_layout/renter_search")({
   component: Dashboard,
 })
 
-const roommates = [
-    {
-        id: 1,
-        name: "Lynn Nakamura",
-        email: "lnakamur@purdue.edu",
-        phone: "14696555208",
-        bio: "Hello my name is Lynn and I am rising junior in CS. I like to play volleyball. I am interested in 3 other roommates",
-    },
-    {
-        id: 2,
-        name: "Himaja Narajala",
-        email: "hnarajal@purdue.edu",
-        phone: "14696555208",
-        bio: "Junior in CS",
-    }
-]
-
+// const roommates = [
+//     {
+//         id: 1,
+//         name: "Lynn Nakamura",
+//         email: "lnakamur@purdue.edu",
+//         phone: "14696555208",
+//         bio: "Hello my name is Lynn and I am rising junior in CS. I like to play volleyball. I am interested in 3 other roommates",
+//     },
+//     {
+//         id: 2,
+//         name: "Himaja Narajala",
+//         email: "hnarajal@purdue.edu",
+//         phone: "14696555208",
+//         bio: "Junior in CS",
+//     }
+// ]
+function getRenterQueryOptions() {
+  return {
+    queryFn: () =>
+      UsersService.readUsers({skip: 0, limit: 50}),
+    queryKey: ["renters"],
+  }
+}
 function Dashboard() {
+    const {
+         data: renters
+     } = useQuery({
+         ...getRenterQueryOptions(),
+         placeholderData: (prevData) => prevData,
+     })
     return (
          <Container maxW="full">
              <Heading padding={5} size="lg" textAlign={{base: "center", md: "left"}} pt={12}>
@@ -35,7 +49,7 @@ function Dashboard() {
              </Heading>
              <Box overflowX="auto" whiteSpace="normal" p={4}>
                  <Flex gap={4} wrap={"wrap"}>
-                     {roommates.map((roommates) => (
+                     {renters?.data.map((roommates) => (
                          <Card
                              key={roommates.id}
                              width="300px"
@@ -51,7 +65,7 @@ function Dashboard() {
                                      {/* renter contact information */}
                                      <Text fontSize="sm" fontWeight={"bold"}>Contact Information:</Text>
                                      <Text fontSize="sm">
-                                         {roommates.phone}
+                                         {roommates.phone_number}
                                      </Text>
                                      <Text fontSize="sm">
                                          {roommates.email}
