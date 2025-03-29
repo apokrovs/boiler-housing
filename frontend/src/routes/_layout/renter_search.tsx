@@ -5,6 +5,7 @@ import {
     Button, Flex, Card, CardBody, CardHeader, Badge, HStack, CardFooter, VStack, Divider,
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import {UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 
@@ -79,7 +80,7 @@ function Dashboard() {
                              </CardBody>
                              <Divider/>
                              <CardFooter justifyContent="flex-end" padding={3}>
-                                 <Button bgColor={"#CEB888"} size="md">
+                                 <Button as={Link} to="/chat" bgColor={"#CEB888"} size="md">
                                      Send Message
                                  </Button>
                              </CardFooter>
