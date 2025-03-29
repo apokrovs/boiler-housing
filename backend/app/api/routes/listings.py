@@ -41,6 +41,19 @@ def read_listings(
 
     return ListingsPublic(data=listings, count=count)
 
+@router.get("/all", response_model=ListingsPublic)
+def read_all_listings(
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+) -> Any:
+    """
+    Retrieve listings.
+    """
+
+    count_statement = select(func.count()).select_from(Listing)
+    count = session.exec(count_statement).one()
+    statement = select(Listing).offset(skip).limit(limit)
+    listings = session.exec(statement).all()
+    return ListingsPublic(data=listings, count=count)
 
 @router.get("/{id}", response_model=ListingPublic)
 def read_listing(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:

@@ -1,12 +1,11 @@
 import {Box, Flex, Icon, Text, useColorModeValue} from "@chakra-ui/react"
 import {useQueryClient} from "@tanstack/react-query"
 import {Link} from "@tanstack/react-router"
-import {FiBriefcase, FiHome, FiFileText, FiSettings, FiUsers, FiMessageCircle} from "react-icons/fi"
-
+import {FiBriefcase, FiHome, FiFileText, FiSettings, FiUsers, FiMessageCircle, FiLayout} from "react-icons/fi"
 import type {UserPublic} from "../../client"
 
 const items = [
-    {icon: FiHome, title: "Dashboard", path: "/"},
+    {icon: FiLayout, title: "Dashboard", path: "/"},
     {icon: FiBriefcase, title: "Items", path: "/items"},
     {icon: FiSettings, title: "User Settings", path: "/settings"},
     {icon: FiMessageCircle, title: "Messages", path: "/chat"},
@@ -26,6 +25,12 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
     let finalItems = [...items];
     if (currentUser?.profile_type === "Leaser" || currentUser?.profile_type === "Both") {
         finalItems.splice(2, 0, {icon: FiFileText, title: "My Listings", path: "/listings"});
+    }
+     if (currentUser?.profile_type === "Renter" || currentUser?.profile_type === "Both") {
+        finalItems.splice(2, 0, {
+            icon: FiHome,
+            title: "Listings",
+            path: "/renter_listings"});
     }
      if (currentUser?.is_superuser) {
         finalItems.push({icon: FiUsers, title: "Admin", path: "/admin"});
