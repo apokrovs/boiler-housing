@@ -10,9 +10,10 @@ import {
     HStack,
     Text,
     VStack
+    , Button, MenuButton, Menu, MenuItem, MenuList, Portal
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router";
-import {ListingsService} from "../../client";
+import {ListingPublic, ListingsService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_layout/renter_listings")({
@@ -34,6 +35,30 @@ function RenterListings() {
         ...getListingsQueryOptions(),
         placeholderData: (prevData) => prevData,
     })
+
+    const formatToCalendarDate = (dateStr: string): string => {
+        const clean = dateStr.replace(/"/g, '');
+        // all day event
+        return clean.substring(0, 10).replace(/-/g, '');
+    }
+
+    function handleGoogleExport(leaseStart: string, leaseEnd: string) {
+        const eventTitle = "Lease Period";
+        const startTime = formatToCalendarDate(leaseStart)
+        const endTime = formatToCalendarDate(leaseEnd)
+        const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+            eventTitle
+        )}&dates=${startTime}/${endTime}`;
+        window.open(googleCalendarUrl, '_blank');
+    }
+
+    function handleiCalExport(leaseStart: string, leaseEnd: string) {
+
+    }
+
+    function handleOutlookExport(leaseStart: string, leaseEnd: string) {
+
+    }
 
     return (
         <Container maxW="full">
@@ -121,9 +146,34 @@ function RenterListings() {
                                         )}
 
                                         {/* Lease Period */}
-                                        <Text fontSize="sm">
-                                            Lease: {listing.lease_start_date} → {listing.lease_end_date}
-                                        </Text>
+                                        <Menu placement="bottom">
+                                            <MenuButton textAlign="center">
+                                                <Text fontSize="sm">
+                                                    Lease: {listing.lease_start_date} → {listing.lease_end_date}
+                                                </Text>
+                                            </MenuButton>
+                                            <Portal>
+                                                <MenuList zIndex="popover">
+                                                    <>
+                                                        <MenuItem
+                                                            onClick={() => handleGoogleExport(listing.lease_start_date ?? ""
+                                                                , listing.lease_end_date ?? "")}>Export to
+                                                            Google</MenuItem>
+                                                        <MenuItem
+                                                            onClick={() => handleiCalExport(
+                                                                listing.lease_start_date ?? ""
+                                                                , listing.lease_end_date ?? "")}>Export to
+                                                            iCal</MenuItem>
+                                                        <MenuItem
+                                                            onClick={() => handleOutlookExport(
+                                                                listing.lease_start_date ?? ""
+                                                                , listing.lease_end_date ?? "")}>Export to
+                                                            Outlook</MenuItem>
+                                                    </>
+
+                                                </MenuList>
+                                            </Portal>
+                                        </Menu>
                                     </VStack>
                                 </CardBody>
                             </Card>
