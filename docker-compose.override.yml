@@ -83,6 +83,7 @@ services:
     volumes:
       - ./backend/htmlcov:/app/htmlcov
       - ./backend/app/alembic/versions:/app/app/alembic/versions
+      - uploads_data:./backend/app/data/uploads
     environment:
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"

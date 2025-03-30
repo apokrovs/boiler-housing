@@ -3,7 +3,7 @@ import shutil
 import uuid
 from fastapi import UploadFile, HTTPException
 from typing import Tuple
-import magic  # python-magic library for better file type detection
+import magic
 
 
 class FileStorageService:
