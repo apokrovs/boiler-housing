@@ -17,7 +17,7 @@ import {
     Portal
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router";
-import {ListingsService, UsersService} from "../../client";
+import {ConversationCreate, ListingsService, MessagesService, UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 import {createEvent} from "ics";
 import {IconButton} from "@chakra-ui/react";
@@ -123,13 +123,24 @@ function RenterListings() {
         window.open(outlookUrl, "_blank");
     }
      const handleLike = async (owner_id: string) => {
-        console.log("like")
         const userData = await UsersService.readUserById({userId: owner_id });
         ListingsService.listingLikeEmail({
             email: userData.email,
         })
     }
 
+ const handleInquiry = async (owner_id: string) => {
+       const conversationData: ConversationCreate = {
+                participant_ids: selectedUsers,
+                is_group: isGroup,
+                name: isGroup ? groupName : undefined
+            };
+
+            // Create the conversation
+            const newConversation = await MessagesService.createConversation({
+                requestBody: conversationData
+            });
+    }
 
     return (
         <Container maxW="full">
@@ -274,12 +285,12 @@ function RenterListings() {
 
                                         />
                                         <IconButton
-                                            aria-label="Chat"
+                                            aria-label="Inquiry"
                                             icon={<FaComment/>}
                                             variant="ghost"
                                             size="lg"
                                             fontSize="xl"
-
+                                            onClick={()=> handleInquiry(listing.owner_id)}
                                         />
                                     </HStack>
                                 </CardBody>
