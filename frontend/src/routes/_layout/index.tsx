@@ -1,7 +1,7 @@
 import {
     Box,
-    Container,
-    Text,
+    Container, Heading, HStack,
+    Text, Textarea, VStack,
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router"
 

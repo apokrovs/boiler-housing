@@ -11,6 +11,7 @@ const items = [
     {icon: FiMessageCircle, title: "Messages", path: "/chat"},
   { icon: FiUsers, title: "Roommates", path: "/roommates"},
     {icon: FiMessageCircle, title: "Renter Search", path: "/renter_search"},
+    {icon: FiMessageCircle, title: "Roommate Agreement", path: "/roommate_agreement"},
 ]
 
 interface SidebarItemsProps {
