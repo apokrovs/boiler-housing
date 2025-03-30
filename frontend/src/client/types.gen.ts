@@ -311,6 +311,12 @@ export type ListingsDeleteListingData = {
 
 export type ListingsDeleteListingResponse = Message
 
+export type ListingsListingLikeEmailData = {
+  email: string
+}
+
+export type ListingsListingLikeEmailResponse = Message
+
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token
 }

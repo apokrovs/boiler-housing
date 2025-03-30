@@ -136,3 +136,15 @@ def generate_new_message_email(email_to: str, sender_name: str, message: str) ->
         },
     )
     return EmailData(html_content=html_content, subject=subject)
+
+def generate_listing_like_email(email_to: str) -> EmailData:
+    subject = f"Someone liked your listing!"
+    project_name = settings.PROJECT_NAME
+    html_content = render_email_template(
+        template_name="listing_like.html",
+        context={
+            "project_name": project_name,
+            "email": email_to,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)

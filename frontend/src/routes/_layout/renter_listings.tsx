@@ -17,7 +17,7 @@ import {
     Portal
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router";
-import {ListingsService} from "../../client";
+import {ListingsService, UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 import {createEvent} from "ics";
 import {IconButton} from "@chakra-ui/react";
@@ -45,7 +45,6 @@ function RenterListings() {
         ...getListingsQueryOptions(),
         placeholderData: (prevData) => prevData,
     })
-    const [favorited, setFavorited] = useState(false);
     const [saved, setSaved] = useState(false);
 
 
@@ -122,6 +121,13 @@ function RenterListings() {
         )}&allday=true`;
 
         window.open(outlookUrl, "_blank");
+    }
+     const handleLike = async (owner_id: string) => {
+        console.log("like")
+        const userData = await UsersService.readUserById({userId: owner_id });
+        ListingsService.listingLikeEmail({
+            email: userData.email,
+        })
     }
 
 
@@ -254,6 +260,7 @@ function RenterListings() {
                                             fontSize="xl"
                                             size="lg"
                                             variant={"ghost"}
+                                            onClick={()=> handleLike(listing.owner_id)}
                                         />
                                         <IconButton
                                             aria-label="Save"

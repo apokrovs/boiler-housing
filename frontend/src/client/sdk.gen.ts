@@ -26,6 +26,8 @@ import type {
   ListingsUpdateListingResponse,
   ListingsDeleteListingData,
   ListingsDeleteListingResponse,
+  ListingsListingLikeEmailData,
+  ListingsListingLikeEmailResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
   LoginLoginAccessTokenPinData,
@@ -358,6 +360,28 @@ export class ListingsService {
       url: "/api/v1/listings/{id}",
       path: {
         id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Listing Like Email
+   * @param data The data for the request.
+   * @param data.email
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static listingLikeEmail(
+    data: ListingsListingLikeEmailData,
+  ): CancelablePromise<ListingsListingLikeEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/listings/like/{email}",
+      path: {
+        email: data.email,
       },
       errors: {
         422: "Validation Error",
