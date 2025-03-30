@@ -70,6 +70,8 @@ import type {
   UsersReadUsersResponse,
   UsersCreateUserData,
   UsersCreateUserResponse,
+  UsersReadRentersData,
+  UsersReadRentersResponse,
   UsersReadUserByEmailData,
   UsersReadUserByEmailResponse,
   UsersReadUserMeResponse,
@@ -884,6 +886,31 @@ export class UsersService {
       url: "/api/v1/users/",
       body: data.requestBody,
       mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Renters
+   * Retrieve renter users (authenticated access).
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns UsersPublic Successful Response
+   * @throws ApiError
+   */
+  public static readRenters(
+    data: UsersReadRentersData = {},
+  ): CancelablePromise<UsersReadRentersResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/renter",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
       errors: {
         422: "Validation Error",
       },
