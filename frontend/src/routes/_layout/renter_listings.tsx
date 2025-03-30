@@ -20,6 +20,9 @@ import {createFileRoute} from "@tanstack/react-router";
 import {ListingsService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 import {createEvent} from "ics";
+import {IconButton} from "@chakra-ui/react";
+import {FaHeart, FaBookmark, FaComment} from "react-icons/fa";
+import {useState} from "react";
 
 export const Route = createFileRoute("/_layout/renter_listings")({
     component: RenterListings,
@@ -42,6 +45,8 @@ function RenterListings() {
         ...getListingsQueryOptions(),
         placeholderData: (prevData) => prevData,
     })
+    const [favorited, setFavorited] = useState(false);
+    const [saved, setSaved] = useState(false);
 
 
     const formatToCalendarDate = (dateStr: string): string => {
@@ -63,17 +68,15 @@ function RenterListings() {
 
 
     const parseDateArray = (dateStr: string): [number, number, number] => {
-  const clean = dateStr.replace(/"/g, "");
-  const date = new Date(clean);
-  return [date.getFullYear(), date.getMonth() + 1, date.getDate() + 1];
-};
-      const parseDateArrayEnd = (dateStr: string): [number, number, number] => {
-  const clean = dateStr.replace(/"/g, "");
-  const date = new Date(clean);
-  return [date.getFullYear(), date.getMonth() + 1, date.getDate() + 2];
-};
-
-
+        const clean = dateStr.replace(/"/g, "");
+        const date = new Date(clean);
+        return [date.getFullYear(), date.getMonth() + 1, date.getDate() + 1];
+    };
+    const parseDateArrayEnd = (dateStr: string): [number, number, number] => {
+        const clean = dateStr.replace(/"/g, "");
+        const date = new Date(clean);
+        return [date.getFullYear(), date.getMonth() + 1, date.getDate() + 2];
+    };
 
 
     function handleICSExport(leaseStart: string, leaseEnd: string) {
@@ -244,6 +247,34 @@ function RenterListings() {
                                             </Portal>
                                         </Menu>
                                     </VStack>
+                                    <HStack spacing={4} mt={4} justifyContent="center">
+                                        <IconButton
+                                            aria-label="Favorite"
+                                            icon={<FaHeart/>}
+                                            fontSize="xl"
+                                            size="lg"
+                                            variant={"ghost"}
+                                        />
+                                        <IconButton
+                                            aria-label="Save"
+                                            icon={<FaBookmark/>}
+                                            size="lg"
+                                            fontSize="xl"
+                                             isActive={saved}
+                                            colorScheme={saved ? "yellow" : "gray"}
+                                            variant={saved ? "solid" : "ghost"}
+                                            onClick={() => setSaved((prev: any) => !prev)}
+
+                                        />
+                                        <IconButton
+                                            aria-label="Chat"
+                                            icon={<FaComment/>}
+                                            variant="ghost"
+                                            size="lg"
+                                            fontSize="xl"
+
+                                        />
+                                    </HStack>
                                 </CardBody>
                             </Card>
                         ))
