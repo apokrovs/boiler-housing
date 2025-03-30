@@ -70,7 +70,7 @@ function RenterSearch() {
 
             if (!matchesQuery) return false;
 
-            if (selectedFilters.length === 0) return true;
+            if (selectedFilters.length === 0) if (renter.id === currentUser?.id) return false;
 
             return selectedFilters.every((fieldName) => {
                 console.log("here! " + fieldName)
@@ -107,6 +107,7 @@ function RenterSearch() {
                     if (renter.id === currentUser?.id) return false;
                     return renter.alcoholScore === currentUser?.alcoholScore;
                 default:
+                    if (renter.id === currentUser?.id) return false;
                     return true;
                 }
             });
@@ -225,7 +226,7 @@ function RenterSearch() {
                                 </CardBody>
                                 <Divider/>
                                 <CardFooter justifyContent="flex-end" padding={3}>
-                                    <Button as={Link} to={`/chat/${roommate.id}`} bgColor={"#CEB888"} size="md">
+                                    <Button as={Link} to={`/chat`} bgColor={"#CEB888"} size="md">
                                         Send Message
                                     </Button>
                                 </CardFooter>
