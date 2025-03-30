@@ -49,7 +49,6 @@ function RenterSearch() {
     const [filteredRoommates, setFilteredRoommates] = useState([]);
     const [isFiltersApplied, setIsFiltersApplied] = useState(false);
 
-    // Handle checkbox changes
     const handleFilterChange = (field) => {
         setSelectedFilters(prev => {
             if (prev.includes(field)) {
@@ -58,7 +57,6 @@ function RenterSearch() {
                 return [...prev, field];
             }
         });
-        // Reset filter applied state when filters change
         setIsFiltersApplied(false);
     };
 
@@ -67,43 +65,35 @@ function RenterSearch() {
         if (!renters?.data || !currentUser) return;
 
         const filtered = renters.data.filter((renter) => {
-            // Filter by search query first
+            // search bar
             const matchesQuery = renter.full_name?.toLowerCase().includes(query.toLowerCase()) ?? false;
 
             if (!matchesQuery) return false;
 
-            // If no filters are selected, just return the query matches
             if (selectedFilters.length === 0) return true;
 
-            // Apply strict score matching based on selected filters
             return selectedFilters.every((fieldName) => {
                 switch (fieldName) {
                 case 'cleanScore':
-                    // Handle null or undefined values for cleanScore
                     if (currentUser?.cleanScore == null || renter.cleanScore == null) return false;
                     return renter.cleanScore === currentUser?.cleanScore;
                 case 'visitScore':
-                    // Handle null or undefined values for visitScore
                     if (currentUser?.visitScore == null || renter.visitScore == null) return false;
                     return renter.visitScore === currentUser.visitScore;
                 case 'sleepTime':
-                    // Handle null or undefined values for sleepTime
                     if (currentUser?.sleepTime == null || renter.sleepTime == null) return false;
                     return renter.sleepTime === currentUser?.sleepTime;
                 case 'pets':
-                    // Handle null or undefined values for pets
                     if (currentUser?.pets == null || renter.pets == null) return false;
                     return renter.pets === currentUser?.pets;
                 case 'smoking':
-                    // Handle null or undefined values for smoking
                     if (currentUser?.smoking == null || renter.smoking == null) return false;
                     return renter.smoking === currentUser?.smoking;
                 case 'alcoholScore':
-                    // Handle null or undefined values for alcoholScore
                     if (currentUser?.alcoholScore == null || renter.alcoholScore == null) return false;
                     return renter.alcoholScore === currentUser?.alcoholScore;
                 default:
-                    return true; // If the filter doesn't match any case, return true (no filtering applied)
+                    return true;
                 }
             });
         });
@@ -112,15 +102,12 @@ function RenterSearch() {
         setIsFiltersApplied(true);
     };
 
-    // Effect to handle name search filtering
     useEffect(() => {
         if (renters?.data) {
-            // When search query changes, reset to just filtering by name
             const filtered = renters.data.filter(renter =>
                 renter.full_name?.toLowerCase().includes(query.toLowerCase()) ?? false
             );
             setFilteredRoommates(filtered);
-            // Reset filter applied state when query changes
             setIsFiltersApplied(false);
         }
     }, [renters, query]);
