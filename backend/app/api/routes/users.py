@@ -51,8 +51,8 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 
     return UsersPublic(data=users, count=count)
 
-@router.get("/allrenters", response_model=UsersPublic, include_in_schema=True)
-def read_renters(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+@router.get("/allrenters", response_model=UsersPublic)
+def read_renters(session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100) -> Any:
     """
     Retrieve renter profiles.
     """

@@ -72,7 +72,12 @@ function RenterSearch() {
               </HStack>
              <Box overflowX="auto" whiteSpace="normal" p={4}>
                  <Flex gap={4} wrap={"wrap"}>
-                     {renters?.data.map((roommates) => (
+                     {renters?.data.length === 0 ? (
+                          <Text textAlign="center" fontSize="lg" color="gray.500">
+                             No roommates available
+                         </Text>
+                     ) :
+                         (renters?.data.map((roommates) => (
                          <Card
                              key={roommates.id}
                              width="300px"
@@ -107,7 +112,7 @@ function RenterSearch() {
                                  </Button>
                              </CardFooter>
                          </Card>
-                     ))}
+                     )))}
                  </Flex>
              </Box>
          </Container>
