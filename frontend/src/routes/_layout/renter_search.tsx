@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_layout/renter_search")({
 function getRenterQueryOptions() {
   return {
     queryFn: () =>
-      UsersService.readUsers({skip: 0, limit: 50}),
+      UsersService.readRenters(),
     queryKey: ["renters"],
   }
 }
