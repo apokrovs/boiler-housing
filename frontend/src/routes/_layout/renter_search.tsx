@@ -62,6 +62,7 @@ function RenterSearch() {
 
     // Apply filters
     const applyFilters = () => {
+        console.log(renters?.data.length)
         if (!renters?.data || !currentUser) return;
 
         const filtered = renters.data.filter((renter) => {
@@ -103,15 +104,29 @@ function RenterSearch() {
     };
 
     useEffect(() => {
-        if (renters?.data) {
-            const filtered = renters.data.filter(renter =>
-                renter.full_name?.toLowerCase().includes(query.toLowerCase()) ?? false
-            );
-            setFilteredRoommates(filtered);
-            setIsFiltersApplied(false);
+    if (renters?.data) {
+        // Log the first user to see its structure
+        if (renters.data.length > 0) {
+            console.log("First user data:", renters.data[0]);
         }
-    }, [renters, query]);
 
+        // More permissive filter that handles potential property name issues
+        const filtered = renters.data.filter(renter => {
+            // If query is empty, show all users
+            if (!query.trim()) return true;
+
+            // Check for the name property in different possible formats
+            const name = renter.full_name || renter.fullName || renter.name || renter.username || '';
+
+            // Only filter if we have both a query and a name to match against
+            return name.toLowerCase().includes(query.toLowerCase());
+        });
+
+        console.log("Filtered users count:", filtered.length);
+        setFilteredRoommates(filtered);
+        setIsFiltersApplied(false);
+    }
+}, [renters, query]);
     // Loading state
     if (rentersLoading) {
         return <Container maxW="full"><Text p={5}>Loading roommates...</Text></Container>;
