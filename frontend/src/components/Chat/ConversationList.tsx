@@ -184,11 +184,11 @@ export const ConversationList = ({selectedConversationId, onSelectConversation}:
         }
     };
 
-    // Get conversation display name
+    // Get conversation display sender_name
     const getConversationName = (conversation: ConversationPublic) => {
         if (conversation.name) return conversation.name;
 
-        // For direct messages, use the cached name or fallback
+        // For direct messages, use the cached sender_name or fallback
         if (!conversation.is_group) {
             return conversationNames[conversation.id] || 'Direct Message';
         }

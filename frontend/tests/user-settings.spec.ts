@@ -23,10 +23,10 @@ test("All tabs are visible", async ({ page }) => {
   }
 })
 
-test.describe("Edit user full name and email successfully", () => {
+test.describe("Edit user full sender_name and email successfully", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
-  test("Edit user name with a valid name", async ({ page }) => {
+  test("Edit user sender_name with a valid sender_name", async ({ page }) => {
     const email = randomEmail()
     const updatedName = "Test User 2"
     const password = randomPassword()
@@ -39,10 +39,10 @@ test.describe("Edit user full name and email successfully", () => {
     await page.goto("/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
     await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Full name").fill(updatedName)
+    await page.getByLabel("Full sender_name").fill(updatedName)
     await page.getByRole("button", { name: "Save" }).click()
     await expect(page.getByText("User updated successfully")).toBeVisible()
-    // Check if the new name is displayed on the page
+    // Check if the new sender_name is displayed on the page
     await expect(
       page.getByLabel("My profile").getByText(updatedName, { exact: true }),
     ).toBeVisible()
@@ -91,7 +91,7 @@ test.describe("Edit user with invalid data", () => {
     await expect(page.getByText("Email is required")).toBeVisible()
   })
 
-  test("Cancel edit action restores original name", async ({ page }) => {
+  test("Cancel edit action restores original sender_name", async ({ page }) => {
     const email = randomEmail()
     const password = randomPassword()
     const updatedName = "Test User"
@@ -104,7 +104,7 @@ test.describe("Edit user with invalid data", () => {
     await page.goto("/settings")
     await page.getByRole("tab", { name: "My profile" }).click()
     await page.getByRole("button", { name: "Edit" }).click()
-    await page.getByLabel("Full name").fill(updatedName)
+    await page.getByLabel("Full sender_name").fill(updatedName)
     await page.getByRole("button", { name: "Cancel" }).first().click()
     await expect(
       page

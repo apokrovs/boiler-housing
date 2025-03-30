@@ -64,6 +64,8 @@ import type {
   MessagesGetBlockedUsersResponse,
   MessagesCheckUserBlockedData,
   MessagesCheckUserBlockedResponse,
+  MessagesNewMessageEmailData,
+  MessagesNewMessageEmailResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
   UsersReadUsersData,
@@ -810,6 +812,35 @@ export class MessagesService {
       url: "/api/v1/messages/users/{user_id}/blocked",
       path: {
         user_id: data.userId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * New Message Email
+   * Password Recovery
+   * @param data The data for the request.
+   * @param data.email
+   * @param data.senderName
+   * @param data.message
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static newMessageEmail(
+    data: MessagesNewMessageEmailData,
+  ): CancelablePromise<MessagesNewMessageEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/messages/new-message/{email}",
+      path: {
+        email: data.email,
+      },
+      query: {
+        sender_name: data.senderName,
+        message: data.message,
       },
       errors: {
         422: "Validation Error",

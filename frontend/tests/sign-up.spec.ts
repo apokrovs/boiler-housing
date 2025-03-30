@@ -56,7 +56,7 @@ test("Log In link is visible", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Log In" })).toBeVisible()
 })
 
-test("Sign up with valid name, email, phone_number and password", async ({ page }) => {
+test("Sign up with valid sender_name, email, phone_number and password", async ({ page }) => {
   const full_name = "Test User"
   const email = randomEmail()
   const password = randomPassword()
@@ -138,7 +138,7 @@ test("Sign up with mismatched passwords", async ({ page }) => {
   await expect(page.getByText("Passwords do not match")).toBeVisible()
 })
 
-test("Sign up with missing full name", async ({ page }) => {
+test("Sign up with missing full sender_name", async ({ page }) => {
   const fullName = ""
   const email = randomEmail()
   const password = randomPassword()

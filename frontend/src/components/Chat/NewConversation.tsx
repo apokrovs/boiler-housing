@@ -111,7 +111,7 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
 
         if (isGroup && !groupName.trim()) {
             toast({
-                title: 'Enter a group name',
+                title: 'Enter a group sender_name',
                 status: 'warning',
                 duration: 3000,
                 isClosable: true,
