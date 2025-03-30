@@ -8,28 +8,13 @@ import {createFileRoute} from "@tanstack/react-router"
 import { Link } from "@tanstack/react-router"
 import {UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
-import {useState} from "react";
+import {useState, useEffect} from "react";
+import useAuth from "../../hooks/useAuth.ts";
 
 export const Route = createFileRoute("/_layout/renter_search")({
   component: RenterSearch,
 })
 
-// const roommates = [
-//     {
-//         id: 1,
-//         name: "Lynn Nakamura",
-//         email: "lnakamur@purdue.edu",
-//         phone: "14696555208",
-//         bio: "Hello my name is Lynn and I am rising junior in CS. I like to play volleyball. I am interested in 3 other roommates",
-//     },
-//     {
-//         id: 2,
-//         name: "Himaja Narajala",
-//         email: "hnarajal@purdue.edu",
-//         phone: "14696555208",
-//         bio: "Junior in CS",
-//     }
-// ]
 function getRenterQueryOptions() {
   return {
     queryFn: () =>
@@ -37,97 +22,210 @@ function getRenterQueryOptions() {
     queryKey: ["renters"],
   }
 }
-const quiz_items = [
-  { label: "Cleanliness", value: "1" },
-  { label: "Visitors", value: "2" },
-  { label: "Sleep Schedule", value: "3" },
-    { label: "Pets", value: "4" },
-    { label: "Smoking", value: "5" },
-    { label: "Alcohol", value: "6" },
+
+// Define score fields and their display names
+const scoreFields = [
+  { label: "Cleanliness", field: "cleanScore" },
+  { label: "Visitors", field: "visitScore" },
+  { label: "Sleep Schedule", field: "sleepTime" },
+  { label: "Pets", field: "pets" },
+  { label: "Smoking", field: "smoking" },
+  { label: "Alcohol", field: "alcoholScore" }
 ]
+
 function RenterSearch() {
     const {
-         data: renters
-     } = useQuery({
-         ...getRenterQueryOptions(),
-         placeholderData: (prevData) => prevData,
-     })
+        data: renters,
+        isLoading: rentersLoading
+    } = useQuery({
+        ...getRenterQueryOptions(),
+        placeholderData: (prevData) => prevData,
+    })
+
+    const { user: currentUser } = useAuth()
+
     const [query, setQuery] = useState("");
+    const [selectedFilters, setSelectedFilters] = useState([]);
+    const [filteredRoommates, setFilteredRoommates] = useState([]);
+    const [isFiltersApplied, setIsFiltersApplied] = useState(false);
+
+    // Handle checkbox changes
+    const handleFilterChange = (field) => {
+        setSelectedFilters(prev => {
+            if (prev.includes(field)) {
+                return prev.filter(item => item !== field);
+            } else {
+                return [...prev, field];
+            }
+        });
+        // Reset filter applied state when filters change
+        setIsFiltersApplied(false);
+    };
+
+    // Apply filters
+    const applyFilters = () => {
+        if (!renters?.data || !currentUser) return;
+
+        const filtered = renters.data.filter((renter) => {
+            // Filter by search query first
+            const matchesQuery = renter.full_name?.toLowerCase().includes(query.toLowerCase()) ?? false;
+
+            if (!matchesQuery) return false;
+
+            // If no filters are selected, just return the query matches
+            if (selectedFilters.length === 0) return true;
+
+            // Apply strict score matching based on selected filters
+            return selectedFilters.every((fieldName) => {
+                switch (fieldName) {
+                case 'cleanScore':
+                    // Handle null or undefined values for cleanScore
+                    if (currentUser?.cleanScore == null || renter.cleanScore == null) return false;
+                    return renter.cleanScore === currentUser?.cleanScore;
+                case 'visitScore':
+                    // Handle null or undefined values for visitScore
+                    if (currentUser?.visitScore == null || renter.visitScore == null) return false;
+                    return renter.visitScore === currentUser.visitScore;
+                case 'sleepTime':
+                    // Handle null or undefined values for sleepTime
+                    if (currentUser?.sleepTime == null || renter.sleepTime == null) return false;
+                    return renter.sleepTime === currentUser?.sleepTime;
+                case 'pets':
+                    // Handle null or undefined values for pets
+                    if (currentUser?.pets == null || renter.pets == null) return false;
+                    return renter.pets === currentUser?.pets;
+                case 'smoking':
+                    // Handle null or undefined values for smoking
+                    if (currentUser?.smoking == null || renter.smoking == null) return false;
+                    return renter.smoking === currentUser?.smoking;
+                case 'alcoholScore':
+                    // Handle null or undefined values for alcoholScore
+                    if (currentUser?.alcoholScore == null || renter.alcoholScore == null) return false;
+                    return renter.alcoholScore === currentUser?.alcoholScore;
+                default:
+                    return true; // If the filter doesn't match any case, return true (no filtering applied)
+                }
+            });
+        });
+
+        setFilteredRoommates(filtered);
+        setIsFiltersApplied(true);
+    };
+
+    // Effect to handle name search filtering
+    useEffect(() => {
+        if (renters?.data) {
+            // When search query changes, reset to just filtering by name
+            const filtered = renters.data.filter(renter =>
+                renter.full_name?.toLowerCase().includes(query.toLowerCase()) ?? false
+            );
+            setFilteredRoommates(filtered);
+            // Reset filter applied state when query changes
+            setIsFiltersApplied(false);
+        }
+    }, [renters, query]);
+
+    // Loading state
+    if (rentersLoading) {
+        return <Container maxW="full"><Text p={5}>Loading roommates...</Text></Container>;
+    }
 
     return (
-         <Container maxW="full">
-             <Heading padding={5} size="lg" textAlign={{base: "center", md: "left"}} pt={12}>
-                 Potential Roommates
-             </Heading>
-             <input type={"text"}
-             placeholder={"Search"}
-             className={"search"}
-             onChange={(e) => setQuery(e.target.value)}
-             style={{
-                 marginLeft: '20px',
-                padding: '15px',
-                fontSize: '16px',
-                width: '600px', // adjust width as needed
-                height: '40px', // adjust height as needed
-             }}/>
-             <Heading padding={3} marginX={2} size="sm" textAlign={{base: "center", md: "left"}}>
-                 Filtered Search
-             </Heading>
-              <HStack gap="6" marginX={5} marginBottom={3}>
-                {quiz_items.map((quiz_item) => (
-                  <Checkbox key={quiz_item.value} value={quiz_item.value}>
-                    {quiz_item.label}
-                  </Checkbox>
+        <Container maxW="full">
+            <Heading padding={5} size="lg" textAlign={{base: "center", md: "left"}} pt={12}>
+                Potential Roommates
+            </Heading>
+            <input type={"text"}
+                placeholder={"Search by name"}
+                className={"search"}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{
+                    marginLeft: '20px',
+                    padding: '15px',
+                    fontSize: '16px',
+                    width: '600px',
+                    height: '40px',
+                }}
+            />
+            <Heading padding={3} marginX={2} size="sm" textAlign={{base: "center", md: "left"}}>
+                Filtered Search
+            </Heading>
+            <HStack gap="6" marginX={5} marginBottom={3}>
+                {scoreFields.map((item) => (
+                    <Checkbox
+                        key={item.field}
+                        value={item.field}
+                        isChecked={selectedFilters.includes(item.field)}
+                        onChange={() => handleFilterChange(item.field)}
+                    >
+                        {item.label}
+                    </Checkbox>
                 ))}
-                  <Button bgColor={"#CEB888"} size="md">
-                      Apply
-                  </Button>
-              </HStack>
-             <Box overflowX="auto" whiteSpace="normal" p={4}>
-                 <Flex gap={4} wrap={"wrap"}>
-                     {renters?.data.length === 0 ? (
-                          <Text textAlign="center" fontSize="lg" color="gray.500">
-                             No roommates available
-                         </Text>
-                     ) :
-                         (renters?.data.filter((renter) => renter.full_name?.toLowerCase().includes(query.toLowerCase()) ?? false).map((roommates) => (
-                         <Card
-                             key={roommates.id}
-                             width="300px"
-                             size="lg"
-                             border="1px solid"
-                             borderColor="gray.200"
-                             overflow="hidden"
-                             flexShrink={0}
-                         >
-                             <CardBody marginTop={0}>
-                                 <VStack align="start" spacing={1}>
-                                     <Heading size="md" marginTop={1} marginBottom={5}>{roommates.full_name}</Heading>
-                                     {/* renter contact information */}
-                                     <Text fontSize="sm" fontWeight={"bold"}>Contact Information:</Text>
-                                     <Text fontSize="sm">
-                                         {roommates.phone_number}
-                                     </Text>
-                                     <Text fontSize="sm">
-                                         {roommates.email}
-                                     </Text>
-                                     <Text fontSize="sm" fontWeight={"bold"} marginTop={5}>Bio:</Text>
-                                     {/* renter bio */}
-                                     <Text fontSize="sm" wordBreak="break-word" whiteSpace="pre-wrap">
-                                         {roommates.bio}
-                                     </Text>
-                                 </VStack>
-                             </CardBody>
-                             <Divider/>
-                             <CardFooter justifyContent="flex-end" padding={3}>
-                                 <Button as={Link} to="/chat" bgColor={"#CEB888"} size="md">
-                                     Send Message
-                                 </Button>
-                             </CardFooter>
-                         </Card>
-                     )))}
-                 </Flex>
-             </Box>
-         </Container>
-     )
+                <Button
+                    bgColor={"#CEB888"}
+                    size="md"
+                    onClick={applyFilters}
+                >
+                    Apply
+                </Button>
+            </HStack>
+
+            {selectedFilters.length > 0 && !currentUser && (
+                <Text color="red.500" ml={5} mb={3}>
+                    Score matching requires your profile to be complete
+                </Text>
+            )}
+
+
+            <Box overflowX="auto" whiteSpace="normal" p={4}>
+                <Flex gap={4} wrap={"wrap"}>
+                    {!filteredRoommates || filteredRoommates.length === 0 ? (
+                        <Text textAlign="center" fontSize="lg" color="gray.500" width="100%">
+                            {isFiltersApplied ?
+                                "No roommates match your selected score criteria" :
+                                "No roommates found matching your search"}
+                        </Text>
+                    ) : (
+                        filteredRoommates.map((roommate) => (
+                            <Card
+                                key={roommate.id}
+                                width="300px"
+                                size="lg"
+                                border="1px solid"
+                                borderColor="gray.200"
+                                overflow="hidden"
+                                flexShrink={0}
+                            >
+                                <CardBody marginTop={0}>
+                                    <VStack align="start" spacing={1}>
+                                        <Heading size="md" marginTop={1} marginBottom={5}>{roommate.full_name}</Heading>
+                                        {/* renter contact information */}
+                                        <Text fontSize="sm" fontWeight={"bold"}>Contact Information:</Text>
+                                        <Text fontSize="sm">
+                                            {roommate.phone_number}
+                                        </Text>
+                                        <Text fontSize="sm">
+                                            {roommate.email}
+                                        </Text>
+                                        <Text fontSize="sm" fontWeight={"bold"} marginTop={5}>Bio:</Text>
+                                        {/* renter bio */}
+                                        <Text fontSize="sm" wordBreak="break-word" whiteSpace="pre-wrap">
+                                            {roommate.bio}
+                                        </Text>
+                                    </VStack>
+                                </CardBody>
+                                <Divider/>
+                                <CardFooter justifyContent="flex-end" padding={3}>
+                                    <Button as={Link} to={`/chat/${roommate.id}`} bgColor={"#CEB888"} size="md">
+                                        Send Message
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))
+                    )}
+                </Flex>
+            </Box>
+        </Container>
+    )
 }
