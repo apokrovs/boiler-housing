@@ -373,9 +373,7 @@ export const ChatWindow = ({
         setMessages(prev => [...prev, tempMessage]);
 
         // First, get the emails of the participants
-        console.log("Does htis part run?");
         if (participants && user.full_name) {
-            console.log("i forgot admin no username");
             for (const participant of participants) {
 
                 if (participant !== user.id) {
