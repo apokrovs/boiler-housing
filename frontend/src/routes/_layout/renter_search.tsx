@@ -73,24 +73,38 @@ function RenterSearch() {
             if (selectedFilters.length === 0) return true;
 
             return selectedFilters.every((fieldName) => {
+                console.log("here! " + fieldName)
                 switch (fieldName) {
                 case 'cleanScore':
                     if (currentUser?.cleanScore == null || renter.cleanScore == null) return false;
+                    if (renter.id === currentUser?.id) return false;
                     return renter.cleanScore === currentUser?.cleanScore;
                 case 'visitScore':
                     if (currentUser?.visitScore == null || renter.visitScore == null) return false;
+                    if (renter.id === currentUser?.id) return false;
                     return renter.visitScore === currentUser.visitScore;
                 case 'sleepTime':
+                    console.log("here!!!!")
                     if (currentUser?.sleepTime == null || renter.sleepTime == null) return false;
+                    if (renter.id === currentUser?.id) return false;
+                    console.log(currentUser?.sleepTime)
+                    console.log(renter.sleepTime)
                     return renter.sleepTime === currentUser?.sleepTime;
                 case 'pets':
                     if (currentUser?.pets == null || renter.pets == null) return false;
+                    if (renter.id === currentUser?.id) return false;
                     return renter.pets === currentUser?.pets;
                 case 'smoking':
                     if (currentUser?.smoking == null || renter.smoking == null) return false;
+                    if (renter.id === currentUser?.id) return false;
                     return renter.smoking === currentUser?.smoking;
                 case 'alcoholScore':
+                    console.log("alc score")
+                    console.log(currentUser?.alcoholScore)
+                    console.log(renter.alcoholScore)
+                    console.log(renter.full_name)
                     if (currentUser?.alcoholScore == null || renter.alcoholScore == null) return false;
+                    if (renter.id === currentUser?.id) return false;
                     return renter.alcoholScore === currentUser?.alcoholScore;
                 default:
                     return true;
@@ -106,7 +120,7 @@ function RenterSearch() {
     if (renters?.data) {
         const filtered = renters.data.filter(renter => {
             // exclude themselves
-            if (renter.id === currentUser?.id) return false;
+            if (currentUser?.id === renter.id) return false;
 
             // if query is empty, show all users
             if (!query.trim()) return true;
