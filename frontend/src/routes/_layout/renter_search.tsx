@@ -84,7 +84,7 @@ function RenterSearch() {
                          >
                              <CardBody marginTop={0}>
                                  <VStack align="start" spacing={1}>
-                                     <Heading size="md" marginTop={1} marginBottom={5}>{roommates.name}</Heading>
+                                     <Heading size="md" marginTop={1} marginBottom={5}>{roommates.full_name}</Heading>
                                      {/* renter contact information */}
                                      <Text fontSize="sm" fontWeight={"bold"}>Contact Information:</Text>
                                      <Text fontSize="sm">
