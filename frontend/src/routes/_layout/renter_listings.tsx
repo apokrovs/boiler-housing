@@ -14,7 +14,7 @@ import {
     Menu,
     MenuItem,
     MenuList,
-    Portal
+    Portal, useToast
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router";
 import {ConversationCreate, ListingsService, MessagesService, UsersService} from "../../client";
@@ -22,7 +22,14 @@ import {useQuery} from "@tanstack/react-query";
 import {createEvent} from "ics";
 import {IconButton} from "@chakra-ui/react";
 import {FaHeart, FaBookmark, FaComment} from "react-icons/fa";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {
+    closeWebSocketConnection,
+    createWebSocketConnection,
+    sendChatMessage,
+    subscribeToMessageType
+} from "../../components/Chat/websocket.tsx";
+import useAuth from "../../hooks/useAuth.ts";
 
 export const Route = createFileRoute("/_layout/renter_listings")({
     component: RenterListings,
@@ -37,16 +44,61 @@ function getListingsQueryOptions() {
     }
 }
 
+interface NewConversationProps {
+    onNewConversation?: (conversationId: string, isGroup: boolean, name?: string) => void;
+}
 
-function RenterListings() {
+function RenterListings({onNewConversation}: NewConversationProps) {
     const {
         data: listings
     } = useQuery({
         ...getListingsQueryOptions(),
         placeholderData: (prevData) => prevData,
     })
+    const [error, setError] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const toast = useToast();
+    const {user} = useAuth();
 
+    useEffect(() => {
+        if (!user) return;
+
+        createWebSocketConnection();
+
+        const unsubscribeOpen = subscribeToMessageType('connection_open', () => {
+            setError(null);
+            toast({
+                title: 'Connected to chat',
+                status: 'success',
+                duration: 2000,
+                isClosable: true,
+                position: 'bottom-right',
+            });
+        });
+
+        // Subscribe to connection close events
+        const unsubscribeClose = subscribeToMessageType('connection_close', (data) => {
+
+            // Only show error for abnormal closures
+            if (data.code !== 1000 && data.code !== 1008) {
+                setError('Connection lost. Please refresh the page to reconnect.');
+            }
+        });
+
+        // Subscribe to error events
+        const unsubscribeError = subscribeToMessageType('connection_error', () => {
+            setError('WebSocket error occurred');
+        });
+
+        // Clean up on unmount
+        return () => {
+            closeWebSocketConnection();
+            unsubscribeOpen();
+            unsubscribeClose();
+            unsubscribeError();
+        };
+    }, [user, toast]);
 
     const formatToCalendarDate = (dateStr: string): string => {
         const clean = dateStr.replace(/"/g, '');
@@ -122,24 +174,61 @@ function RenterListings() {
 
         window.open(outlookUrl, "_blank");
     }
-     const handleLike = async (owner_id: string) => {
-        const userData = await UsersService.readUserById({userId: owner_id });
+
+    const handleLike = async (owner_id: string) => {
+        const userData = await UsersService.readUserById({userId: owner_id});
         ListingsService.listingLikeEmail({
             email: userData.email,
         })
     }
 
- const handleInquiry = async (owner_id: string) => {
-       const conversationData: ConversationCreate = {
+    const handleInquiry = async (owner_id: string) => {
+        setSelectedUsers([owner_id]);
+        if (!user) {
+            return;
+        }
+
+        const owner = await UsersService.readUserById({userId: owner_id})
+        try {
+            const conversationData: ConversationCreate = {
                 participant_ids: selectedUsers,
-                is_group: isGroup,
-                name: isGroup ? groupName : undefined
+                is_group: false,
+                name: owner.full_name
             };
 
-            // Create the conversation
             const newConversation = await MessagesService.createConversation({
                 requestBody: conversationData
             });
+
+            if (newConversation) {
+                if (onNewConversation) {
+                    onNewConversation(
+                        newConversation.id,
+                        newConversation.is_group || false,
+                        newConversation.name || undefined
+                    );
+                }
+
+                const greeting = 'Hello! Let\'s chat!';
+
+                await sendChatMessage(greeting, newConversation.id);
+
+                toast({
+                    title: 'Conversation created',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
+            console.error('Error creating conversation:', error);
+            toast({
+                title: 'Error creating conversation',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     }
 
     return (
@@ -271,14 +360,14 @@ function RenterListings() {
                                             fontSize="xl"
                                             size="lg"
                                             variant={"ghost"}
-                                            onClick={()=> handleLike(listing.owner_id)}
+                                            onClick={() => handleLike(listing.owner_id)}
                                         />
                                         <IconButton
                                             aria-label="Save"
                                             icon={<FaBookmark/>}
                                             size="lg"
                                             fontSize="xl"
-                                             isActive={saved}
+                                            isActive={saved}
                                             colorScheme={saved ? "yellow" : "gray"}
                                             variant={saved ? "solid" : "ghost"}
                                             onClick={() => setSaved((prev: any) => !prev)}
@@ -290,7 +379,7 @@ function RenterListings() {
                                             variant="ghost"
                                             size="lg"
                                             fontSize="xl"
-                                            onClick={()=> handleInquiry(listing.owner_id)}
+                                            onClick={() => handleInquiry(listing.owner_id)}
                                         />
                                     </HStack>
                                 </CardBody>
