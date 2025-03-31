@@ -134,6 +134,13 @@ export type UserCreate = {
   full_name?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   password: string
 }
 
@@ -145,6 +152,13 @@ export type UserPublic = {
   full_name?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   id: string
 }
 
@@ -169,6 +183,13 @@ export type UserUpdate = {
   full_name?: string | null
   auto_logout?: number | null
   is_2fa_enabled?: boolean | null
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   password?: string | null
   pin?: string | null
 }
@@ -177,6 +198,13 @@ export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
   auto_logout?: number | null
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
 }
 
 export type ValidationError = {
