@@ -14,10 +14,16 @@ import {
     Menu,
     MenuItem,
     MenuList,
-    Portal, useToast
+    Portal,
+    useToast,
+    Tabs,
+    TabList,
+    TabPanels,
+    Tab,
+    TabPanel
 } from "@chakra-ui/react"
 import {createFileRoute} from "@tanstack/react-router";
-import {ConversationCreate, ListingsService, MessagesService, UsersService} from "../../client";
+import {ConversationCreate, ListingPublic, ListingsService, MessagesService, UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 import {createEvent} from "ics";
 import {IconButton} from "@chakra-ui/react";
@@ -30,6 +36,7 @@ import {
     subscribeToMessageType
 } from "../../components/Chat/websocket.tsx";
 import useAuth from "../../hooks/useAuth.ts";
+import {useQueryClient} from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_layout/renter_listings")({
     component: RenterListings,
@@ -44,9 +51,32 @@ function getListingsQueryOptions() {
     }
 }
 
+async function fetchSavedListings(user: { saved_listings?: string[]; id?: string }): Promise<{
+    data: ListingPublic[]
+}> {
+    if (!user?.saved_listings || user.saved_listings.length === 0) {
+        return {data: []};
+    }
+    const listingPromises = user.saved_listings.map((listingId: string) =>
+        ListingsService.readListingPublic({id: listingId})
+    );
+    const listings = await Promise.all(listingPromises);
+    return {data: listings};
+}
+
+
+function getSavedListingsQuery(user: { saved_listings?: string[]; id?: string }) {
+    return {
+        queryKey: ["saved_listings", user?.id, user?.saved_listings],
+        queryFn: () => fetchSavedListings(user)
+    };
+}
+
+
 interface NewConversationProps {
     onNewConversation?: (conversationId: string, isGroup: boolean, name?: string) => void;
 }
+
 
 function RenterListings({onNewConversation}: NewConversationProps) {
     const {
@@ -55,11 +85,57 @@ function RenterListings({onNewConversation}: NewConversationProps) {
         ...getListingsQueryOptions(),
         placeholderData: (prevData) => prevData,
     })
+    const {user} = useAuth();
+    if (!user) {
+        return;
+    }
+    const {
+        data: saved_listings,
+    } = useQuery(getSavedListingsQuery(user));
+
     const [error, setError] = useState<string | null>(null);
-    const [saved, setSaved] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const toast = useToast();
-    const {user} = useAuth();
+    const [savedListings, setSavedListings] = useState<Set<string>>(new Set())
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (saved_listings) {
+            setSavedListings(new Set(user.saved_listings));
+        }
+    }, [user?.saved_listings]);
+    const toggleSaveListing = async (listingId: string) => {
+        const newSavedSet = new Set(savedListings);
+
+        if (newSavedSet.has(listingId)) {
+            newSavedSet.delete(listingId);
+        } else {
+            newSavedSet.add(listingId);
+        }
+        setSavedListings(newSavedSet);
+
+        try {
+            await UsersService.updateSavedListings({
+                requestBody: {saved_listings: Array.from(newSavedSet)}
+            });
+            toast({
+                title: "Saved listings updated",
+                status: "success",
+                duration: 2000,
+                isClosable: true,
+            });
+            await queryClient.invalidateQueries(["saved_listings", user?.id, user?.saved_listings]);
+
+        } catch (error) {
+            toast({
+                title: "Error updating saved listings",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            console.error("Error updating saved listings:", error);
+        }
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -236,158 +312,331 @@ function RenterListings({onNewConversation}: NewConversationProps) {
             <Heading size="lg" textAlign={{base: "center", md: "left"}} pt={12}>
                 Listings
             </Heading>
-            <Box overflowX="auto" whiteSpace="nowrap" p={4}>
-                <Flex gap={4}>
-                    {listings?.data.length === 0 ? (
-                        <Text textAlign="center" fontSize="lg" color="gray.500">
-                            No listings available
-                        </Text>
-                    ) : (
-                        listings?.data.map((listing) => (
-                            <Card
-                                key={listing.id}
-                                width="300px"
-                                size="lg"
-                                border="1px solid"
-                                borderColor="gray.200"
-                                overflow="hidden"
-                                flexShrink={0}
-                            >
-                                <CardHeader>
-                                    <Heading
-                                        size="md"
-                                        whiteSpace="normal"
-                                        wordBreak="break-word"
-                                    >
-                                        {listing.address}
-                                    </Heading>
-                                </CardHeader>
-                                <CardBody>
-                                    <VStack align="start" spacing={2}>
-                                        {/* Realty Company */}
-                                        <Text fontSize="sm" whiteSpace="normal" wordBreak="break-word">
-                                            {listing.realty_company}
-                                        </Text>
+            <Tabs variant="enclosed" mt={4}>
+                <TabList>
+                    <Tab>All Listings</Tab>
+                    <Tab>Saved Listings</Tab>
+                </TabList>
+                <TabPanels>
+                    {/* All Listings Tab */}
+                    <TabPanel>
+                        <Box overflowX="auto" whiteSpace="nowrap" p={4}>
+                            <Flex gap={4}>
+                                {listings?.data.length === 0 ? (
+                                    <Text textAlign="center" fontSize="lg" color="gray.500">
+                                        No listings available
+                                    </Text>
+                                ) : (
+                                    listings?.data.map((listing) => (
+                                        <Card
+                                            key={listing.id}
+                                            width="300px"
+                                            size="lg"
+                                            border="1px solid"
+                                            borderColor="gray.200"
+                                            overflow="hidden"
+                                            flexShrink={0}
+                                        >
+                                            <CardHeader>
+                                                <Heading
+                                                    size="md"
+                                                    whiteSpace="normal"
+                                                    wordBreak="break-word"
+                                                >
+                                                    {listing.address}
+                                                </Heading>
+                                            </CardHeader>
+                                            <CardBody>
+                                                <VStack align="start" spacing={2}>
+                                                    {/* Realty Company */}
+                                                    <Text fontSize="sm" whiteSpace="normal" wordBreak="break-word">
+                                                        {listing.realty_company}
+                                                    </Text>
 
 
-                                        {/* Bedrooms & Bathrooms */}
-                                        <HStack spacing={2}>
-                                            <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
-                                            <Badge colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
-                                        </HStack>
+                                                    {/* Bedrooms & Bathrooms */}
+                                                    <HStack spacing={2}>
+                                                        <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
+                                                        <Badge
+                                                            colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
+                                                    </HStack>
 
 
-                                        {/* Rent & Security Deposit */}
-                                        <Text fontWeight="bold">
-                                            Rent: ${listing.rent?.toLocaleString()}
-                                        </Text>
-                                        <Text fontSize="sm">
-                                            Security
-                                            Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
-                                        </Text>
+                                                    {/* Rent & Security Deposit */}
+                                                    <Text fontWeight="bold">
+                                                        Rent: ${listing.rent?.toLocaleString()}
+                                                    </Text>
+                                                    <Text fontSize="sm">
+                                                        Security
+                                                        Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
+                                                    </Text>
 
 
-                                        {/* Included Utilities */}
-                                        {listing.included_utilities && (
-                                            <Box>
-                                                <Text fontSize="sm" fontWeight="semibold">
-                                                    Utilities:
-                                                </Text>
-                                                <HStack wrap="wrap" spacing={1}>
-                                                    {listing.included_utilities.map((utility) => (
-                                                        <Badge key={utility} colorScheme="green">
-                                                            {utility}
-                                                        </Badge>
-                                                    ))}
+                                                    {/* Included Utilities */}
+                                                    {listing.included_utilities && (
+                                                        <Box>
+                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                Utilities:
+                                                            </Text>
+                                                            <HStack wrap="wrap" spacing={1}>
+                                                                {listing.included_utilities.map((utility) => (
+                                                                    <Badge key={utility} colorScheme="green">
+                                                                        {utility}
+                                                                    </Badge>
+                                                                ))}
+                                                            </HStack>
+                                                        </Box>
+                                                    )}
+
+
+                                                    {/* Amenities */}
+                                                    {listing.amenities && (
+                                                        <Box>
+                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                Amenities:
+                                                            </Text>
+                                                            <HStack wrap="wrap" spacing={1}>
+                                                                {listing.amenities.map((amenity) => (
+                                                                    <Badge key={amenity} colorScheme="pink">
+                                                                        {amenity}
+                                                                    </Badge>
+                                                                ))}
+                                                            </HStack>
+                                                        </Box>
+                                                    )}
+
+
+                                                    {/* Lease Period */}
+                                                    <Menu placement="bottom">
+                                                        <MenuButton textAlign="center">
+                                                            <Text fontSize="sm">
+                                                                Lease: {listing.lease_start_date} → {listing.lease_end_date}
+                                                            </Text>
+                                                        </MenuButton>
+                                                        <Portal>
+                                                            <MenuList zIndex="popover">
+                                                                <>
+                                                                    <MenuItem
+                                                                        onClick={() => handleGoogleExport(listing.lease_start_date ?? ""
+                                                                            , listing.lease_end_date ?? "")}>Export
+                                                                        to
+                                                                        Google</MenuItem>
+                                                                    <MenuItem
+                                                                        onClick={() => handleICSExport(listing.lease_start_date ?? ""
+                                                                            , listing.lease_end_date ?? "")}>Export
+                                                                        to
+                                                                        iCal</MenuItem>
+
+
+                                                                    <MenuItem
+                                                                        onClick={() => handleOutlookExport(
+                                                                            listing.lease_start_date ?? ""
+                                                                            , listing.lease_end_date ?? "")}>Export
+                                                                        to
+                                                                        Outlook</MenuItem>
+                                                                </>
+
+
+                                                            </MenuList>
+                                                        </Portal>
+                                                    </Menu>
+                                                </VStack>
+                                                <HStack spacing={4} mt={4} justifyContent="center">
+                                                    <IconButton
+                                                        aria-label="Favorite"
+                                                        icon={<FaHeart/>}
+                                                        fontSize="xl"
+                                                        size="lg"
+                                                        variant={"ghost"}
+                                                        onClick={() => handleLike(listing.owner_id)}
+                                                    />
+                                                    <IconButton
+                                                        aria-label="Save"
+                                                        icon={<FaBookmark/>}
+                                                        size="lg"
+                                                        fontSize="xl"
+                                                        isActive={savedListings.has(listing.id)}
+                                                        colorScheme={savedListings.has(listing.id) ? "yellow" : "gray"}
+                                                        variant={savedListings.has(listing.id) ? "solid" : "ghost"}
+                                                        onClick={() => toggleSaveListing(listing.id)}
+
+                                                    />
+                                                    <IconButton
+                                                        aria-label="Inquiry"
+                                                        icon={<FaComment/>}
+                                                        variant="ghost"
+                                                        size="lg"
+                                                        fontSize="xl"
+                                                        onClick={() => handleInquiry(listing.owner_id)}
+                                                    />
                                                 </HStack>
-                                            </Box>
-                                        )}
+                                            </CardBody>
+                                        </Card>
+                                    ))
+                                )}
+                            </Flex>
+                        </Box>
+                    </TabPanel>
+                    {/* Saved Listings Tab */}
+                    <TabPanel>
+                        <Box overflowX="auto" whiteSpace="nowrap" p={4}>
+                            <Flex gap={4}>
+                                {saved_listings?.data.length === 0 ? (
+                                    <Text textAlign="center" fontSize="lg" color="gray.500">
+                                        You have no saved listings
+                                    </Text>
+                                ) : (
+                                    saved_listings?.data.map((listing: ListingPublic) => (
+                                        <Card
+                                            key={listing.id}
+                                            width="300px"
+                                            size="lg"
+                                            border="1px solid"
+                                            borderColor="gray.200"
+                                            overflow="hidden"
+                                            flexShrink={0}
+                                        >
+                                            <CardHeader>
+                                                <Heading
+                                                    size="md"
+                                                    whiteSpace="normal"
+                                                    wordBreak="break-word"
+                                                >
+                                                    {listing.address}
+                                                </Heading>
+                                            </CardHeader>
+                                            <CardBody>
+                                                <VStack align="start" spacing={2}>
+                                                    {/* Realty Company */}
+                                                    <Text fontSize="sm" whiteSpace="normal" wordBreak="break-word">
+                                                        {listing.realty_company}
+                                                    </Text>
 
 
-                                        {/* Amenities */}
-                                        {listing.amenities && (
-                                            <Box>
-                                                <Text fontSize="sm" fontWeight="semibold">
-                                                    Amenities:
-                                                </Text>
-                                                <HStack wrap="wrap" spacing={1}>
-                                                    {listing.amenities.map((amenity) => (
-                                                        <Badge key={amenity} colorScheme="pink">
-                                                            {amenity}
-                                                        </Badge>
-                                                    ))}
+                                                    {/* Bedrooms & Bathrooms */}
+                                                    <HStack spacing={2}>
+                                                        <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
+                                                        <Badge
+                                                            colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
+                                                    </HStack>
+
+
+                                                    {/* Rent & Security Deposit */}
+                                                    <Text fontWeight="bold">
+                                                        Rent: ${listing.rent?.toLocaleString()}
+                                                    </Text>
+                                                    <Text fontSize="sm">
+                                                        Security
+                                                        Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
+                                                    </Text>
+
+
+                                                    {/* Included Utilities */}
+                                                    {listing.included_utilities && (
+                                                        <Box>
+                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                Utilities:
+                                                            </Text>
+                                                            <HStack wrap="wrap" spacing={1}>
+                                                                {listing.included_utilities.map((utility) => (
+                                                                    <Badge key={utility} colorScheme="green">
+                                                                        {utility}
+                                                                    </Badge>
+                                                                ))}
+                                                            </HStack>
+                                                        </Box>
+                                                    )}
+
+
+                                                    {/* Amenities */}
+                                                    {listing.amenities && (
+                                                        <Box>
+                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                Amenities:
+                                                            </Text>
+                                                            <HStack wrap="wrap" spacing={1}>
+                                                                {listing.amenities.map((amenity) => (
+                                                                    <Badge key={amenity} colorScheme="pink">
+                                                                        {amenity}
+                                                                    </Badge>
+                                                                ))}
+                                                            </HStack>
+                                                        </Box>
+                                                    )}
+
+
+                                                    {/* Lease Period */}
+                                                    <Menu placement="bottom">
+                                                        <MenuButton textAlign="center">
+                                                            <Text fontSize="sm">
+                                                                Lease: {listing.lease_start_date} → {listing.lease_end_date}
+                                                            </Text>
+                                                        </MenuButton>
+                                                        <Portal>
+                                                            <MenuList zIndex="popover">
+                                                                <>
+                                                                    <MenuItem
+                                                                        onClick={() => handleGoogleExport(listing.lease_start_date ?? ""
+                                                                            , listing.lease_end_date ?? "")}>Export
+                                                                        to
+                                                                        Google</MenuItem>
+                                                                    <MenuItem
+                                                                        onClick={() => handleICSExport(listing.lease_start_date ?? ""
+                                                                            , listing.lease_end_date ?? "")}>Export
+                                                                        to
+                                                                        iCal</MenuItem>
+
+
+                                                                    <MenuItem
+                                                                        onClick={() => handleOutlookExport(
+                                                                            listing.lease_start_date ?? ""
+                                                                            , listing.lease_end_date ?? "")}>Export
+                                                                        to
+                                                                        Outlook</MenuItem>
+                                                                </>
+
+
+                                                            </MenuList>
+                                                        </Portal>
+                                                    </Menu>
+                                                </VStack>
+                                                <HStack spacing={4} mt={4} justifyContent="center">
+                                                    <IconButton
+                                                        aria-label="Favorite"
+                                                        icon={<FaHeart/>}
+                                                        fontSize="xl"
+                                                        size="lg"
+                                                        variant={"ghost"}
+                                                        onClick={() => handleLike(listing.owner_id)}
+                                                    />
+                                                    <IconButton
+                                                        aria-label="Save"
+                                                        icon={<FaBookmark/>}
+                                                        size="lg"
+                                                        fontSize="xl"
+                                                        isActive={savedListings.has(listing.id)}
+                                                        colorScheme={savedListings.has(listing.id) ? "yellow" : "gray"}
+                                                        variant={savedListings.has(listing.id) ? "solid" : "ghost"}
+                                                        onClick={() => toggleSaveListing(listing.id)}
+                                                    />
+                                                    <IconButton
+                                                        aria-label="Inquiry"
+                                                        icon={<FaComment/>}
+                                                        variant="ghost"
+                                                        size="lg"
+                                                        fontSize="xl"
+                                                        onClick={() => handleInquiry(listing.owner_id)}
+                                                    />
                                                 </HStack>
-                                            </Box>
-                                        )}
-
-
-                                        {/* Lease Period */}
-                                        <Menu placement="bottom">
-                                            <MenuButton textAlign="center">
-                                                <Text fontSize="sm">
-                                                    Lease: {listing.lease_start_date} → {listing.lease_end_date}
-                                                </Text>
-                                            </MenuButton>
-                                            <Portal>
-                                                <MenuList zIndex="popover">
-                                                    <>
-                                                        <MenuItem
-                                                            onClick={() => handleGoogleExport(listing.lease_start_date ?? ""
-                                                                , listing.lease_end_date ?? "")}>Export to
-                                                            Google</MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => handleICSExport(listing.lease_start_date ?? ""
-                                                                , listing.lease_end_date ?? "")}>Export to
-                                                            iCal</MenuItem>
-
-
-                                                        <MenuItem
-                                                            onClick={() => handleOutlookExport(
-                                                                listing.lease_start_date ?? ""
-                                                                , listing.lease_end_date ?? "")}>Export to
-                                                            Outlook</MenuItem>
-                                                    </>
-
-
-                                                </MenuList>
-                                            </Portal>
-                                        </Menu>
-                                    </VStack>
-                                    <HStack spacing={4} mt={4} justifyContent="center">
-                                        <IconButton
-                                            aria-label="Favorite"
-                                            icon={<FaHeart/>}
-                                            fontSize="xl"
-                                            size="lg"
-                                            variant={"ghost"}
-                                            onClick={() => handleLike(listing.owner_id)}
-                                        />
-                                        <IconButton
-                                            aria-label="Save"
-                                            icon={<FaBookmark/>}
-                                            size="lg"
-                                            fontSize="xl"
-                                            isActive={saved}
-                                            colorScheme={saved ? "yellow" : "gray"}
-                                            variant={saved ? "solid" : "ghost"}
-                                            onClick={() => setSaved((prev: any) => !prev)}
-
-                                        />
-                                        <IconButton
-                                            aria-label="Inquiry"
-                                            icon={<FaComment/>}
-                                            variant="ghost"
-                                            size="lg"
-                                            fontSize="xl"
-                                            onClick={() => handleInquiry(listing.owner_id)}
-                                        />
-                                    </HStack>
-                                </CardBody>
-                            </Card>
-                        ))
-                    )}
-                </Flex>
-            </Box>
+                                            </CardBody>
+                                        </Card>
+                                    ))
+                                )}
+                            </Flex>
+                        </Box>
+                    </TabPanel>
+                </TabPanels>
+            </Tabs>
         </Container>
     )
 }

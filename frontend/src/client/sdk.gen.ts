@@ -28,6 +28,8 @@ import type {
   ListingsDeleteListingResponse,
   ListingsListingLikeEmailData,
   ListingsListingLikeEmailResponse,
+  ListingsReadListingPublicData,
+  ListingsReadListingPublicResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
   LoginLoginAccessTokenPinData,
@@ -96,6 +98,8 @@ import type {
   UsersDeleteUserResponse,
   UsersUpdate2FaStatusData,
   UsersUpdate2FaStatusResponse,
+  UsersUpdateSavedListingsData,
+  UsersUpdateSavedListingsResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
@@ -382,6 +386,29 @@ export class ListingsService {
       url: "/api/v1/listings/like/{email}",
       path: {
         email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Listing Public
+   * Get a listing by ID.
+   * @param data The data for the request.
+   * @param data.id
+   * @returns ListingPublic Successful Response
+   * @throws ApiError
+   */
+  public static readListingPublic(
+    data: ListingsReadListingPublicData,
+  ): CancelablePromise<ListingsReadListingPublicResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/by-id/{id}",
+      path: {
+        id: data.id,
       },
       errors: {
         422: "Validation Error",
@@ -1194,6 +1221,28 @@ export class UsersService {
       query: {
         enabled: data.enabled,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Saved Listings
+   * Update the saved listings for the current user.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateSavedListings(
+    data: UsersUpdateSavedListingsData,
+  ): CancelablePromise<UsersUpdateSavedListingsResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/saved_listings",
+      body: data.requestBody,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },
