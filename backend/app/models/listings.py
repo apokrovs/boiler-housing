@@ -50,7 +50,6 @@ class ListingsPublic(SQLModel):
     count: int
 
 
-# Helper function for loading images with selectinload
 def with_images(query):
     """Add image loading to a listing query"""
     from sqlalchemy.orm import selectinload

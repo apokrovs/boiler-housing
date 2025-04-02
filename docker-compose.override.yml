@@ -1,3 +1,4 @@
+# docker-compose.override.yml
 services:
 
   # Local services are available on their ports, but also available on:
@@ -83,7 +84,7 @@ services:
     volumes:
       - ./backend/htmlcov:/app/htmlcov
       - ./backend/app/alembic/versions:/app/app/alembic/versions
-      - uploads_data:./backend/app/data/uploads
+      - ./backend/app/data/uploads:/app/data/uploads
     environment:
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
