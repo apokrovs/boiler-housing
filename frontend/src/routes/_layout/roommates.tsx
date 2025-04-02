@@ -1,7 +1,17 @@
 import {Link as RouterLink, createFileRoute} from "@tanstack/react-router";
-import {Center, Container, Heading, VStack, Text, Button, HStack} from "@chakra-ui/react";
+import {Center, Container, Heading, VStack, Text, Button, HStack, List, ListItem} from "@chakra-ui/react";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {UserPublic, UsersService, UserUpdateMe} from "../../client";
+import {
+    ConversationParticipantPublic,
+    ConversationPublic,
+    MessagesService,
+    UserPublic,
+    UsersService,
+    UserUpdateMe
+} from "../../client";
+import {NewConversation} from "../../components/Chat/NewConversation"
+import {useEffect, useState} from "react";
+import useCustomToast from "../../hooks/useCustomToast.ts";
 
 export const Route = createFileRoute("/_layout/roommates")({
     component: RoommatePage
@@ -9,7 +19,9 @@ export const Route = createFileRoute("/_layout/roommates")({
 
 function RoommatePage() {
     const queryClient = useQueryClient();
-
+    const showToast = useCustomToast();
+    const [conversations, setConversations] = useState<ConversationPublic[]>([]);
+    const [groupchats, setGroupchats] = useState<ConversationPublic[]>([]);
 
     const {data: currentUser} = useQuery<UserPublic>({
         queryKey: ["currentUser"],
@@ -28,6 +40,17 @@ function RoommatePage() {
             queryClient.getQueryData<UserPublic[]>(["users"]) ?? [],
         enabled: !!currentUser?.hasTakenRoommateQuiz
     });
+
+    useEffect(() => {
+        const fetchGroupChats = async () => {
+            const response = await MessagesService.getConversations();
+            setConversations(response.data);
+            setGroupchats(response.data.filter(conv => conv.is_group && conv.name));
+        };
+
+        fetchGroupChats();
+    }, []);
+
 
     const updateUserMutation = useMutation({
         mutationFn: (updatedUser: UserUpdateMe) =>
@@ -58,6 +81,11 @@ function RoommatePage() {
         }
     };
 
+    const handleCreateRoommateGroup = (conversationId: string, isGroup: boolean, name?: string) => {
+        queryClient.invalidateQueries({queryKey: ["conversations"]});
+        showToast("Success!", "Roommate group successfully created", "success");
+    }
+
     console.log(!!currentUser?.hasTakenRoommateQuiz);
 
     if (!currentUser?.hasTakenRoommateQuiz) {
@@ -68,8 +96,18 @@ function RoommatePage() {
                         <VStack>
                             <Heading color={"#CEB888"}>Welcome to Roommates!</Heading>
                             <Text pb={4}>Please complete the roommate matching quiz to use our roommate
-                                services.</Text>
-                            <Button as={RouterLink} to={'/roommate-quiz'}>Take the quiz</Button>
+                                matching services.</Text>
+                            <Button size={'lg'} as={RouterLink} to={'/roommate-quiz'}>Take the quiz</Button>
+                            <Heading color={"#CEB888"}>Roommate Groups</Heading>
+                            <List as="ol">
+                                {groupchats.map((item) => (
+                                    <ListItem fontSize={"lg"} key={item.name}>{item.name}</ListItem>
+                                ))}
+                            </List>
+                            {/*<Button onClick={handleOpenNewConversation}>Create a Roommate Group</Button>*/}
+                            <NewConversation onNewConversation={handleCreateRoommateGroup} buttonColor={"ui.main"}
+                                             setGroup={true} buttonSize={"lg"} buttonWidth={""}
+                                             buttonText={"Create a roommate group"}></NewConversation>
                         </VStack>
                     </Center>
                 </Container>
@@ -133,6 +171,15 @@ function RoommatePage() {
                             <Text fontSize={20} pb={2}>2. {secondMatch}</Text>
                             <Text pb={6} fontSize={20}>3. {thirdMatch}</Text>
                             <Heading color={"#CEB888"}>Roommate Groups</Heading>
+                            <List as={"ol"}>
+                                {groupchats.map((item) => (
+                                    <ListItem fontSize={"lg"} key={item.name}>{item.name}<List><ListItem>{}</ListItem></List></ListItem>
+                                ))}
+                            </List>
+                            <NewConversation onNewConversation={handleCreateRoommateGroup} buttonColor={"ui.main"}
+                                             setGroup={true} buttonSize={"lg"} buttonWidth={""}
+                                             buttonText={"Create a roommate group"}></NewConversation>
+
                         </VStack>
                     </Center>
                 </Container>
