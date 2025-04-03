@@ -66,6 +66,7 @@ class User(UserBase, table=True):
     is_2fa_enabled: bool | None = Field(default=False)
     latest_otp: str | None = Field(default=None)
     items: List["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    profile_tutorial_completed: bool = Field(default=False)
 
     # Add these fields for user blocking
     blocked_users: List["UserBlock"] = Relationship(
@@ -94,3 +95,6 @@ class UserPublic(UserBase):
 class UsersPublic(SQLModel):
     data: List[UserPublic]
     count: int
+
+class UserPublicWithTutorial(UserPublic):
+    profile_tutorial_completed: bool

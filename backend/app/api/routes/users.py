@@ -27,6 +27,7 @@ from app.models.users import (
     UserUpdate,
     UserUpdateMe,
     UpdatePin,
+    UserPublicWithTutorial
 )
 
 from app.models.utils import Message
@@ -288,3 +289,21 @@ def update_2fa_status(
     session.commit()
     session.refresh(current_user)
     return current_user
+
+@router.get("/me/tutorial", response_model=UserPublicWithTutorial)
+def read_user_tutorial_status(current_user: CurrentUser) -> Any:
+    """
+    Get current user's tutorial status.
+    """
+    return current_user
+
+@router.post("/me/tutorial/complete", response_model=Message)
+def complete_profile_tutorial(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Mark profile tutorial as completed.
+    """
+    current_user.profile_tutorial_completed = True
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return Message(message="Tutorial marked as completed.")

@@ -92,6 +92,8 @@ import type {
   UsersDeleteUserResponse,
   UsersUpdate2FaStatusData,
   UsersUpdate2FaStatusResponse,
+  UsersReadUserTutorialStatusResponse,
+  UsersCompleteProfileTutorialResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
@@ -1142,6 +1144,32 @@ export class UsersService {
       errors: {
         422: "Validation Error",
       },
+    })
+  }
+
+  /**
+   * Read User Tutorial Status
+   * Get current user's tutorial status.
+   * @returns UserPublicWithTutorial Successful Response
+   * @throws ApiError
+   */
+  public static readUserTutorialStatus(): CancelablePromise<UsersReadUserTutorialStatusResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/me/tutorial",
+    })
+  }
+
+  /**
+   * Complete Profile Tutorial
+   * Mark profile tutorial as completed.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static completeProfileTutorial(): CancelablePromise<UsersCompleteProfileTutorialResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/me/tutorial/complete",
     })
   }
 }
