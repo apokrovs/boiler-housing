@@ -30,12 +30,17 @@ import {sendChatMessage} from './websocket';
 
 interface NewConversationProps {
     onNewConversation: (conversationId: string, isGroup: boolean, name?: string) => void;
+    buttonColor?: string;
+    buttonSize?: string;
+    buttonWidth?: string;
+    setGroup?: boolean;
+    buttonText?: string
 }
 
-export const NewConversation = ({onNewConversation}: NewConversationProps) => {
+export const NewConversation = ({onNewConversation, buttonColor="yellow.500", buttonSize="sm", buttonWidth="100%", setGroup=false, buttonText="New Conversation" }: NewConversationProps) => {
     const {isOpen, onOpen, onClose} = useDisclosure();
     const {user} = useAuth();
-    const [isGroup, setIsGroup] = useState(false);
+    const [isGroup, setIsGroup] = useState(setGroup);
     const [groupName, setGroupName] = useState('');
     const [users, setUsers] = useState<UserPublic[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -204,12 +209,12 @@ export const NewConversation = ({onNewConversation}: NewConversationProps) => {
             <>
                 <Button
                         leftIcon={<AddIcon/>}
-                        bgColor="yellow.500"
+                        bgColor={buttonColor}
                         onClick={onOpen}
-                        size="sm"
-                        width="100%"
+                        size={buttonSize}
+                        width={buttonWidth}
                 >
-                    New Conversation
+                    {buttonText}
                 </Button>
 
                 <Modal isOpen={isOpen} onClose={onClose} size="md">
