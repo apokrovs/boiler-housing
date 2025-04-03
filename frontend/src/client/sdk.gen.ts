@@ -14,6 +14,18 @@ import type {
   ItemsUpdateItemResponse,
   ItemsDeleteItemData,
   ItemsDeleteItemResponse,
+  ListingsReadListingsData,
+  ListingsReadListingsResponse,
+  ListingsCreateListingData,
+  ListingsCreateListingResponse,
+  ListingsReadAllListingsData,
+  ListingsReadAllListingsResponse,
+  ListingsReadListingData,
+  ListingsReadListingResponse,
+  ListingsUpdateListingData,
+  ListingsUpdateListingResponse,
+  ListingsDeleteListingData,
+  ListingsDeleteListingResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
   LoginLoginAccessTokenPinData,
@@ -196,6 +208,152 @@ export class ItemsService {
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/items/{id}",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
+
+export class ListingsService {
+  /**
+   * Read Listings
+   * Retrieve listings.
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns ListingsPublic Successful Response
+   * @throws ApiError
+   */
+  public static readListings(
+    data: ListingsReadListingsData = {},
+  ): CancelablePromise<ListingsReadListingsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create Listing
+   * Create new listing.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns ListingPublic Successful Response
+   * @throws ApiError
+   */
+  public static createListing(
+    data: ListingsCreateListingData,
+  ): CancelablePromise<ListingsCreateListingResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/listings/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read All Listings
+   * Retrieve listings.
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns ListingsPublic Successful Response
+   * @throws ApiError
+   */
+  public static readAllListings(
+    data: ListingsReadAllListingsData = {},
+  ): CancelablePromise<ListingsReadAllListingsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/all",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Listing
+   * Get listing by ID.
+   * @param data The data for the request.
+   * @param data.id
+   * @returns ListingPublic Successful Response
+   * @throws ApiError
+   */
+  public static readListing(
+    data: ListingsReadListingData,
+  ): CancelablePromise<ListingsReadListingResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/{id}",
+      path: {
+        id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Listing
+   * Update a listing.
+   * @param data The data for the request.
+   * @param data.id
+   * @param data.requestBody
+   * @returns ListingPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateListing(
+    data: ListingsUpdateListingData,
+  ): CancelablePromise<ListingsUpdateListingResponse> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/listings/{id}",
+      path: {
+        id: data.id,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Listing
+   * Delete a listing.
+   * @param data The data for the request.
+   * @param data.id
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static deleteListing(
+    data: ListingsDeleteListingData,
+  ): CancelablePromise<ListingsDeleteListingResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/listings/{id}",
       path: {
         id: data.id,
       },
