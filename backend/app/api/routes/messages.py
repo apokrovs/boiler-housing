@@ -5,7 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, Query, status, Body
 from starlette.websockets import WebSocketState
-
+from app.crud import users as crud_users
 from app.api.deps import SessionDep
 from app.crud import messages as message_crud
 from app.crud import users as user_crud
@@ -25,7 +25,11 @@ from app.api.websockets import manager
 import json
 import logging
 from datetime import datetime
-
+from app.models.utils import Message
+from app.utils import (
+    generate_new_message_email,
+    send_email
+)
 router = APIRouter(prefix="/messages", tags=["messages"])
 logger = logging.getLogger(__name__)
 
@@ -275,7 +279,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                                 conversation_create = ConversationCreate(
                                     participant_ids=participant_ids,
                                     is_group=message_data["is_group"],
-                                    name=message_data.get("name")
+                                    name=message_data.get("sender_name")
                                 )
 
                                 try:
@@ -917,7 +921,7 @@ def get_conversations(
         # Create a ConversationPublic object with all required fields
         conversation_public = ConversationPublic(
             id=conv_dict["id"],
-            name=conv_dict["name"],
+            name=conv_dict["sender_name"],
             is_group=conv_dict["is_group"],
             created_at=conv_dict["created_at"],
             last_message=conv_dict["last_message"],
@@ -1137,3 +1141,24 @@ def check_user_blocked(
         user_id=current_user.id,
         target_id=user_id
     )
+@router.post("/new-message/{email}", response_model=Message)
+def new_message_email(*, session: SessionDep, email: str, sender_name: str, message: str) -> Message:
+    """
+    Password Recovery
+    """
+    user = crud_users.get_user_by_email(session=session, email=email)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+
+    logger.info(f"Sending new message email to {user.email}")
+    email_data = generate_new_message_email(email_to=user.email, sender_name=sender_name, message=message)
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+    return Message(message="Email sent successfully.")

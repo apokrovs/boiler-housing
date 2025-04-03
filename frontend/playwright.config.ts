@@ -44,7 +44,7 @@ export default defineConfig({
     },
 
     // {
-    //   name: 'firefox',
+    //   sender_name: 'firefox',
     //   use: {
     //     ...devices['Desktop Firefox'],
     //     storageState: 'playwright/.auth/user.json',
@@ -53,7 +53,7 @@ export default defineConfig({
     // },
 
     // {
-    //   name: 'webkit',
+    //   sender_name: 'webkit',
     //   use: {
     //     ...devices['Desktop Safari'],
     //     storageState: 'playwright/.auth/user.json',
@@ -63,21 +63,21 @@ export default defineConfig({
 
     /* Test against mobile viewports. */
     // {
-    //   name: 'Mobile Chrome',
+    //   sender_name: 'Mobile Chrome',
     //   use: { ...devices['Pixel 5'] },
     // },
     // {
-    //   name: 'Mobile Safari',
+    //   sender_name: 'Mobile Safari',
     //   use: { ...devices['iPhone 12'] },
     // },
 
     /* Test against branded browsers. */
     // {
-    //   name: 'Microsoft Edge',
+    //   sender_name: 'Microsoft Edge',
     //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
     // },
     // {
-    //   name: 'Google Chrome',
+    //   sender_name: 'Google Chrome',
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],

@@ -100,13 +100,13 @@ test("Successful log out", async ({ page }) => {
 //   await page.goto("/login")
 //
 //   await fillForm(page, firstSuperuser, firstSuperuserPassword)
-//   await page.getByRole("button", { name: "Log In" }).click()
+//   await page.getByRole("button", { sender_name: "Log In" }).click()
 //   await page.waitForURL("/")
 //   await page.locator('text=User Settings').click();
 //   await page.goto("/settings")
 //   await page.locator('text=Security').click()
 //   await expect(page.locator('text=Automatic Logout Time')).toBeVisible();
-//   await page.getByRole('radio', { name: '10 minutes' }).click();
+//   await page.getByRole('radio', { sender_name: '10 minutes' }).click();
 //   await page.locator('text=Update Auto Logout').click()
 //   await page.clock.fastForward(10 * 60 * 1000 )
 //

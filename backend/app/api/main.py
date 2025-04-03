@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-
+from fastapi import FastAPI, APIRouter
 from app.core.config import settings
 from app.api.routes import (
     items,
@@ -12,6 +11,9 @@ from app.api.routes import (
     listing_images
 )
 
+app = FastAPI()
+
+# Create API router and include all routes
 api_router = APIRouter()
 api_router.include_router(login.router)
 api_router.include_router(users.router)
