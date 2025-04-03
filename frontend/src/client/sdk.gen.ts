@@ -26,6 +26,12 @@ import type {
   ListingsUpdateListingResponse,
   ListingsDeleteListingData,
   ListingsDeleteListingResponse,
+  ListingsUploadListingImageData,
+  ListingsUploadListingImageResponse,
+  ListingsDeleteListingImageData,
+  ListingsDeleteListingImageResponse,
+  ListingsGetListingImagesData,
+  ListingsGetListingImagesResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
   LoginLoginAccessTokenPinData,
@@ -356,6 +362,81 @@ export class ListingsService {
       url: "/api/v1/listings/{id}",
       path: {
         id: data.id,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Upload Listing Image
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.formData
+   * @param data.currentUser
+   * @returns ImagePublic Successful Response
+   * @throws ApiError
+   */
+  public static uploadListingImage(
+    data: ListingsUploadListingImageData,
+  ): CancelablePromise<ListingsUploadListingImageResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/listings/{listing_id}/images/",
+      path: {
+        listing_id: data.listingId,
+      },
+      query: {
+        current_user: data.currentUser,
+      },
+      formData: data.formData,
+      mediaType: "multipart/form-data",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Listing Image
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.imageId
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static deleteListingImage(
+    data: ListingsDeleteListingImageData,
+  ): CancelablePromise<ListingsDeleteListingImageResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/listings/{listing_id}/images/{image_id}",
+      path: {
+        listing_id: data.listingId,
+        image_id: data.imageId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Listing Images
+   * @param data The data for the request.
+   * @param data.listingId
+   * @returns ImagePublic Successful Response
+   * @throws ApiError
+   */
+  public static getListingImages(
+    data: ListingsGetListingImagesData,
+  ): CancelablePromise<ListingsGetListingImagesResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/{listing_id}/images",
+      path: {
+        listing_id: data.listingId,
       },
       errors: {
         422: "Validation Error",
