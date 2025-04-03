@@ -148,6 +148,14 @@ export type PrivateUserCreate = {
   is_verified?: boolean
 }
 
+export type PrivateUserCreateWithProfile = {
+  email: string
+  password: string
+  full_name: string
+  profile_type: string
+  is_verified?: boolean
+}
+
 export type ReadReceipt = {
   user_id: string
   read_at: string
@@ -432,6 +440,12 @@ export type PrivateCreateUserData = {
 }
 
 export type PrivateCreateUserResponse = UserPublic
+
+export type PrivateCreateUserWithProfileData = {
+  requestBody: PrivateUserCreateWithProfile
+}
+
+export type PrivateCreateUserWithProfileResponse = UserPublic
 
 export type UsersReadUsersData = {
   limit?: number
