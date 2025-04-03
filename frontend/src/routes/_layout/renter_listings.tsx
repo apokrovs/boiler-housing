@@ -124,6 +124,7 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                 duration: 2000,
                 isClosable: true,
             });
+            // @ts-ignore
             await queryClient.invalidateQueries(["saved_listings", user?.id, user?.saved_listings]);
 
         } catch (error) {
@@ -144,13 +145,6 @@ function RenterListings({onNewConversation}: NewConversationProps) {
 
         const unsubscribeOpen = subscribeToMessageType('connection_open', () => {
             setError(null);
-            toast({
-                title: 'Connected to chat',
-                status: 'success',
-                duration: 2000,
-                isClosable: true,
-                position: 'bottom-right',
-            });
         });
 
         // Subscribe to connection close events
