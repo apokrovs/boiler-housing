@@ -1,12 +1,13 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models.listings import Listing, ListingCreate, ListingPublic, ListingsPublic, ListingUpdate
 from app.models.utils import Message
+from app.services.file_service import FileStorageService
 
 from app.crud import users as crud_users
 import logging
@@ -15,6 +16,11 @@ from app.utils import generate_listing_like_email, send_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/listings", tags=["listings"])
+
+
+def get_file_storage_service():
+    from app.core.config import settings
+    return FileStorageService(base_dir=settings.UPLOADS_DIR)
 
 
 @router.get("/", response_model=ListingsPublic)
@@ -136,8 +142,11 @@ def update_listing(
 
 
 @router.delete("/{id}")
-def delete_listing(
-        session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+async def delete_listing(
+        session: SessionDep,
+        current_user: CurrentUser,
+        id: uuid.UUID,
+        file_service: FileStorageService = Depends(get_file_storage_service)
 ) -> Message:
     """
     Delete a listing.
@@ -148,13 +157,14 @@ def delete_listing(
     if not current_user.is_superuser and (listing.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    # First delete all images:
+    # Delete all image files and the listing directory
+    await file_service.delete_listing_directory(id)
 
-
-
+    # Now delete the listing (cascade will delete the image records)
     session.delete(listing)
     session.commit()
     return Message(message="Listing deleted successfully")
+
 
 @router.post("/like/{email}", response_model=Message)
 def listing_like_email(*, session: SessionDep, email: str) -> Message:

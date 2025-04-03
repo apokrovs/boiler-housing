@@ -7,7 +7,6 @@ import uuid
 
 from app.models.images import FileType
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -75,3 +74,29 @@ class FileStorageService:
             os.remove(file_path)
             return True
         return False
+
+    async def delete_listing_directory(self, listing_id: uuid.UUID) -> bool:
+        """
+        Delete an entire listing directory with all its files.
+
+        Args:
+            listing_id: ID of the listing to delete files for
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            listing_dir = self.base_dir / str(listing_id)
+
+            # Check if directory exists
+            if not listing_dir.exists():
+                logger.info(f"Directory for listing {listing_id} doesn't exist, nothing to delete")
+                return True  # Nothing to delete
+
+            # Use shutil.rmtree to delete directory and all contents
+            shutil.rmtree(listing_dir)
+            logger.info(f"Successfully deleted directory for listing {listing_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting listing directory for {listing_id}: {e}")
+            return False
