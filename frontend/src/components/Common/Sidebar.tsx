@@ -19,6 +19,7 @@ import Logo from "/assets/images/BoilerHousingCropped.png"
 import type { UserPublic } from "../../client"
 import useAuth from "../../hooks/useAuth"
 import SidebarItems from "./SidebarItems"
+import {Link as RouterLink} from "@tanstack/react-router";
 
 const Sidebar = () => {
   const queryClient = useQueryClient()
@@ -94,7 +95,9 @@ const Sidebar = () => {
           align={"center"}
           w={'100%'}
         >
+          <RouterLink to={"/"}>
           <Image src={Logo} alt="Logo" w="300px" maxW="2xs" p={6} />
+            </RouterLink>
           <Box>
             <SidebarItems />
           </Box>
