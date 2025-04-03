@@ -147,6 +147,11 @@ def delete_listing(
         raise HTTPException(status_code=404, detail="Listing not found")
     if not current_user.is_superuser and (listing.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
+
+    # First delete all images:
+
+
+
     session.delete(listing)
     session.commit()
     return Message(message="Listing deleted successfully")

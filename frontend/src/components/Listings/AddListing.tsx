@@ -118,7 +118,6 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
         setPrimaryImageIndex(index);
     };
 
-    // Upload images using your SDK
     const uploadImages = async (listingId: string) => {
         if (selectedFiles.length === 0) return;
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Body
 from sqlmodel import select
 from typing import List
 import uuid
@@ -117,3 +117,47 @@ async def get_listing_images(*,
     ).all()
 
     return images
+
+
+@router.put("/{listing_id}/images/{image_id}", response_model=ImagePublic)
+async def update_listing_image(*,
+                              listing_id: uuid.UUID,
+                              image_id: uuid.UUID,
+                              is_primary: bool = Body(False, embed=True),
+                              display_order: int = Body(0, embed=True),
+                              session: SessionDep,
+                              current_user: CurrentUser
+                              ):
+    """Update image properties like primary status"""
+    # Check if listing exists and belongs to current user
+    listing = session.get(Listing, listing_id)
+    if not listing or listing.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    # Get image
+    image = session.get(Image, image_id)
+    if not image or image.listing_id != listing_id:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # If setting this image as primary, update all other images
+    if is_primary:
+        existing_primary_images = session.exec(
+            select(Image).where(
+                Image.listing_id == listing_id,
+                Image.is_primary == True,
+                Image.id != image_id
+            )
+        ).all()
+
+        for existing_image in existing_primary_images:
+            existing_image.is_primary = False
+            session.add(existing_image)
+
+    # Update image
+    image.is_primary = is_primary
+    image.display_order = display_order
+    session.add(image)
+    session.commit()
+    session.refresh(image)
+
+    return image

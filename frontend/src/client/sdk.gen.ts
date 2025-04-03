@@ -28,12 +28,12 @@ import type {
   ListingsDeleteListingResponse,
   ListingsListingLikeEmailData,
   ListingsListingLikeEmailResponse,
-  ListingsReadListingPublicData,
-  ListingsReadListingPublicResponse,
   ListingsUploadListingImageData,
   ListingsUploadListingImageResponse,
   ListingsDeleteListingImageData,
   ListingsDeleteListingImageResponse,
+  ListingsUpdateListingImageData,
+  ListingsUpdateListingImageResponse,
   ListingsGetListingImagesData,
   ListingsGetListingImagesResponse,
   LoginLoginAccessTokenData,
@@ -400,29 +400,6 @@ export class ListingsService {
   }
 
   /**
-   * Read Listing Public
-   * Get a listing by ID.
-   * @param data The data for the request.
-   * @param data.id
-   * @returns ListingPublic Successful Response
-   * @throws ApiError
-   */
-  public static readListingPublic(
-    data: ListingsReadListingPublicData,
-  ): CancelablePromise<ListingsReadListingPublicResponse> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/listings/by-id/{id}",
-      path: {
-        id: data.id,
-      },
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-  /**
    * Upload Listing Image
    * @param data The data for the request.
    * @param data.listingId
@@ -469,6 +446,34 @@ export class ListingsService {
         listing_id: data.listingId,
         image_id: data.imageId,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Listing Image
+   * Update image properties like primary status
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.imageId
+   * @param data.requestBody
+   * @returns ImagePublic Successful Response
+   * @throws ApiError
+   */
+  public static updateListingImage(
+    data: ListingsUpdateListingImageData,
+  ): CancelablePromise<ListingsUpdateListingImageResponse> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/listings/{listing_id}/images/{image_id}",
+      path: {
+        listing_id: data.listingId,
+        image_id: data.imageId,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },
