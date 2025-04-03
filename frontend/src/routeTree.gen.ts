@@ -19,7 +19,12 @@ import { Route as LoginImport } from './routes/login'
 import { Route as LayoutImport } from './routes/_layout'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
+import { Route as LayoutRoommatesImport } from './routes/_layout/roommates'
+import { Route as LayoutRoommateQuizImport } from './routes/_layout/roommate-quiz'
+import { Route as LayoutRentersearchImport } from './routes/_layout/renter_search'
+import { Route as LayoutRenterlistingsImport } from './routes/_layout/renter_listings'
 import { Route as LayoutMessagingImport } from './routes/_layout/messaging'
+import { Route as LayoutListingsImport } from './routes/_layout/listings'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutFaqImport } from './routes/_layout/faq'
 import { Route as LayoutChatImport } from './routes/_layout/chat'
@@ -67,8 +72,33 @@ const LayoutSettingsRoute = LayoutSettingsImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutRoommatesRoute = LayoutRoommatesImport.update({
+  path: '/roommates',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutRoommateQuizRoute = LayoutRoommateQuizImport.update({
+  path: '/roommate-quiz',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutRentersearchRoute = LayoutRentersearchImport.update({
+  path: '/renter_search',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutRenterlistingsRoute = LayoutRenterlistingsImport.update({
+  path: '/renter_listings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutMessagingRoute = LayoutMessagingImport.update({
   path: '/messaging',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutListingsRoute = LayoutListingsImport.update({
+  path: '/listings',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -136,8 +166,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/listings': {
+      preLoaderRoute: typeof LayoutListingsImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/messaging': {
       preLoaderRoute: typeof LayoutMessagingImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/renter_listings': {
+      preLoaderRoute: typeof LayoutRenterlistingsImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/renter_search': {
+      preLoaderRoute: typeof LayoutRentersearchImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/roommate-quiz': {
+      preLoaderRoute: typeof LayoutRoommateQuizImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/roommates': {
+      preLoaderRoute: typeof LayoutRoommatesImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/settings': {
@@ -159,7 +209,12 @@ export const routeTree = rootRoute.addChildren([
     LayoutChatRoute,
     LayoutFaqRoute,
     LayoutItemsRoute,
+    LayoutListingsRoute,
     LayoutMessagingRoute,
+    LayoutRenterlistingsRoute,
+    LayoutRentersearchRoute,
+    LayoutRoommateQuizRoute,
+    LayoutRoommatesRoute,
     LayoutSettingsRoute,
     LayoutIndexRoute,
   ]),
