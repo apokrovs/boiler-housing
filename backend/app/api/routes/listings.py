@@ -13,7 +13,7 @@ router = APIRouter(prefix="/listings", tags=["listings"])
 
 @router.get("/", response_model=ListingsPublic)
 def read_listings(
-    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+        session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:
     """
     Retrieve listings.
@@ -39,11 +39,19 @@ def read_listings(
         )
         listings = session.exec(statement).all()
 
-    return ListingsPublic(data=listings, count=count)
+    processed_listings = []
+    for listing in listings:
+        listing_dict = listing.dict()
+        # Convert Image objects to dictionaries
+        listing_dict["images"] = [img.dict() for img in listing.images]
+        processed_listings.append(ListingPublic.model_validate(listing_dict))
+
+    return ListingsPublic(data=processed_listings, count=count)
+
 
 @router.get("/all", response_model=ListingsPublic)
 def read_all_listings(
-    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+        session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> Any:
     """
     Retrieve listings.
@@ -53,10 +61,20 @@ def read_all_listings(
     count = session.exec(count_statement).one()
     statement = select(Listing).offset(skip).limit(limit)
     listings = session.exec(statement).all()
-    return ListingsPublic(data=listings, count=count)
+
+    # Convert listings to ListingPublic objects with image data
+    processed_listings = []
+    for listing in listings:
+        listing_dict = listing.dict()
+        # Convert Image objects to dictionaries
+        listing_dict["images"] = [img.dict() for img in listing.images]
+        processed_listings.append(ListingPublic.model_validate(listing_dict))
+
+    return ListingsPublic(data=processed_listings, count=count)
+
 
 @router.get("/{id}", response_model=ListingPublic)
-def read_listing(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+def read_listing(*, session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
     """
     Get listing by ID.
     """
@@ -65,12 +83,17 @@ def read_listing(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) 
         raise HTTPException(status_code=404, detail="Listing not found")
     if not current_user.is_superuser and (listing.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    return listing
+
+    # For images
+    listing_dict = listing.dict()
+    listing_dict["images"] = [img.dict() for img in listing.images]
+
+    return ListingPublic.model_validate(listing_dict)
 
 
 @router.post("/", response_model=ListingPublic)
 def create_listing(
-    *, session: SessionDep, current_user: CurrentUser, listing_in: ListingCreate
+        *, session: SessionDep, current_user: CurrentUser, listing_in: ListingCreate
 ) -> Any:
     """
     Create new listing.
@@ -84,11 +107,11 @@ def create_listing(
 
 @router.put("/{id}", response_model=ListingPublic)
 def update_listing(
-    *,
-    session: SessionDep,
-    current_user: CurrentUser,
-    id: uuid.UUID,
-    listing_in: ListingUpdate,
+        *,
+        session: SessionDep,
+        current_user: CurrentUser,
+        id: uuid.UUID,
+        listing_in: ListingUpdate,
 ) -> Any:
     """
     Update a listing.
@@ -108,7 +131,7 @@ def update_listing(
 
 @router.delete("/{id}")
 def delete_listing(
-    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+        session: SessionDep, current_user: CurrentUser, id: uuid.UUID
 ) -> Message:
     """
     Delete a listing.

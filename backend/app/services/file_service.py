@@ -1,18 +1,39 @@
+import logging
 import os
 import shutil
 from pathlib import Path
 from fastapi import UploadFile, HTTPException
-from typing import List
 import uuid
 
 from app.models.images import FileType
 
 
-def get_file_format(filename: str) -> str:
-    """Extract file format from filename"""
+logger = logging.getLogger(__name__)
+
+
+def get_file_format(filename: str) -> FileType:
+    """Convert file extension to MIME type"""
     if not filename or "." not in filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
-    return filename.split(".")[-1].lower()
+
+    extension = filename.split(".")[-1].lower()
+
+    # Map extension to FileType
+    extension_to_mime = {
+        "jpg": FileType.JPG,
+        "jpeg": FileType.JPEG,
+        "png": FileType.PNG,
+        "webp": FileType.WEBP,
+        "gif": FileType.GIF
+    }
+
+    if extension not in extension_to_mime:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File format not allowed. Allowed formats: jpg, jpeg, png, webp, gif"
+        )
+
+    return extension_to_mime[extension]
 
 
 class FileStorageService:
@@ -22,20 +43,18 @@ class FileStorageService:
 
     async def save_file(self, file: UploadFile, listing_id: uuid.UUID) -> str:
         """Save an uploaded file to the storage system and return the file path"""
-        # Validate file type
-        file_format = get_file_format(file.filename)
-        if file_format not in [format.value for format in FileType]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"File format not allowed. Allowed formats: {', '.join([f.value for f in FileType])}"
-            )
+        # Validate file type and convert to FileType enum
+        file_type = get_file_format(file.filename)
 
         # Create directory for listing if it doesn't exist
         listing_dir = self.base_dir / str(listing_id)
         os.makedirs(listing_dir, exist_ok=True)
 
+        # Extract just the extension for the filename
+        extension = file.filename.split(".")[-1].lower()
+
         # Create unique filename
-        unique_filename = f"{uuid.uuid4()}.{file_format}"
+        unique_filename = f"{uuid.uuid4()}.{extension}"
         file_path = listing_dir / unique_filename
 
         # Save file

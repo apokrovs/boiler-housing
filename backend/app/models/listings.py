@@ -1,6 +1,12 @@
 import uuid
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
 from sqlmodel import Field, Relationship, SQLModel, JSON
+
+# IDE type checking (circular importing hell)
+if TYPE_CHECKING:
+    from .images import ImagePublic
+    from .users import User
 
 
 # Shared properties
@@ -35,16 +41,19 @@ class Listing(ListingBase, table=True):
     )
     owner: Optional["User"] = Relationship(back_populates="listings")
     images: List["Image"] = Relationship(back_populates="listing",
-                                        sa_relationship_kwargs={"cascade": "all, delete"})
+                                         sa_relationship_kwargs={"cascade": "all, delete"})
 
 
 # Properties to return via API, id is always required
 class ListingPublic(ListingBase):
     id: uuid.UUID
     owner_id: uuid.UUID
-    images: List["ImagePublic"] = []
+
+    # Converting ImagePublic to dict in API :/ i wish the direct
+    images: List[dict] = []
 
 
+# This needs to be fully defined without forward references
 class ListingsPublic(SQLModel):
     data: List[ListingPublic]
     count: int

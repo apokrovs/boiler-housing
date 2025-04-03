@@ -37,4 +37,4 @@ if settings.all_cors_origins:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 # Images directory
-app.mount("/uploads", StaticFiles(directory="./app/data/uploads"), name="uploads")
+app.mount("/uploads", StaticFiles(directory=settings.UPLOADS_DIR), name="uploads")
