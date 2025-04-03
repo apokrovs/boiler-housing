@@ -3,7 +3,6 @@ from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 from enum import Enum
 
-# IDE type checking imports (avoids circular imports)
 if TYPE_CHECKING:
     from .listings import Listing
 
@@ -27,8 +26,14 @@ class LeaseAgreementUpdate(SQLModel):
 
 class LeaseAgreement(LeaseAgreementBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    listing_id: uuid.UUID = Field(foreign_key="listing.id", nullable=False, ondelete="CASCADE")
-    listing: Optional["Listing"] = Relationship(back_populates="lease_agreements")
+
+    listing_id: uuid.UUID = Field(
+        foreign_key="listing.id",
+        nullable=False,
+        ondelete="CASCADE",
+        sa_column_kwargs={"unique": True}
+    )
+    listing: Optional["Listing"] = Relationship(back_populates="lease_agreement")
 
 class LeaseAgreementPublic(LeaseAgreementBase):
     id: uuid.UUID
