@@ -22,10 +22,8 @@ def update_faq_answer(session: Session, faq_id: UUID, faq_update: FAQUpdate) -> 
     if not db_faq:
         raise HTTPException(status_code=404, detail="FAQ not found")
 
-    faq_data = faq_update.model_dump(exclude_unset=True)
-
-    for key, value in faq_data.items():
-        setattr(db_faq, key, value)
+    update_data = faq_update.model_dump(exclude_unset=True)
+    db_faq.sqlmodel_update(update_data)
 
     session.add(db_faq)
     session.commit()
