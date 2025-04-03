@@ -4,7 +4,7 @@ from typing import List
 import uuid
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models.images import Image, ImagePublic
+from app.models.images import Image, ImagePublic, ImageFileType
 from app.models.listings import Listing
 from app.services.file_service import FileStorageService, get_file_format
 
@@ -36,6 +36,14 @@ async def upload_listing_image(*,
 
     # Get file type first
     file_type = get_file_format(file.filename)
+
+    print(f"From listingImages file type is {file_type}")
+
+    # try:
+    #     file_type = ImageFileType(file_type)
+    # except ValueError:
+    #     print(f"Invalid file type: {file_type}")
+    #     raise HTTPException(status_code=400, detail=f"Invalid file type: {file_type}")
 
     # Save the file and get the path
     file_path = await file_service.save_file(file, listing_id)

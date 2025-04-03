@@ -139,9 +139,9 @@ export type ListingPublic = {
   images?: Array<{
     [key: string]: unknown
   }>
-  lease_agreements?: Array<{
+  lease_agreement?: {
     [key: string]: unknown
-  }>
+  } | null
 }
 
 export type ListingsPublic = {
@@ -344,6 +344,7 @@ export type LeaseAgreementsUploadLeaseAgreementResponse = LeaseAgreementPublic
 
 export type LeaseAgreementsDeleteLeaseAgreementData = {
   agreementId: string
+  currentUser?: unknown
   listingId: string
 }
 
@@ -351,6 +352,7 @@ export type LeaseAgreementsDeleteLeaseAgreementResponse = unknown
 
 export type LeaseAgreementsUpdateLeaseAgreementData = {
   agreementId: string
+  currentUser?: unknown
   listingId: string
   requestBody?: Body_lease_agreements_update_lease_agreement
 }
@@ -358,6 +360,7 @@ export type LeaseAgreementsUpdateLeaseAgreementData = {
 export type LeaseAgreementsUpdateLeaseAgreementResponse = LeaseAgreementPublic
 
 export type LeaseAgreementsGetLeaseAgreementsData = {
+  currentUser?: unknown
   listingId: string
 }
 

@@ -34,6 +34,8 @@ def get_file_format(filename: str) -> str:
             detail=f"File format not allowed. Allowed formats: jpg, jpeg, png, webp, gif, pdf, txt"
         )
 
+    print(f"File service returning {extension_to_mime[extension]}")
+
     return extension_to_mime[extension]
 
 
@@ -44,7 +46,7 @@ class FileStorageService:
 
     async def save_file(self, file: UploadFile, listing_id: uuid.UUID) -> str:
         """Save an uploaded file to the storage system and return the file path"""
-        # Validate file type and convert to ImageFileType enum
+        # Validate file type and convert to FileType enum
         file_type = get_file_format(file.filename)
 
         # Create directory for listing if it doesn't exist

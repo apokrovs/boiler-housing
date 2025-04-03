@@ -275,6 +275,7 @@ export class LeaseAgreementsService {
    * @param data The data for the request.
    * @param data.listingId
    * @param data.agreementId
+   * @param data.currentUser
    * @returns unknown Successful Response
    * @throws ApiError
    */
@@ -288,6 +289,9 @@ export class LeaseAgreementsService {
         listing_id: data.listingId,
         agreement_id: data.agreementId,
       },
+      query: {
+        current_user: data.currentUser,
+      },
       errors: {
         422: "Validation Error",
       },
@@ -300,6 +304,7 @@ export class LeaseAgreementsService {
    * @param data The data for the request.
    * @param data.listingId
    * @param data.agreementId
+   * @param data.currentUser
    * @param data.requestBody
    * @returns LeaseAgreementPublic Successful Response
    * @throws ApiError
@@ -314,6 +319,9 @@ export class LeaseAgreementsService {
         listing_id: data.listingId,
         agreement_id: data.agreementId,
       },
+      query: {
+        current_user: data.currentUser,
+      },
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -326,6 +334,7 @@ export class LeaseAgreementsService {
    * Get Lease Agreements
    * @param data The data for the request.
    * @param data.listingId
+   * @param data.currentUser
    * @returns LeaseAgreementPublic Successful Response
    * @throws ApiError
    */
@@ -337,6 +346,9 @@ export class LeaseAgreementsService {
       url: "/api/v1/listings/{listing_id}/lease-agreements",
       path: {
         listing_id: data.listingId,
+      },
+      query: {
+        current_user: data.currentUser,
       },
       errors: {
         422: "Validation Error",
