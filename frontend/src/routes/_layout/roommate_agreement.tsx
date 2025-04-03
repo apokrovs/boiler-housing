@@ -34,7 +34,7 @@ function RoommateAgreement() {
     const [agreementText, setAgreementText] = useState('');
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [signatures, setSignatures] =useState<string[]>([]);
-    const [numParticipants, setNumParticipants] = useState(0);
+    const [numParticipant, setNumParticipants] = useState(0);
 
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -129,7 +129,7 @@ function RoommateAgreement() {
         if (success) {
             showToast("Agreement Sent", "Your roommate agreement has been sent to the conversation", "success");
             setAgreementText('');
-            setSignatures(Array(participantCount).fill(""));
+            setSignatures(Array(numParticipant).fill(""));
         } else {
             showToast("Error", "Failed to send roommate agreement", "error");
         }
