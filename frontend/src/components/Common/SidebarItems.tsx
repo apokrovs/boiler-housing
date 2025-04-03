@@ -1,16 +1,19 @@
-import {Box, Flex, Icon, Text, useColorModeValue} from "@chakra-ui/react"
-import {useQueryClient} from "@tanstack/react-query"
-import {Link} from "@tanstack/react-router"
-import {FiBriefcase, FiHome, FiFileText, FiSettings, FiUsers, FiMessageCircle, FiLayout} from "react-icons/fi"
-import type {UserPublic} from "../../client"
+import { Box, Flex, Icon, Text, useColorModeValue } from "@chakra-ui/react"
+import { useQueryClient } from "@tanstack/react-query"
+import { Link } from "@tanstack/react-router"
+import { FiBriefcase, FiHome, FiSettings, FiUsers, FiMessageCircle, FiHelpCircle } from "react-icons/fi"
+
+import type { UserPublic } from "../../client"
+
 
 const items = [
   { icon: FiLayout, title: "Dashboard", path: "/" },
   { icon: FiBriefcase, title: "Items", path: "/items" },
   { icon: FiSettings, title: "User Settings", path: "/settings" },
   { icon: FiMessageCircle, title: "Messages", path: "/chat" },
+  { icon: FiHelpCircle, title: "FAQ", path: "/faq" },
   { icon: FiUsers, title: "Roommates", path: "/roommates"},
-    {icon: FiMessageCircle, title: "Renter Search", path: "/renter_search"},
+  {icon: FiMessageCircle, title: "Renter Search", path: "/renter_search"},
 ]
 
 interface SidebarItemsProps {
