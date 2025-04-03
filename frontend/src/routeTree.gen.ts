@@ -21,6 +21,7 @@ import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutRoommatesImport } from './routes/_layout/roommates'
 import { Route as LayoutRoommateQuizImport } from './routes/_layout/roommate-quiz'
+import { Route as LayoutRentersearchImport } from './routes/_layout/renter_search'
 import { Route as LayoutRenterlistingsImport } from './routes/_layout/renter_listings'
 import { Route as LayoutMessagingImport } from './routes/_layout/messaging'
 import { Route as LayoutListingsImport } from './routes/_layout/listings'
@@ -77,6 +78,11 @@ const LayoutRoommatesRoute = LayoutRoommatesImport.update({
 
 const LayoutRoommateQuizRoute = LayoutRoommateQuizImport.update({
   path: '/roommate-quiz',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutRentersearchRoute = LayoutRentersearchImport.update({
+  path: '/renter_search',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -162,6 +168,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutRenterlistingsImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/renter_search': {
+      preLoaderRoute: typeof LayoutRentersearchImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/roommate-quiz': {
       preLoaderRoute: typeof LayoutRoommateQuizImport
       parentRoute: typeof LayoutImport
@@ -191,6 +201,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutListingsRoute,
     LayoutMessagingRoute,
     LayoutRenterlistingsRoute,
+    LayoutRentersearchRoute,
     LayoutRoommateQuizRoute,
     LayoutRoommatesRoute,
     LayoutSettingsRoute,

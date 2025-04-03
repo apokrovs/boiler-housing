@@ -481,6 +481,13 @@ export type UsersCreateUserData = {
 
 export type UsersCreateUserResponse = UserPublic
 
+export type UsersReadRentersData = {
+  limit?: number
+  skip?: number
+}
+
+export type UsersReadRentersResponse = UsersPublic
+
 export type UsersReadUserByEmailData = {
   email: string
 }
