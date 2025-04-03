@@ -157,10 +157,9 @@ async def delete_listing(
     if not current_user.is_superuser and (listing.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    # Delete all image files and the listing directory
+    # Delete all files and the listing directory
     await file_service.delete_listing_directory(id)
 
-    # Now delete the listing (cascade will delete the image records)
     session.delete(listing)
     session.commit()
     return Message(message="Listing deleted successfully")

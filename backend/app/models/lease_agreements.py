@@ -7,34 +7,29 @@ from enum import Enum
 if TYPE_CHECKING:
     from .listings import Listing
 
-class ImageFileType(str, Enum):
-    JPEG = "image/jpeg"
-    JPG = "image/jpg"
-    PNG = "image/png"
-    WEBP = "image/webp"
-    GIF = "image/gif"
+class LeaseFileType(str, Enum):
+    PDF = "application/pdf"
+    TXT = "text/plain"
 
-class ImageBase(SQLModel):
+class LeaseAgreementBase(SQLModel):
     filename: str = Field(max_length=255)
     file_path: str = Field(max_length=255)
-    file_type: ImageFileType
+    file_type: LeaseFileType
     file_size: int
-    is_primary: bool = Field(default=False)
-    display_order: int = Field(default=0)
+    description: Optional[str] = Field(default=None, max_length=500)
 
-class ImageCreate(ImageBase):
+class LeaseAgreementCreate(LeaseAgreementBase):
     listing_id: uuid.UUID
 
-class ImageUpdate(SQLModel):
+class LeaseAgreementUpdate(SQLModel):
     filename: Optional[str] = None
-    is_primary: Optional[bool] = None
-    display_order: Optional[int] = None
+    description: Optional[str] = None
 
-class Image(ImageBase, table=True):
+class LeaseAgreement(LeaseAgreementBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     listing_id: uuid.UUID = Field(foreign_key="listing.id", nullable=False, ondelete="CASCADE")
-    listing: Optional["Listing"] = Relationship(back_populates="images")
+    listing: Optional["Listing"] = Relationship(back_populates="lease_agreements")
 
-class ImagePublic(ImageBase):
+class LeaseAgreementPublic(LeaseAgreementBase):
     id: uuid.UUID
     listing_id: uuid.UUID

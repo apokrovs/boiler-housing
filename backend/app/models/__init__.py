@@ -4,7 +4,7 @@
 
 # Import base models without dependencies
 from .users import User, UserCreate, UserUpdate, UserPublic
-from .images import Image, ImageCreate, ImageUpdate, ImagePublic, FileType
+from .images import Image, ImageCreate, ImageUpdate, ImagePublic, ImageFileType
 from .listings import Listing, ListingCreate, ListingUpdate, ListingPublic, ListingsPublic
 
 # Then import others that may depend on these

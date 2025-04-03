@@ -5,7 +5,6 @@ from sqlmodel import Field, Relationship, SQLModel, JSON
 
 # IDE type checking (circular importing hell)
 if TYPE_CHECKING:
-    from .images import ImagePublic
     from .users import User
 
 
@@ -33,7 +32,6 @@ class ListingUpdate(ListingBase):
     pass
 
 
-# Database model, database table inferred from class name
 class Listing(ListingBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
@@ -41,16 +39,16 @@ class Listing(ListingBase, table=True):
     )
     owner: Optional["User"] = Relationship(back_populates="listings")
     images: List["Image"] = Relationship(back_populates="listing",
-                                         sa_relationship_kwargs={"cascade": "all, delete"})
+                                      sa_relationship_kwargs={"cascade": "all, delete"})
+    lease_agreements: List["LeaseAgreement"] = Relationship(back_populates="listing",
+                                               sa_relationship_kwargs={"cascade": "all, delete"})
 
 
-# Properties to return via API, id is always required
 class ListingPublic(ListingBase):
     id: uuid.UUID
     owner_id: uuid.UUID
-
-    # Converting ImagePublic to dict in API :/ i wish the direct
     images: List[dict] = []
+    lease_agreements: List[dict] = []
 
 
 # This needs to be fully defined without forward references

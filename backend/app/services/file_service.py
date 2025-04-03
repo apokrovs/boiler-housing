@@ -5,31 +5,33 @@ from pathlib import Path
 from fastapi import UploadFile, HTTPException
 import uuid
 
-from app.models.images import FileType
+from app.models.images import ImageFileType
 
 logger = logging.getLogger(__name__)
 
 
-def get_file_format(filename: str) -> FileType:
+def get_file_format(filename: str) -> str:
     """Convert file extension to MIME type"""
     if not filename or "." not in filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
     extension = filename.split(".")[-1].lower()
 
-    # Map extension to FileType
+    # Map extension to MIME type
     extension_to_mime = {
-        "jpg": FileType.JPG,
-        "jpeg": FileType.JPEG,
-        "png": FileType.PNG,
-        "webp": FileType.WEBP,
-        "gif": FileType.GIF
+        "jpg": "image/jpg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+        "gif": "image/gif",
+        "pdf": "application/pdf",
+        "txt": "text/plain"
     }
 
     if extension not in extension_to_mime:
         raise HTTPException(
             status_code=400,
-            detail=f"File format not allowed. Allowed formats: jpg, jpeg, png, webp, gif"
+            detail=f"File format not allowed. Allowed formats: jpg, jpeg, png, webp, gif, pdf, txt"
         )
 
     return extension_to_mime[extension]
@@ -42,7 +44,7 @@ class FileStorageService:
 
     async def save_file(self, file: UploadFile, listing_id: uuid.UUID) -> str:
         """Save an uploaded file to the storage system and return the file path"""
-        # Validate file type and convert to FileType enum
+        # Validate file type and convert to ImageFileType enum
         file_type = get_file_format(file.filename)
 
         # Create directory for listing if it doesn't exist
