@@ -6,11 +6,12 @@ from fastapi import UploadFile, HTTPException
 import uuid
 
 from app.models.images import ImageFileType
+from app.models.lease_agreements import LeaseFileType
 
 logger = logging.getLogger(__name__)
 
 
-def get_file_format(filename: str) -> str:
+def get_file_format(filename: str) -> ImageFileType | LeaseFileType:
     """Convert file extension to MIME type"""
     if not filename or "." not in filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
@@ -19,13 +20,13 @@ def get_file_format(filename: str) -> str:
 
     # Map extension to MIME type
     extension_to_mime = {
-        "jpg": "image/jpg",
-        "jpeg": "image/jpeg",
-        "png": "image/png",
-        "webp": "image/webp",
-        "gif": "image/gif",
-        "pdf": "application/pdf",
-        "txt": "text/plain"
+        "jpg": ImageFileType.JPG.value,
+        "jpeg": ImageFileType.JPEG.value,
+        "png": ImageFileType.PNG.value,
+        "webp": ImageFileType.WEBP.value,
+        "gif": ImageFileType.GIF.value,
+        "pdf": LeaseFileType.PDF.value,
+        "txt": LeaseFileType.TXT.value
     }
 
     if extension not in extension_to_mime:

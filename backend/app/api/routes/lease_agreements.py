@@ -4,7 +4,7 @@ from typing import List
 import uuid
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models.lease_agreements import LeaseAgreement, LeaseAgreementPublic
+from app.models.lease_agreements import LeaseAgreement, LeaseAgreementPublic, LeaseFileType
 from app.models.listings import Listing
 from app.services.file_service import FileStorageService, get_file_format
 
@@ -42,6 +42,12 @@ async def upload_lease_agreement(*,
             status_code=400,
             detail=f"File format not allowed for lease agreements. Allowed formats: pdf, txt"
         )
+
+    try:
+        file_type = LeaseFileType(file_type)
+    except ValueError:
+        print(f"Invalid file type: {file_type}")
+        raise HTTPException(status_code=400, detail=f"Invalid file type: {file_type}")
 
     # Save file and get its path
     file_path = await file_service.save_file(file, listing_id)
