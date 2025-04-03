@@ -89,10 +89,12 @@ function Listings() {
                                                                 .map((img, idx) => (
                                                                         <Image
                                                                                 key={idx}
-                                                                                src={`/uploads/${img.file_path}`}
+                                                                                src={`${import.meta.env.VITE_API_URL}/uploads/${img.file_path}`}
+                                                                                alt={listing.address || "Image"}
                                                                                 objectFit="cover"
                                                                                 width="100%"
                                                                                 height="100%"
+                                                                                alignItems="center"
                                                                         />
                                                                 ))
                                                 ) : (

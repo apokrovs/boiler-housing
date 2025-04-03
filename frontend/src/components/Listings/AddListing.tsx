@@ -22,13 +22,18 @@ import {
     NumberInputField,
     NumberInputStepper,
     Text,
+    VStack,
+    Box,
+    Image,
+    IconButton,
 } from '@chakra-ui/react'
-import {useState} from "react";
+import {useRef, useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast.ts";
 import {type SubmitHandler, useForm} from "react-hook-form";
 import {type ApiError, ListingCreate, ListingsService} from "../../client";
 import {handleError} from "../../utils.ts";
+import { AddIcon, DeleteIcon } from '@chakra-ui/icons'
 
 interface AddListingProps {
     isOpen: boolean
@@ -47,6 +52,12 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
     const [leaseEndDate, setLeaseEndDate] = useState("");
     const [dateError, setDateError] = useState("");
 
+    // Image handling states
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [primaryImageIndex, setPrimaryImageIndex] = useState<number | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLeaseStartDate(e.target.value);
         if (leaseEndDate && e.target.value >= leaseEndDate) {
@@ -62,6 +73,71 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
             setDateError("End date must be after the start date.");
         } else {
             setDateError("");
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const newFiles = Array.from(e.target.files);
+            setSelectedFiles(prev => [...prev, ...newFiles]);
+
+            // Create preview URLs
+            const newPreviewUrls = newFiles.map(file => URL.createObjectURL(file));
+            setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+
+            // Set first image as primary if no primary exists
+            if (primaryImageIndex === null) {
+                setPrimaryImageIndex(0);
+            }
+        }
+    };
+
+    // Handle removing a file from the selection
+    const handleRemoveFile = (index: number) => {
+        // Clean up URL to prevent memory leaks
+        URL.revokeObjectURL(previewUrls[index]);
+
+        // Remove file and preview
+        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+        setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+
+        // Update primary image index if needed
+        if (primaryImageIndex === index) {
+            if (selectedFiles.length > 1) {
+                setPrimaryImageIndex(0);
+            } else {
+                setPrimaryImageIndex(null);
+            }
+        } else if (primaryImageIndex !== null && primaryImageIndex > index) {
+            setPrimaryImageIndex(primaryImageIndex - 1);
+        }
+    };
+
+    // Handle setting an image as primary
+    const handleSetPrimary = (index: number) => {
+        setPrimaryImageIndex(index);
+    };
+
+    // Upload images using your SDK
+    const uploadImages = async (listingId: string) => {
+        if (selectedFiles.length === 0) return;
+
+        const uploadPromises = selectedFiles.map((file, index) => {
+            return ListingsService.uploadListingImage({
+                listingId,
+                formData: {
+                    file,
+                    is_primary: index === primaryImageIndex
+                }
+            });
+        });
+
+        try {
+            await Promise.all(uploadPromises);
+        } catch (error) {
+            console.error("Error uploading images:", error);
+            showToast("Error", "Failed to upload one or more images", "error");
+            throw error; // Dumbass catch and immediately throw
         }
     };
 
@@ -90,8 +166,17 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
     })
 
     const mutation = useMutation({
-        mutationFn: (data: ListingCreate) =>
-            ListingsService.createListing({requestBody: data}),
+        mutationFn: async (data: ListingCreate) => {
+            // Create listing first
+            const listing = await ListingsService.createListing({requestBody: data});
+
+            // Upload images if any
+            if (selectedFiles.length > 0) {
+                await uploadImages(listing.id);
+            }
+
+            return listing;
+        },
         onSuccess: () => {
             showToast("Success!", "Listing created successfully.", "success")
             reset()
@@ -100,6 +185,9 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
             setLeaseStartDate("");
             setLeaseEndDate("");
             setIsSecurityDeposit(false);
+            setSelectedFiles([]);
+            setPreviewUrls([]);
+            setPrimaryImageIndex(null);
             onClose();
         },
         onError: (err: ApiError) => {
@@ -112,14 +200,18 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
 
     const onSubmit: SubmitHandler<ListingCreate> = (data) => {
         data.included_utilities = selectedUtilities;
-        data.amenities =  selectedAmenities;
+        data.amenities = selectedAmenities;
 
-        console.log(data)
         mutation.mutate(data)
     }
 
     const onCancel = () => {
+        previewUrls.forEach(url => URL.revokeObjectURL(url));
+
         reset()
+        setSelectedFiles([]);
+        setPreviewUrls([]);
+        setPrimaryImageIndex(null);
         onClose()
     }
 
@@ -305,6 +397,75 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                 />
                             </HStack>
                             {dateError && <FormErrorMessage>{dateError}</FormErrorMessage>}
+                        </FormControl>
+
+                        {/* Property Images */}
+                        <FormControl mt={4}>
+                            <FormLabel>Property Images</FormLabel>
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                style={{ display: "none" }}
+                                onChange={handleFileChange}
+                                ref={fileInputRef}
+                            />
+
+                            <VStack align="start" spacing={4} width="100%">
+                                <Button
+                                    leftIcon={<AddIcon />}
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    Add Images
+                                </Button>
+
+                                {previewUrls.length > 0 && (
+                                    <HStack spacing={3} overflowX="auto" py={2} width="100%">
+                                        {previewUrls.map((url, index) => (
+                                            <Box
+                                                key={index}
+                                                position="relative"
+                                                border="1px solid"
+                                                borderColor={index === primaryImageIndex ? "blue.500" : "gray.200"}
+                                                borderWidth={index === primaryImageIndex ? "2px" : "1px"}
+                                                borderRadius="md"
+                                                overflow="hidden"
+                                            >
+                                                <Image
+                                                    src={url}
+                                                    alt={`Preview ${index + 1}`}
+                                                    height="80px"
+                                                    width="80px"
+                                                    objectFit="cover"
+                                                />
+                                                <HStack
+                                                    position="absolute"
+                                                    bottom="0"
+                                                    width="100%"
+                                                    bg="blackAlpha.600"
+                                                    p={1}
+                                                    justifyContent="space-between"
+                                                >
+                                                    <Button
+                                                        size="xs"
+                                                        colorScheme={index === primaryImageIndex ? "blue" : "gray"}
+                                                        onClick={() => handleSetPrimary(index)}
+                                                    >
+                                                        {index === primaryImageIndex ? "Primary" : "Set Primary"}
+                                                    </Button>
+                                                    <IconButton
+                                                        aria-label="Remove image"
+                                                        icon={<DeleteIcon />}
+                                                        size="xs"
+                                                        colorScheme="red"
+                                                        onClick={() => handleRemoveFile(index)}
+                                                    />
+                                                </HStack>
+                                            </Box>
+                                        ))}
+                                    </HStack>
+                                )}
+                            </VStack>
                         </FormControl>
                     </ModalBody>
 
