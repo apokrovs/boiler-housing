@@ -293,6 +293,13 @@ export type ListingsCreateListingData = {
 
 export type ListingsCreateListingResponse = ListingPublic
 
+export type ListingsReadAllListingsData = {
+  limit?: number
+  skip?: number
+}
+
+export type ListingsReadAllListingsResponse = ListingsPublic
+
 export type ListingsReadListingData = {
   id: string
 }

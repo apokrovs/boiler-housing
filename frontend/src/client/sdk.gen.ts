@@ -18,6 +18,8 @@ import type {
   ListingsReadListingsResponse,
   ListingsCreateListingData,
   ListingsCreateListingResponse,
+  ListingsReadAllListingsData,
+  ListingsReadAllListingsResponse,
   ListingsReadListingData,
   ListingsReadListingResponse,
   ListingsUpdateListingData,
@@ -260,6 +262,31 @@ export class ListingsService {
       url: "/api/v1/listings/",
       body: data.requestBody,
       mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read All Listings
+   * Retrieve listings.
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns ListingsPublic Successful Response
+   * @throws ApiError
+   */
+  public static readAllListings(
+    data: ListingsReadAllListingsData = {},
+  ): CancelablePromise<ListingsReadAllListingsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/all",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
       errors: {
         422: "Validation Error",
       },
