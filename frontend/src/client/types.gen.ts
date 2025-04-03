@@ -603,6 +603,12 @@ export type UsersUpdate2FaStatusData = {
 
 export type UsersUpdate2FaStatusResponse = UserPublic
 
+export type UsersReadUserTutorialStatusResponse = {
+  [key: string]: unknown
+}
+
+export type UsersCompleteProfileTutorialResponse = Message
+
 export type UtilsTestEmailData = {
   emailTo: string
 }

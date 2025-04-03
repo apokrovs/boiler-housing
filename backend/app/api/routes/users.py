@@ -305,3 +305,18 @@ def update_2fa_status(
     session.commit()
     session.refresh(current_user)
     return current_user
+
+@router.get("/me/tutorial")
+def read_user_tutorial_status(current_user: CurrentUser) -> dict:
+    return {"profile_tutorial_completed": current_user.profile_tutorial_completed}
+
+@router.post("/me/tutorial/complete", response_model=Message)
+def complete_profile_tutorial(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Mark profile tutorial as completed.
+    """
+    current_user.profile_tutorial_completed = True
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return Message(message="Tutorial marked as completed.")
