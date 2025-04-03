@@ -32,11 +32,13 @@ export const Route = createFileRoute("/_layout/roommate_agreement")({
 function RoommateAgreement() {
     const showToast = useCustomToast();
     const [agreementText, setAgreementText] = useState('');
-    const [signature, setSignature] = useState('');
-
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const [signatures, setSignatures] =useState<string[]>([]);
+    const [numParticipants, setNumParticipants] = useState(0);
+
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
     const {user} = useAuth();
     const toast = useToast();
 
@@ -94,9 +96,26 @@ function RoommateAgreement() {
     });
     const groupchats = conversations?.filter(conv => conv.is_group && conv.name) ?? [];
 
-    const formatAgreementMessage = (agreement: string, signature: string) => {
-        //const date = new Date().toLocaleDateString();
-        return `****ROOMMATE AGREEMENT****\n\n${agreement}\n\n**Signed:**\n${signature}`;
+    useEffect(() => {
+        if (!selectedConversationId) return;
+        const selectedGroupChat = conversations?.find(conv => conv.id === selectedConversationId);
+        if (selectedGroupChat) {
+            const participantCount = selectedGroupChat.participants.length;
+            setNumParticipants(participantCount);
+            setSignatures(Array(participantCount).fill("")); // Reset signatures
+        }
+    }, [selectedConversationId, conversations]);
+
+    const handleSignatureChange = (index: number, value: string) => {
+        setSignatures(prevSignatures => {
+            const updatedSignatures = [...prevSignatures];
+            updatedSignatures[index] = value;
+            return updatedSignatures;
+        });
+    };
+
+    const formatAgreementMessage = (agreement: string, signatures: string[]) => {
+        return `****ROOMMATE AGREEMENT****\n\n${agreement}\n\n**Signed:**\n\n${signatures.join("\n\n")}`;
     };
 
     const sendAgreementToConversation = (conversationId: string, message: string) => {
@@ -110,14 +129,14 @@ function RoommateAgreement() {
         if (success) {
             showToast("Agreement Sent", "Your roommate agreement has been sent to the conversation", "success");
             setAgreementText('');
-            setSignature('');
+            setSignatures(Array(participantCount).fill(""));
         } else {
             showToast("Error", "Failed to send roommate agreement", "error");
         }
     };
 
     const handleSendToExistingGroup = () => {
-        const formattedAgreement = formatAgreementMessage(agreementText, signature);
+        const formattedAgreement = formatAgreementMessage(agreementText, signatures);
         sendAgreementToConversation(selectedConversationId, formattedAgreement);
     };
 
@@ -134,16 +153,18 @@ function RoommateAgreement() {
                             onChange={(e) => setAgreementText(e.target.value)}
                             minHeight="200px"
                         />
+                        <Text fontWeight="bold" mb={2}>Sign Agreement:</Text>
 
-                        <Input
-                            placeholder="Your Signature"
-                            value={signature}
-                            onChange={(e) => setSignature(e.target.value)}
-                        />
+                        {signatures.map((signature, index) => (
+                            <Input
+                                key={index}
+                                placeholder={`Sign Here`}
+                                value={signature}
+                                onChange={(e) => handleSignatureChange(index, e.target.value)}
+                            />
+                        ))}
 
                         <Box width="100%">
-                            <Heading size="md" mb={3}>Send Your Agreement</Heading>
-
                             <Flex direction={{ base: "column", md: "row" }} gap={4} width="100%" alignItems={"center"}>
                                 <Box flex={1}>
                                     <Text fontWeight="bold" mb={2}>Select a group:</Text>
