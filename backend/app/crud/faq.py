@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from app.models.faq import FAQ, FAQCreate, FAQUpdate
 
 def create_faq(session: Session, faq_in: FAQCreate) -> FAQ:
-    faq = FAQ(**faq_in.dict())
+    faq = FAQ.model_validate(faq_in)
     session.add(faq)
     session.commit()
     session.refresh(faq)
@@ -18,17 +18,19 @@ def get_faq_by_id(session: Session, faq_id: UUID) -> Optional[FAQ]:
     return session.get(FAQ, faq_id)
 
 def update_faq_answer(session: Session, faq_id: UUID, faq_update: FAQUpdate) -> FAQ:
-    faq = session.get(FAQ, faq_id)
-    if not faq:
+    db_faq = session.get(FAQ, faq_id)
+    if not db_faq:
         raise HTTPException(status_code=404, detail="FAQ not found")
 
-    if faq_update.answer is not None:
-        faq.answer = faq_update.answer
+    faq_data = faq_update.model_dump(exclude_unset=True)
 
-    session.add(faq)
+    for key, value in faq_data.items():
+        setattr(db_faq, key, value)
+
+    session.add(db_faq)
     session.commit()
-    session.refresh(faq)
-    return faq
+    session.refresh(db_faq)
+    return db_faq
 
 def delete_faq(session: Session, faq_id: UUID) -> bool:
     faq = session.get(FAQ, faq_id)

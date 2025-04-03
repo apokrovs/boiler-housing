@@ -22,10 +22,8 @@ class FAQ(FAQBase, table=True):
     created_at: datetime.datetime = Field(default_factory=datetime.datetime.utcnow, nullable=False)
 
 
-class FAQPublic(SQLModel):
+class FAQPublic(FAQBase):
     id: uuid.UUID
-    question: str
-    answer: Optional[str] = None
     created_at: datetime.datetime
 
 
