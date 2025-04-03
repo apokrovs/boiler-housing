@@ -170,13 +170,3 @@ def listing_like_email(*, session: SessionDep, email: str) -> Message:
         html_content=email_data.html_content,
     )
     return Message(message="Email sent successfully.")
-
-@router.get("/by-id/{id}", response_model=ListingPublic)
-def read_listing_public(session: SessionDep, id: uuid.UUID) -> Any:
-    """
-    Get a listing by ID.
-    """
-    listing = session.get(Listing, id)
-    if not listing:
-        raise HTTPException(status_code=404, detail="Listing not found")
-    return listing

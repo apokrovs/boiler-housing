@@ -194,6 +194,10 @@ export type UpdatePin = {
   new_pin: string
 }
 
+export type UpdateSavedListings = {
+  saved_listings: Array<string>
+}
+
 export type UserBlockCreate = {
   blocked_id: string
 }
@@ -208,6 +212,7 @@ export type UserCreate = {
   profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
+  saved_listings?: Array<string>
   password: string
 }
 
@@ -221,6 +226,7 @@ export type UserPublic = {
   profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
+  saved_listings?: Array<string>
   id: string
 }
 
@@ -247,6 +253,7 @@ export type UserUpdate = {
   profile_type?: string | null
   auto_logout?: number | null
   is_2fa_enabled?: boolean | null
+  saved_listings?: Array<string>
   password?: string | null
   pin?: string | null
 }
@@ -336,6 +343,18 @@ export type ListingsDeleteListingData = {
 }
 
 export type ListingsDeleteListingResponse = Message
+
+export type ListingsListingLikeEmailData = {
+  email: string
+}
+
+export type ListingsListingLikeEmailResponse = Message
+
+export type ListingsReadListingPublicData = {
+  id: string
+}
+
+export type ListingsReadListingPublicResponse = ListingPublic
 
 export type ListingsUploadListingImageData = {
   currentUser?: unknown
@@ -481,6 +500,14 @@ export type MessagesCheckUserBlockedData = {
 
 export type MessagesCheckUserBlockedResponse = boolean
 
+export type MessagesNewMessageEmailData = {
+  email: string
+  message: string
+  senderName: string
+}
+
+export type MessagesNewMessageEmailResponse = Message
+
 export type PrivateCreateUserData = {
   requestBody: PrivateUserCreate
 }
@@ -564,6 +591,12 @@ export type UsersUpdate2FaStatusData = {
 }
 
 export type UsersUpdate2FaStatusResponse = UserPublic
+
+export type UsersUpdateSavedListingsData = {
+  requestBody: UpdateSavedListings
+}
+
+export type UsersUpdateSavedListingsResponse = UserPublic
 
 export type UtilsTestEmailData = {
   emailTo: string

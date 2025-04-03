@@ -30,7 +30,7 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra="ignore",
     )
-    UPLOADS_DIR: str = "/app/app/data/uploads"
+    UPLOADS_DIR: str = "./app/data/uploads"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
