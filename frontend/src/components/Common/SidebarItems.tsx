@@ -5,11 +5,11 @@ import {FiBriefcase, FiHome, FiFileText, FiSettings, FiUsers, FiMessageCircle, F
 import type {UserPublic} from "../../client"
 
 const items = [
-    {icon: FiLayout, title: "Dashboard", path: "/"},
-    {icon: FiBriefcase, title: "Items", path: "/items"},
-    {icon: FiSettings, title: "User Settings", path: "/settings"},
-    {icon: FiMessageCircle, title: "Messages", path: "/chat"},
-
+  { icon: FiLayout, title: "Dashboard", path: "/" },
+  { icon: FiBriefcase, title: "Items", path: "/items" },
+  { icon: FiSettings, title: "User Settings", path: "/settings" },
+  { icon: FiMessageCircle, title: "Messages", path: "/chat" },
+  { icon: FiUsers, title: "Roommates", path: "/roommates"}
 ]
 
 interface SidebarItemsProps {
