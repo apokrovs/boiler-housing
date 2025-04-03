@@ -61,52 +61,6 @@ export type ItemUpdate = {
   description?: string | null
 }
 
-export type ListingCreate = {
-  num_bedrooms?: string | null
-  num_bathrooms?: string | null
-  address?: string | null
-  realty_company?: string | null
-  rent?: number | null
-  included_utilities?: Array<string> | null
-  security_deposit?: string | null
-  amenities?: Array<string> | null
-  lease_start_date?: string | null
-  lease_end_date?: string | null
-}
-
-export type ListingPublic = {
-  num_bedrooms?: string | null
-  num_bathrooms?: string | null
-  address?: string | null
-  realty_company?: string | null
-  rent?: number | null
-  included_utilities?: Array<string> | null
-  security_deposit?: string | null
-  amenities?: Array<string> | null
-  lease_start_date?: string | null
-  lease_end_date?: string | null
-  id: string
-  owner_id: string
-}
-
-export type ListingsPublic = {
-  data: Array<ListingPublic>
-  count: number
-}
-
-export type ListingUpdate = {
-  num_bedrooms?: string | null
-  num_bathrooms?: string | null
-  address?: string | null
-  realty_company?: string | null
-  rent?: number | null
-  included_utilities?: Array<string> | null
-  security_deposit?: string | null
-  amenities?: Array<string> | null
-  lease_start_date?: string | null
-  lease_end_date?: string | null
-}
-
 export type Message = {
   message: string
 }
@@ -178,8 +132,6 @@ export type UserCreate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
   hasTakenRoommateQuiz?: boolean | null
@@ -198,8 +150,6 @@ export type UserPublic = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
   hasTakenRoommateQuiz?: boolean | null
@@ -231,8 +181,6 @@ export type UserUpdate = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
   auto_logout?: number | null
   is_2fa_enabled?: boolean | null
   hasTakenRoommateQuiz?: boolean | null
@@ -249,9 +197,6 @@ export type UserUpdate = {
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
-  phone_number: string | null
-  bio?: string | null
-  profile_type?: string | null
   auto_logout?: number | null
   hasTakenRoommateQuiz?: boolean | null
   cleanScore?: number | null
@@ -299,45 +244,6 @@ export type ItemsDeleteItemData = {
 }
 
 export type ItemsDeleteItemResponse = Message
-
-export type ListingsReadListingsData = {
-  limit?: number
-  skip?: number
-}
-
-export type ListingsReadListingsResponse = ListingsPublic
-
-export type ListingsCreateListingData = {
-  requestBody: ListingCreate
-}
-
-export type ListingsCreateListingResponse = ListingPublic
-
-export type ListingsReadAllListingsData = {
-  limit?: number
-  skip?: number
-}
-
-export type ListingsReadAllListingsResponse = ListingsPublic
-
-export type ListingsReadListingData = {
-  id: string
-}
-
-export type ListingsReadListingResponse = ListingPublic
-
-export type ListingsUpdateListingData = {
-  id: string
-  requestBody: ListingUpdate
-}
-
-export type ListingsUpdateListingResponse = ListingPublic
-
-export type ListingsDeleteListingData = {
-  id: string
-}
-
-export type ListingsDeleteListingResponse = Message
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token

@@ -19,7 +19,7 @@ import Notification from "../../components/UserSettings/Notification.tsx";
 import ProfileVisibility from "../../components/UserSettings/ProfileVisibility.tsx";
 
 const tabsConfig = [
-    {title: "My Profile", component: UserInformation},
+    {title: "My profile", component: UserInformation},
     {title: "Security", component: ChangePassword},
     {title: "Profile Visibility", component: ProfileVisibility},
     {title: "Notification", component: Notification},
