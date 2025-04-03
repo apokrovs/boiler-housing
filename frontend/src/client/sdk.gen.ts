@@ -1149,8 +1149,7 @@ export class UsersService {
 
   /**
    * Read User Tutorial Status
-   * Get current user's tutorial status.
-   * @returns UserPublicWithTutorial Successful Response
+   * @returns unknown Successful Response
    * @throws ApiError
    */
   public static readUserTutorialStatus(): CancelablePromise<UsersReadUserTutorialStatusResponse> {

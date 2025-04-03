@@ -198,20 +198,6 @@ export type UserPublic = {
   id: string
 }
 
-export type UserPublicWithTutorial = {
-  email: string
-  phone_number: string | null
-  is_active?: boolean
-  is_superuser?: boolean
-  full_name?: string | null
-  bio?: string | null
-  profile_type?: string | null
-  auto_logout?: number
-  is_2fa_enabled?: boolean | null
-  id: string
-  profile_tutorial_completed: boolean
-}
-
 export type UserRegister = {
   email: string
   phone_number: string | null
@@ -532,7 +518,9 @@ export type UsersUpdate2FaStatusData = {
 
 export type UsersUpdate2FaStatusResponse = UserPublic
 
-export type UsersReadUserTutorialStatusResponse = UserPublicWithTutorial
+export type UsersReadUserTutorialStatusResponse = {
+  [key: string]: unknown
+}
 
 export type UsersCompleteProfileTutorialResponse = Message
 

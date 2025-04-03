@@ -95,6 +95,3 @@ class UserPublic(UserBase):
 class UsersPublic(SQLModel):
     data: List[UserPublic]
     count: int
-
-class UserPublicWithTutorial(UserPublic):
-    profile_tutorial_completed: bool
