@@ -10,7 +10,8 @@ const items = [
   { icon: FiBriefcase, title: "Items", path: "/items" },
   { icon: FiSettings, title: "User Settings", path: "/settings" },
   { icon: FiMessageCircle, title: "Messages", path: "/chat" },
-  { icon: FiUsers, title: "Roommates", path: "/roommates"}
+  { icon: FiUsers, title: "Roommates", path: "/roommates"},
+  { icon: FiUsers, title: "Roommate Agreement", path: "/roommate_agreement"},
 ]
 
 interface SidebarItemsProps {
