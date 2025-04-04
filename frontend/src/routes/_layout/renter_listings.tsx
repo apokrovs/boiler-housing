@@ -216,7 +216,7 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                 duration: 2000,
                 isClosable: true,
             });
-            await queryClient.invalidateQueries({queryKey: ["saved_listings", user?.id, user?.saved_listings]});
+            await queryClient.invalidateQueries("saved_listings", user?.id, user?.saved_listings);
         } catch (error) {
             toast({
                 title: "Error updating saved listings",
