@@ -7,7 +7,7 @@ from enum import Enum
 if TYPE_CHECKING:
     from .listings import Listing
 
-class FileType(str, Enum):
+class ImageFileType(str, Enum):
     JPEG = "image/jpeg"
     JPG = "image/jpg"
     PNG = "image/png"
@@ -17,7 +17,7 @@ class FileType(str, Enum):
 class ImageBase(SQLModel):
     filename: str = Field(max_length=255)
     file_path: str = Field(max_length=255)
-    file_type: FileType
+    file_type: ImageFileType
     file_size: int
     is_primary: bool = Field(default=False)
     display_order: int = Field(default=0)

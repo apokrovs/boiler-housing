@@ -4,7 +4,7 @@ from typing import List
 import uuid
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models.images import Image, ImagePublic
+from app.models.images import Image, ImagePublic, ImageFileType
 from app.models.listings import Listing
 from app.services.file_service import FileStorageService, get_file_format
 
