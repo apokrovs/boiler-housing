@@ -370,7 +370,7 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                                                 <Button size="xs"
                                                         colorScheme={index === primaryImageIndex ? "blue" : "gray"}
                                                         onClick={() => handleSetPrimary(index)}>
-                                                    {index === primaryImageIndex ? "Primary" : "Set Primary"}
+                                                    {/*{index === primaryImageIndex ? "Primary" : "Set Primary"}*/}
                                                 </Button>
                                                 <IconButton aria-label="Remove image" icon={<DeleteIcon/>}
                                                             size="xs" colorScheme="red"

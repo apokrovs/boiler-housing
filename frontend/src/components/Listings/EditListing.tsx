@@ -454,7 +454,7 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
                                                 <Button size="xs"
                                                         colorScheme={img.is_primary || img.id === primaryImageId ? "blue" : "gray"}
                                                         onClick={() => handleSetPrimaryExisting(img.id)}>
-                                                    {img.is_primary || img.id === primaryImageId ? "Primary" : "Set Primary"}
+                                                    {/*{img.is_primary || img.id === primaryImageId ? "Primary" : "Set Primary"}*/}
                                                 </Button>
                                                 <IconButton aria-label="Remove image" icon={<DeleteIcon/>}
                                                             size="xs" colorScheme="red"
@@ -494,7 +494,7 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
                                                     <Button size="xs"
                                                             colorScheme={index === primaryPreviewIndex ? "blue" : "gray"}
                                                             onClick={() => handleSetPrimaryPreview(index)}>
-                                                        {index === primaryPreviewIndex ? "Primary" : "Set Primary"}
+                                                        {/*{index === primaryPreviewIndex ? "Primary" : "Set Primary"}*/}
                                                     </Button>
                                                     <IconButton aria-label="Remove image" icon={<DeleteIcon/>}
                                                                 size="xs" colorScheme="red"
