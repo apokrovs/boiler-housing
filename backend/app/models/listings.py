@@ -39,7 +39,6 @@ class Listing(ListingBase, table=True):
         back_populates="listing",
         sa_relationship_kwargs={"cascade": "all, delete"}
     )
-
     lease_agreement: Optional["LeaseAgreement"] = Relationship(
         back_populates="listing",
         sa_relationship_kwargs={"uselist": False, "cascade": "all, delete"}

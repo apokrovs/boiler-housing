@@ -109,7 +109,7 @@ def read_listing(*, session: SessionDep, current_user: CurrentUser, id: uuid.UUI
     return ListingPublic.model_validate(listing_dict)
 
 
-@router.post("/", response_model=ListingPublic)
+@router.post("/", response_model=Listing)
 def create_listing(
         *, session: SessionDep, current_user: CurrentUser, listing_in: ListingCreate
 ) -> Any:

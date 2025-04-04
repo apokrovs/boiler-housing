@@ -1,8 +1,8 @@
-"""Initial Revision
+"""initial schema
 
-Revision ID: cce7fa393846
+Revision ID: 20924e72b3a1
 Revises: 
-Create Date: 2025-04-03 23:16:39.755705
+Create Date: 2025-04-04 02:20:24.781287
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'cce7fa393846'
+revision: str = '20924e72b3a1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,6 +27,13 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('faq',
+    sa.Column('question', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
+    sa.Column('answer', sqlmodel.sql.sqltypes.AutoString(length=4000), nullable=True),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('user',
     sa.Column('email', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
     sa.Column('phone_number', sqlmodel.sql.sqltypes.AutoString(length=10), nullable=True),
@@ -36,11 +43,19 @@ def upgrade() -> None:
     sa.Column('bio', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('profile_type', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('auto_logout', sa.Float(), nullable=False),
+    sa.Column('hasTakenRoommateQuiz', sa.Boolean(), nullable=True),
+    sa.Column('cleanScore', sa.Integer(), nullable=True),
+    sa.Column('visitScore', sa.Integer(), nullable=True),
+    sa.Column('sleepTime', sa.Integer(), nullable=True),
+    sa.Column('pets', sa.Integer(), nullable=True),
+    sa.Column('smoking', sa.Integer(), nullable=True),
+    sa.Column('alcoholScore', sa.Integer(), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('hashed_password', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('hashed_pin', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('is_2fa_enabled', sa.Boolean(), nullable=True),
     sa.Column('latest_otp', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('profile_tutorial_completed', sa.Boolean(), nullable=False),
     sa.Column('saved_listings', sa.JSON(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -146,5 +161,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_user_phone_number'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
+    op.drop_table('faq')
     op.drop_table('conversation')
     # ### end Alembic commands ###
