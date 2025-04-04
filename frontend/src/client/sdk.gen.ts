@@ -28,6 +28,8 @@ import type {
   ListingsDeleteListingResponse,
   ListingsListingLikeEmailData,
   ListingsListingLikeEmailResponse,
+  ListingsListingSaveEmailData,
+  ListingsListingSaveEmailResponse,
   ListingsUploadListingImageData,
   ListingsUploadListingImageResponse,
   ListingsDeleteListingImageData,
@@ -390,6 +392,28 @@ export class ListingsService {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/listings/like/{email}",
+      path: {
+        email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Listing Save Email
+   * @param data The data for the request.
+   * @param data.email
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static listingSaveEmail(
+    data: ListingsListingSaveEmailData,
+  ): CancelablePromise<ListingsListingSaveEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/listings/save/{email}",
       path: {
         email: data.email,
       },

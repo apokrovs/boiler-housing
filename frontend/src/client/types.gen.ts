@@ -355,6 +355,12 @@ export type ListingsListingLikeEmailData = {
 
 export type ListingsListingLikeEmailResponse = Message
 
+export type ListingsListingSaveEmailData = {
+  email: string
+}
+
+export type ListingsListingSaveEmailResponse = Message
+
 export type ListingsUploadListingImageData = {
   currentUser?: unknown
   formData: Body_listings_upload_listing_image

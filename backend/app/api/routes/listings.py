@@ -12,7 +12,7 @@ from app.services.file_service import FileStorageService
 from app.crud import users as crud_users
 import logging
 
-from app.utils import generate_listing_like_email, send_email
+from app.utils import generate_listing_like_email, send_email, generate_listing_save_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/listings", tags=["listings"])
@@ -179,6 +179,26 @@ def listing_like_email(*, session: SessionDep, email: str) -> Message:
 
     logger.info(f"Sending new message email to {user.email}")
     email_data = generate_listing_like_email(email_to=user.email)
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+    return Message(message="Email sent successfully.")
+
+@router.post("/save/{email}", response_model=Message)
+def listing_save_email(*, session: SessionDep, email: str) -> Message:
+
+    user = crud_users.get_user_by_email(session=session, email=email)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+
+    logger.info(f"Sending new message email to {user.email}")
+    email_data = generate_listing_save_email(email_to=user.email)
     send_email(
         email_to=user.email,
         subject=email_data.subject,
