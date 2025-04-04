@@ -14,14 +14,6 @@ import type {
   ItemsUpdateItemResponse,
   ItemsDeleteItemData,
   ItemsDeleteItemResponse,
-  LeaseAgreementsUploadLeaseAgreementData,
-  LeaseAgreementsUploadLeaseAgreementResponse,
-  LeaseAgreementsDeleteLeaseAgreementData,
-  LeaseAgreementsDeleteLeaseAgreementResponse,
-  LeaseAgreementsUpdateLeaseAgreementData,
-  LeaseAgreementsUpdateLeaseAgreementResponse,
-  LeaseAgreementsGetLeaseAgreementsData,
-  LeaseAgreementsGetLeaseAgreementsResponse,
   ListingsReadListingsData,
   ListingsReadListingsResponse,
   ListingsCreateListingData,
@@ -44,6 +36,14 @@ import type {
   ListingsUpdateListingImageResponse,
   ListingsGetListingImagesData,
   ListingsGetListingImagesResponse,
+  ListingsUploadLeaseAgreementData,
+  ListingsUploadLeaseAgreementResponse,
+  ListingsDeleteLeaseAgreementData,
+  ListingsDeleteLeaseAgreementResponse,
+  ListingsUpdateLeaseAgreementData,
+  ListingsUpdateLeaseAgreementResponse,
+  ListingsGetLeaseAgreementsData,
+  ListingsGetLeaseAgreementsResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
   LoginLoginAccessTokenPinData,
@@ -232,123 +232,6 @@ export class ItemsService {
       url: "/api/v1/items/{id}",
       path: {
         id: data.id,
-      },
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-}
-
-export class LeaseAgreementsService {
-  /**
-   * Upload Lease Agreement
-   * @param data The data for the request.
-   * @param data.listingId
-   * @param data.formData
-   * @param data.currentUser
-   * @returns LeaseAgreementPublic Successful Response
-   * @throws ApiError
-   */
-  public static uploadLeaseAgreement(
-    data: LeaseAgreementsUploadLeaseAgreementData,
-  ): CancelablePromise<LeaseAgreementsUploadLeaseAgreementResponse> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/listings/{listing_id}/lease-agreements/",
-      path: {
-        listing_id: data.listingId,
-      },
-      query: {
-        current_user: data.currentUser,
-      },
-      formData: data.formData,
-      mediaType: "multipart/form-data",
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-  /**
-   * Delete Lease Agreement
-   * @param data The data for the request.
-   * @param data.listingId
-   * @param data.agreementId
-   * @param data.currentUser
-   * @returns unknown Successful Response
-   * @throws ApiError
-   */
-  public static deleteLeaseAgreement(
-    data: LeaseAgreementsDeleteLeaseAgreementData,
-  ): CancelablePromise<LeaseAgreementsDeleteLeaseAgreementResponse> {
-    return __request(OpenAPI, {
-      method: "DELETE",
-      url: "/api/v1/listings/{listing_id}/lease-agreements/{agreement_id}",
-      path: {
-        listing_id: data.listingId,
-        agreement_id: data.agreementId,
-      },
-      query: {
-        current_user: data.currentUser,
-      },
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-  /**
-   * Update Lease Agreement
-   * Update lease agreement properties like description
-   * @param data The data for the request.
-   * @param data.listingId
-   * @param data.agreementId
-   * @param data.currentUser
-   * @param data.requestBody
-   * @returns LeaseAgreementPublic Successful Response
-   * @throws ApiError
-   */
-  public static updateLeaseAgreement(
-    data: LeaseAgreementsUpdateLeaseAgreementData,
-  ): CancelablePromise<LeaseAgreementsUpdateLeaseAgreementResponse> {
-    return __request(OpenAPI, {
-      method: "PUT",
-      url: "/api/v1/listings/{listing_id}/lease-agreements/{agreement_id}",
-      path: {
-        listing_id: data.listingId,
-        agreement_id: data.agreementId,
-      },
-      query: {
-        current_user: data.currentUser,
-      },
-      body: data.requestBody,
-      mediaType: "application/json",
-      errors: {
-        422: "Validation Error",
-      },
-    })
-  }
-
-  /**
-   * Get Lease Agreements
-   * @param data The data for the request.
-   * @param data.listingId
-   * @param data.currentUser
-   * @returns LeaseAgreementPublic Successful Response
-   * @throws ApiError
-   */
-  public static getLeaseAgreements(
-    data: LeaseAgreementsGetLeaseAgreementsData,
-  ): CancelablePromise<LeaseAgreementsGetLeaseAgreementsResponse> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/listings/{listing_id}/lease-agreements",
-      path: {
-        listing_id: data.listingId,
-      },
-      query: {
-        current_user: data.currentUser,
       },
       errors: {
         422: "Validation Error",
@@ -620,6 +503,121 @@ export class ListingsService {
       url: "/api/v1/listings/{listing_id}/images",
       path: {
         listing_id: data.listingId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Upload Lease Agreement
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.formData
+   * @param data.currentUser
+   * @returns LeaseAgreementPublic Successful Response
+   * @throws ApiError
+   */
+  public static uploadLeaseAgreement(
+    data: ListingsUploadLeaseAgreementData,
+  ): CancelablePromise<ListingsUploadLeaseAgreementResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/listings/{listing_id}/lease-agreements/",
+      path: {
+        listing_id: data.listingId,
+      },
+      query: {
+        current_user: data.currentUser,
+      },
+      formData: data.formData,
+      mediaType: "multipart/form-data",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Lease Agreement
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.agreementId
+   * @param data.currentUser
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static deleteLeaseAgreement(
+    data: ListingsDeleteLeaseAgreementData,
+  ): CancelablePromise<ListingsDeleteLeaseAgreementResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/listings/{listing_id}/lease-agreements/{agreement_id}",
+      path: {
+        listing_id: data.listingId,
+        agreement_id: data.agreementId,
+      },
+      query: {
+        current_user: data.currentUser,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Lease Agreement
+   * Update lease agreement properties like description
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.agreementId
+   * @param data.currentUser
+   * @param data.requestBody
+   * @returns LeaseAgreementPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateLeaseAgreement(
+    data: ListingsUpdateLeaseAgreementData,
+  ): CancelablePromise<ListingsUpdateLeaseAgreementResponse> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/listings/{listing_id}/lease-agreements/{agreement_id}",
+      path: {
+        listing_id: data.listingId,
+        agreement_id: data.agreementId,
+      },
+      query: {
+        current_user: data.currentUser,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Lease Agreements
+   * @param data The data for the request.
+   * @param data.listingId
+   * @param data.currentUser
+   * @returns LeaseAgreementPublic Successful Response
+   * @throws ApiError
+   */
+  public static getLeaseAgreements(
+    data: ListingsGetLeaseAgreementsData,
+  ): CancelablePromise<ListingsGetLeaseAgreementsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/listings/{listing_id}/lease-agreements",
+      path: {
+        listing_id: data.listingId,
+      },
+      query: {
+        current_user: data.currentUser,
       },
       errors: {
         422: "Validation Error",

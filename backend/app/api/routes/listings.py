@@ -56,7 +56,8 @@ def read_listings(
         listing_dict = listing.dict()
         # Convert Image objects to dictionaries
         listing_dict["images"] = [img.dict() for img in listing.images]
-        listing_dict["lease_agreement"] = listing.lease_agreement.dict()
+        if listing.lease_agreement:
+            listing_dict["lease_agreement"] = listing.lease_agreement.dict()
         processed_listings.append(ListingPublic.model_validate(listing_dict))
 
     return ListingsPublic(data=processed_listings, count=count)
@@ -81,7 +82,9 @@ def read_all_listings(
         listing_dict = listing.dict()
         # Convert Image objects to dictionaries
         listing_dict["images"] = [img.dict() for img in listing.images]
-        listing_dict["lease_agreement"] = listing.lease_agreement.dict()
+        if listing.lease_agreement:
+            listing_dict["lease_agreement"] = listing.lease_agreement.dict()
+
         processed_listings.append(ListingPublic.model_validate(listing_dict))
 
     return ListingsPublic(data=processed_listings, count=count)
@@ -101,7 +104,8 @@ def read_listing(*, session: SessionDep, current_user: CurrentUser, id: uuid.UUI
     # For images
     listing_dict = listing.dict()
     listing_dict["images"] = [img.dict() for img in listing.images]
-    listing_dict["lease_agreement"] = listing.lease_agreement.dict()
+    if listing.lease_agreement:
+        listing_dict["lease_agreement"] = listing.lease_agreement.dict()
     return ListingPublic.model_validate(listing_dict)
 
 
@@ -144,7 +148,8 @@ def update_listing(
 
     listing_dict = listing.dict()
     listing_dict["images"] = [img.dict() for img in listing.images]
-    listing_dict["lease_agreement"] = listing.lease_agreement.dict()
+    if listing.lease_agreement:
+        listing_dict["lease_agreement"] = listing.lease_agreement.dict()
 
     return ListingPublic.model_validate(listing_dict)
 
@@ -175,7 +180,6 @@ async def delete_listing(
 
 @router.post("/like/{email}", response_model=Message)
 def listing_like_email(*, session: SessionDep, email: str) -> Message:
-
     user = crud_users.get_user_by_email(session=session, email=email)
 
     if not user:

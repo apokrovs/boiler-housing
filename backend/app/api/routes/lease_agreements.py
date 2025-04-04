@@ -8,7 +8,7 @@ from app.models.lease_agreements import LeaseAgreement, LeaseAgreementPublic, Le
 from app.models.listings import Listing
 from app.services.file_service import FileStorageService, get_file_format
 
-router = APIRouter(prefix="/listings", tags=["lease_agreements"])
+router = APIRouter(prefix="/listings", tags=["listings"])
 
 def get_file_storage_service():
     from app.core.config import settings
