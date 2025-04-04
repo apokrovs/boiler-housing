@@ -509,9 +509,9 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                                 icon={<FaBookmark/>}
                                 size="lg"
                                 fontSize="xl"
-                                isActive={savedListings.has(listing.id)}
-                                colorScheme={savedListings.has(listing.id) ? "yellow" : "gray"}
-                                variant={savedListings.has(listing.id) ? "solid" : "ghost"}
+                                isActive={user.saved_listings?.includes(listing.id)}
+                                colorScheme={user.saved_listings?.includes(listing.id) ? "yellow" : "gray"}
+                                variant={user.saved_listings?.includes(listing.id) ? "solid" : "ghost"}
                                 onClick={() => {
                                     toggleSaveListing(listing.id)
                                     handleSave(listing.owner_id)
