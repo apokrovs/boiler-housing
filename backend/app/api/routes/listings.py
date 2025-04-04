@@ -56,6 +56,7 @@ def read_listings(
         listing_dict = listing.dict()
         # Convert Image objects to dictionaries
         listing_dict["images"] = [img.dict() for img in listing.images]
+        listing_dict["lease_agreement"] = listing.lease_agreement.dict()
         processed_listings.append(ListingPublic.model_validate(listing_dict))
 
     return ListingsPublic(data=processed_listings, count=count)
@@ -63,7 +64,7 @@ def read_listings(
 
 @router.get("/all", response_model=ListingsPublic)
 def read_all_listings(
-        session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+        session: SessionDep, skip: int = 0, limit: int = 100
 ) -> Any:
     """
     Retrieve listings.
@@ -80,6 +81,7 @@ def read_all_listings(
         listing_dict = listing.dict()
         # Convert Image objects to dictionaries
         listing_dict["images"] = [img.dict() for img in listing.images]
+        listing_dict["lease_agreement"] = listing.lease_agreement.dict()
         processed_listings.append(ListingPublic.model_validate(listing_dict))
 
     return ListingsPublic(data=processed_listings, count=count)
@@ -99,7 +101,7 @@ def read_listing(*, session: SessionDep, current_user: CurrentUser, id: uuid.UUI
     # For images
     listing_dict = listing.dict()
     listing_dict["images"] = [img.dict() for img in listing.images]
-
+    listing_dict["lease_agreement"] = listing.lease_agreement.dict()
     return ListingPublic.model_validate(listing_dict)
 
 
@@ -134,11 +136,17 @@ def update_listing(
     if not current_user.is_superuser and (listing.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     update_dict = listing_in.model_dump(exclude_unset=True)
+    update_dict["images"] = [img.dict() for img in listing.images]
     listing.sqlmodel_update(update_dict)
     session.add(listing)
     session.commit()
     session.refresh(listing)
-    return listing
+
+    listing_dict = listing.dict()
+    listing_dict["images"] = [img.dict() for img in listing.images]
+    listing_dict["lease_agreement"] = listing.lease_agreement.dict()
+
+    return ListingPublic.model_validate(listing_dict)
 
 
 @router.delete("/{id}")

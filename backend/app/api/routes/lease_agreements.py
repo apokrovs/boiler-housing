@@ -63,9 +63,13 @@ async def upload_lease_agreement(*,
         listing_id=listing_id
     )
 
+    listing.lease_agreement = new_agreement
+
     session.add(new_agreement)
+    session.add(listing)
     session.commit()
     session.refresh(new_agreement)
+    session.refresh(listing)
 
     return new_agreement
 
@@ -78,8 +82,11 @@ async def delete_lease_agreement(*,
                                  current_user=CurrentUser):
     # Check if listing exists and belongs to current user
     listing = session.get(Listing, listing_id)
-    if not listing or listing.owner_id != current_user.id:
+    if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
+
+    if not (current_user.is_superuser or current_user.id == listing.owner_id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
 
     # Get lease agreement
     agreement = session.get(LeaseAgreement, agreement_id)
@@ -95,7 +102,7 @@ async def delete_lease_agreement(*,
 
     return {"status": "success"}
 
-@router.get("/{listing_id}/lease-agreements", response_model=List[LeaseAgreementPublic])
+@router.get("/{listing_id}/lease-agreements", response_model=LeaseAgreementPublic)
 async def get_lease_agreements(*,
                                listing_id: uuid.UUID,
                                session: SessionDep,
@@ -112,7 +119,8 @@ async def get_lease_agreements(*,
     if listing.lease_agreement:
         return listing.lease_agreement
     else:
-        return None
+        raise HTTPException(status_code=404, detail="Lease Agreement Not Found")
+
 
 @router.put("/{listing_id}/lease-agreements/{agreement_id}", response_model=LeaseAgreementPublic)
 async def update_lease_agreement(*,

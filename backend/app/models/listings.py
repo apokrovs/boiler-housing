@@ -49,7 +49,7 @@ class ListingPublic(ListingBase):
     id: uuid.UUID
     owner_id: uuid.UUID
     images: List[dict] = []
-    lease_agreement: Optional[dict] = None
+    lease_agreement: dict = None
 
 class ListingsPublic(SQLModel):
     data: List[ListingPublic]
