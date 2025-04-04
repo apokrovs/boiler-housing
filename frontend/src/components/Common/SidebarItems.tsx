@@ -11,7 +11,6 @@ const items = [
     {icon: FiSettings, title: "User Settings", path: "/settings"},
     {icon: FiMessageCircle, title: "Messages", path: "/chat"},
     {icon: FiHelpCircle, title: "FAQ", path: "/faq"},
-    {icon: FiMessageCircle, title: "Renter Search", path: "/renter_search"},
 ]
 
 interface SidebarItemsProps {
@@ -30,20 +29,25 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
     }
     if (currentUser?.profile_type === "Renter" || currentUser?.profile_type === "Both") {
         finalItems.splice(2, 0, {
-                    icon: FiHome,
-                    title: "Listings",
-                    path: "/renter_listings"
-                },
-                {
-                    icon: FiUsers,
-                    title: "Roommates",
-                    path: "/roommates"
-                },
-                {
-                    icon: FiUsers,
-                    title: "Roommate Agreement",
-                    path: "/roommate_agreement"
-                }
+                icon: FiHome,
+                title: "Listings",
+                path: "/renter_listings"
+            },
+            {
+                icon: FiUsers,
+                title: "Roommates",
+                path: "/roommates"
+            },
+            {
+                icon: FiUsers,
+                title: "Roommate Agreement",
+                path: "/roommate_agreement"
+            },
+            {
+                icon: FiMessageCircle,
+                title: "Renter Search",
+                path: "/renter_search"
+            },
         );
 
     }
@@ -52,34 +56,34 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
     }
 
     const listItems = finalItems.map(({icon, title, path}) => (
-            <Flex
-                    as={Link}
-                    to={path}
-                    h="100%"
-                    p={2}
-                    key={title}
-                    activeProps={{
-                        style: {
-                            background: bgActive,
-                            borderRadius: "12px",
-                        },
-                    }}
-                    color={textColor}
-                    onClick={onClose}
-            >
-                <Icon as={icon} alignSelf="center"/>
-                <Text ml={2} fontSize="xl">{title}</Text>
-            </Flex>
+        <Flex
+            as={Link}
+            to={path}
+            h="100%"
+            p={2}
+            key={title}
+            activeProps={{
+                style: {
+                    background: bgActive,
+                    borderRadius: "12px",
+                },
+            }}
+            color={textColor}
+            onClick={onClose}
+        >
+            <Icon as={icon} alignSelf="center"/>
+            <Text ml={2} fontSize="xl">{title}</Text>
+        </Flex>
     ))
 
     return (
-            <>
-                <Box>
-                    <Flex direction="row" gap={4} wrap="wrap">
-                        {listItems}
-                    </Flex>
-                </Box>
-            </>
+        <>
+            <Box>
+                <Flex direction="row" gap={4} wrap="wrap">
+                    {listItems}
+                </Flex>
+            </Box>
+        </>
     )
 }
 
