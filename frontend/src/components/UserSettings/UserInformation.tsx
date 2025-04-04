@@ -37,36 +37,20 @@ const UserInformation = () => {
         handleSubmit,
         reset,
         getValues,
-        formState: {isSubmitting, errors},
+        formState: {isSubmitting, errors, isDirty},
     } = useForm<UserPublic>({
         mode: "onBlur",
         criteriaMode: "all",
         defaultValues: {
             full_name: currentUser?.full_name,
             email: currentUser?.email,
-            phone_number: currentUser?.phone_number,
-            bio: currentUser?.bio,
-            profile_type: currentUser?.profile_type
+            //TODO Need to update w phone#, bio, and profile type (renter/leaser)
         },
     })
-
-    const [profileType, setProfileType] = useState(currentUser?.profile_type);
-    const bgActive = useColorModeValue("#f0eee2", "#68634a")
 
     const toggleEditMode = () => {
         setEditMode(!editMode)
     }
-
-    const formatPhoneNumber = (phoneNumber: string | null | undefined): string => {
-        if (!phoneNumber) return "N/A";
-
-        const cleaned = phoneNumber.replace(/\D/g, "");
-
-        if (cleaned.length === 10) {
-            return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-        }
-        return phoneNumber;
-    };
 
     const mutation = useMutation({
         mutationFn: (data: UserUpdateMe) =>
@@ -83,7 +67,6 @@ const UserInformation = () => {
     })
 
     const onSubmit: SubmitHandler<UserUpdateMe> = async (data) => {
-        data.profile_type = profileType;
         mutation.mutate(data)
     }
 
@@ -152,34 +135,23 @@ const UserInformation = () => {
                             <FormErrorMessage>{errors.email.message}</FormErrorMessage>
                         )}
                     </FormControl>
-                    <FormControl mt={4} isInvalid={!!errors.phone_number}>
+                    <FormControl mt={4}>
                         <FormLabel color={color} htmlFor="phone">
-                            Phone Number:
+                            Phone Number (Optional):
                         </FormLabel>
                         {editMode ? (
                             <Input
                                 id="phone"
-                                {...register("phone_number", {
-                                    required: "Phone number is required",
-                                    pattern: {
-                                        value: /^\d{10}$/,
-                                        message: "Phone number must be exactly 10 digits"
-                                    }
-                                })}
-                                maxLength={10}
-                                placeholder="XXXXXXXXXX"
-                                type="number"
+                                placeholder="(XXX) XXX-XXXX"
+                                type="tel"
                                 size="md"
                                 w="auto"
                             />
                         ) : (
                             <Text size="md" py={2} color="#A0AEC0" isTruncated
                                   maxWidth="250px">
-                                {formatPhoneNumber(currentUser?.phone_number) || "N/A"}
+                                N/A
                             </Text>
-                        )}
-                        {errors.phone_number && (
-                            <FormErrorMessage>{errors.phone_number.message}</FormErrorMessage>
                         )}
                     </FormControl>
                     <Heading size="sm" py={2}>
@@ -188,7 +160,6 @@ const UserInformation = () => {
                     {editMode ? (
                         <Textarea
                             id="bio"
-                            {...register("bio")}
                             placeholder="Tell us about yourself..."
                             resize="none"
                             height="150px"
@@ -196,32 +167,27 @@ const UserInformation = () => {
                         />
                     ) : (
                         <Text height="150px" width="full" color="#A0AEC0">
-                            {currentUser?.bio || "No bio available."}
+                            No bio available.
                         </Text>
                     )}
                     <FormLabel py={2}>Profile Type:</FormLabel>
-                    {editMode ? (
-                        <RadioGroup onChange={setProfileType} value={profileType ?? undefined}>
-                            <Stack direction="row">
-                                <Radio value="Leaser">Leaser</Radio>
-                                <Radio value="Renter">Renter</Radio>
-                                <Radio value="Both">Both</Radio>
-                            </Stack>
-                        </RadioGroup>
-                    ) : (
-                        <Text width="full" color="#A0AEC0">
-                            {currentUser?.profile_type || "No specification chosen."}
-                        </Text>
-                    )}
-
+                    <RadioGroup defaultValue="renter">
+                        <Stack direction="row">
+                            <Radio value="leaser">Leaser</Radio>
+                            <Radio value="renter">Renter</Radio>
+                            <Radio value="both">Both</Radio>
+                        </Stack>
+                    </RadioGroup>
                     <Flex mt={4} gap={3}>
                         <Button
-                            bg={bgActive}
+                            bg="#68634a"
+                            _hover={{bg: "#5a5640"}}
+                            _active={{bg: "#4e4a38"}}
                             variant="solid"
                             onClick={toggleEditMode}
                             type={editMode ? "button" : "submit"}
                             isLoading={editMode ? isSubmitting : false}
-                            isDisabled={editMode ? !getValues("phone_number") || getValues("phone_number")?.length != 10 || !getValues("email") : false}
+                            isDisabled={editMode ? !isDirty || !getValues("email") : false}
                         >
                             {editMode ? "Save" : "Edit"}
                         </Button>

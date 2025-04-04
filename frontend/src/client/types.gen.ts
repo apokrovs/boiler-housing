@@ -78,17 +78,6 @@ export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
 
-export type ImagePublic = {
-  filename: string
-  file_path: string
-  file_type: FileType
-  file_size: number
-  is_primary?: boolean
-  display_order?: number
-  id: string
-  listing_id: string
-}
-
 export type ItemCreate = {
   title: string
   description?: string | null
@@ -701,7 +690,6 @@ export type UsersUpdate2FaStatusData = {
 }
 
 export type UsersUpdate2FaStatusResponse = UserPublic
-
 
 export type UsersReadUserTutorialStatusResponse = {
   [key: string]: unknown

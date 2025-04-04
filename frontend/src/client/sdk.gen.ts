@@ -1501,6 +1501,7 @@ export class UsersService {
     })
   }
 
+  /**
    * Read User Tutorial Status
    * @returns unknown Successful Response
    * @throws ApiError

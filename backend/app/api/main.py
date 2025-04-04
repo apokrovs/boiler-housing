@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter
+
 from app.core.config import settings
 from app.api.routes import (
     items,
