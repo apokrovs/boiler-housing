@@ -96,22 +96,16 @@ test("Successful log out", async ({ page }) => {
   await page.waitForURL("/login")
 })
 
-// /*test("30 second auto logout -- make better test in the future", async  ({page}) => {
-//   await page.goto("/login")
-//
-//   await fillForm(page, firstSuperuser, firstSuperuserPassword)
-//   await page.getByRole("button", { sender_name: "Log In" }).click()
-//   await page.waitForURL("/")
-//   await page.locator('text=User Settings').click();
-//   await page.goto("/settings")
-//   await page.locator('text=Security').click()
-//   await expect(page.locator('text=Automatic Logout Time')).toBeVisible();
-//   await page.getByRole('radio', { sender_name: '10 minutes' }).click();
-//   await page.locator('text=Update Auto Logout').click()
-//   await page.clock.fastForward(10 * 60 * 1000 )
-//
-//   await page.goto("/login")*/
-// })
+ test("auto logout", async  ({page}) => {
+   await page.goto("/login")
+
+   await fillForm(page, firstSuperuser, firstSuperuserPassword)
+   await page.getByRole("button", { name: "Log In" }).click()
+   await page.waitForURL("/")
+   await page.clock.fastForward(30 * 60 * 1000 )
+
+   await page.goto("/login")
+ })
 
 test("Logged-out user cannot access protected routes", async ({ page }) => {
   await page.goto("/login")

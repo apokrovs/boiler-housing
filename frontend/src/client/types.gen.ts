@@ -45,12 +45,34 @@ export type ConversationsPublic = {
   count: number
 }
 
+
 export type FileType =
   | "image/jpeg"
   | "image/jpg"
   | "image/png"
   | "image/webp"
   | "image/gif"
+
+export type FAQCreate = {
+  question: string
+  answer?: string | null
+}
+
+export type FAQPublic = {
+  question: string
+  answer?: string | null
+  id: string
+  created_at: string
+}
+
+export type FAQsPublic = {
+  data: Array<FAQPublic>
+  count: number
+}
+
+export type FAQUpdate = {
+  answer?: string | null
+}
 
 export type HTTPValidationError = {
   detail?: Array<ValidationError>
@@ -179,6 +201,14 @@ export type PrivateUserCreate = {
   is_verified?: boolean
 }
 
+export type PrivateUserCreateWithProfile = {
+  email: string
+  password: string
+  full_name: string
+  profile_type: string
+  is_verified?: boolean
+}
+
 export type ReadReceipt = {
   user_id: string
   read_at: string
@@ -217,7 +247,13 @@ export type UserCreate = {
   profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
-  saved_listings?: Array<string>
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   password: string
 }
 
@@ -231,7 +267,13 @@ export type UserPublic = {
   profile_type?: string | null
   auto_logout?: number
   is_2fa_enabled?: boolean | null
-  saved_listings?: Array<string>
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   id: string
 }
 
@@ -258,7 +300,13 @@ export type UserUpdate = {
   profile_type?: string | null
   auto_logout?: number | null
   is_2fa_enabled?: boolean | null
-  saved_listings?: Array<string>
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
   password?: string | null
   pin?: string | null
 }
@@ -270,12 +318,48 @@ export type UserUpdateMe = {
   bio?: string | null
   profile_type?: string | null
   auto_logout?: number | null
+  hasTakenRoommateQuiz?: boolean | null
+  cleanScore?: number | null
+  visitScore?: number | null
+  sleepTime?: number | null
+  pets?: number | null
+  smoking?: number | null
+  alcoholScore?: number | null
 }
 
 export type ValidationError = {
   loc: Array<string | number>
   msg: string
   type: string
+}
+
+export type FaqGetAllFaqsResponse = FAQsPublic
+
+export type FaqCreateFaqData = {
+  requestBody: FAQCreate
+}
+
+export type FaqCreateFaqResponse = FAQPublic
+
+export type FaqGetFaqData = {
+  faqId: string
+}
+
+export type FaqGetFaqResponse = FAQPublic
+
+export type FaqUpdateFaqData = {
+  faqId: string
+  requestBody: FAQUpdate
+}
+
+export type FaqUpdateFaqResponse = FAQPublic
+
+export type FaqDeleteFaqData = {
+  faqId: string
+}
+
+export type FaqDeleteFaqResponse = {
+  [key: string]: unknown
 }
 
 export type ItemsReadItemsData = {
@@ -527,6 +611,12 @@ export type PrivateCreateUserData = {
 
 export type PrivateCreateUserResponse = UserPublic
 
+export type PrivateCreateUserWithProfileData = {
+  requestBody: PrivateUserCreateWithProfile
+}
+
+export type PrivateCreateUserWithProfileResponse = UserPublic
+
 export type UsersReadUsersData = {
   limit?: number
   skip?: number
@@ -539,6 +629,13 @@ export type UsersCreateUserData = {
 }
 
 export type UsersCreateUserResponse = UserPublic
+
+export type UsersReadRentersData = {
+  limit?: number
+  skip?: number
+}
+
+export type UsersReadRentersResponse = UsersPublic
 
 export type UsersReadUserByEmailData = {
   email: string
@@ -605,11 +702,12 @@ export type UsersUpdate2FaStatusData = {
 
 export type UsersUpdate2FaStatusResponse = UserPublic
 
-export type UsersUpdateSavedListingsData = {
-  requestBody: UpdateSavedListings
+
+export type UsersReadUserTutorialStatusResponse = {
+  [key: string]: unknown
 }
 
-export type UsersUpdateSavedListingsResponse = UserPublic
+export type UsersCompleteProfileTutorialResponse = Message
 
 export type UtilsTestEmailData = {
   emailTo: string

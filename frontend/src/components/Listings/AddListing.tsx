@@ -146,6 +146,7 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
         register,
         handleSubmit,
         reset,
+        getValues,
         formState: {errors, isSubmitting},
     } = useForm<ListingCreate>({
         mode: "onBlur",
@@ -469,7 +470,22 @@ const AddListing = ({isOpen, onClose}: AddListingProps) => {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button colorScheme='blue' mr={3} type="submit" isLoading={isSubmitting}>
+                        <Button
+                            colorScheme='blue'
+                            mr={3} type="submit"
+                            isLoading={isSubmitting}
+                            isDisabled={
+                                isSubmitting ||
+                                Object.keys(errors).length > 0 ||
+                                !getValues("address") ||
+                                !getValues("num_bedrooms") ||
+                                !getValues("num_bathrooms") ||
+                                !getValues("rent") ||
+                                leaseStartDate === "" ||
+                                leaseEndDate === "" ||
+                                dateError !== ""
+                            }
+                        >
                             Add Listing
                         </Button>
                         <Button variant='ghost' onClick={onCancel}>Cancel</Button>

@@ -20,6 +20,13 @@ class UserBase(SQLModel):
     auto_logout: float = Field(default=30)
     is_2fa_enabled: bool | None = Field(default=False)
     saved_listings: List[str] = []
+    hasTakenRoommateQuiz: bool | None = Field(default=False)
+    cleanScore: int | None = Field(default=None)
+    visitScore: int | None = Field(default=None)
+    sleepTime: int | None = Field(default=None)
+    pets: int | None = Field(default=None)
+    smoking: int | None = Field(default=None)
+    alcoholScore: int | None = Field(default=None)
 
 
 # Properties to receive via API on creation
@@ -42,6 +49,13 @@ class UserUpdate(UserBase):
     auto_logout: float | None = Field(default=30)
     pin: str | None = Field(default=None, min_length=4, max_length=4)
     is_2fa_enabled: bool | None = Field(default=False)
+    hasTakenRoommateQuiz: bool | None = Field(default=False)
+    cleanScore: int | None = Field(default=None)
+    visitScore: int | None = Field(default=None)
+    sleepTime: int | None = Field(default=None)
+    pets: int | None = Field(default=None)
+    smoking: int | None = Field(default=None)
+    alcoholScore: int | None = Field(default=None)
 
 
 class UserUpdateMe(SQLModel):
@@ -51,6 +65,13 @@ class UserUpdateMe(SQLModel):
     bio: str | None = Field(default=None, max_length=255)
     profile_type: str | None = Field(default=None, max_length=255)
     auto_logout: float | None = Field(default=30)
+    hasTakenRoommateQuiz: bool | None = Field(default=False)
+    cleanScore: int | None = Field(default=None)
+    visitScore: int | None = Field(default=None)
+    sleepTime: int | None = Field(default=None)
+    pets: int | None = Field(default=None)
+    smoking: int | None = Field(default=None)
+    alcoholScore: int | None = Field(default=None)
 
 
 class UpdatePassword(SQLModel):
@@ -71,6 +92,7 @@ class User(UserBase, table=True):
     is_2fa_enabled: bool | None = Field(default=False)
     latest_otp: str | None = Field(default=None)
     items: List["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    profile_tutorial_completed: bool = Field(default=False)
 
     # Add these fields for user blocking
     blocked_users: List["UserBlock"] = Relationship(

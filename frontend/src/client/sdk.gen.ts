@@ -4,6 +4,15 @@ import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
 import type {
+  FaqGetAllFaqsResponse,
+  FaqCreateFaqData,
+  FaqCreateFaqResponse,
+  FaqGetFaqData,
+  FaqGetFaqResponse,
+  FaqUpdateFaqData,
+  FaqUpdateFaqResponse,
+  FaqDeleteFaqData,
+  FaqDeleteFaqResponse,
   ItemsReadItemsData,
   ItemsReadItemsResponse,
   ItemsCreateItemData,
@@ -80,10 +89,14 @@ import type {
   MessagesNewMessageEmailResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
+  PrivateCreateUserWithProfileData,
+  PrivateCreateUserWithProfileResponse,
   UsersReadUsersData,
   UsersReadUsersResponse,
   UsersCreateUserData,
   UsersCreateUserResponse,
+  UsersReadRentersData,
+  UsersReadRentersResponse,
   UsersReadUserByEmailData,
   UsersReadUserByEmailResponse,
   UsersReadUserMeResponse,
@@ -106,12 +119,116 @@ import type {
   UsersDeleteUserResponse,
   UsersUpdate2FaStatusData,
   UsersUpdate2FaStatusResponse,
-  UsersUpdateSavedListingsData,
-  UsersUpdateSavedListingsResponse,
+  UsersReadUserTutorialStatusResponse,
+  UsersCompleteProfileTutorialResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
 } from "./types.gen"
+
+export class FaqService {
+  /**
+   * Get All Faqs
+   * @returns FAQsPublic Successful Response
+   * @throws ApiError
+   */
+  public static getAllFaqs(): CancelablePromise<FaqGetAllFaqsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/faq/",
+    })
+  }
+
+  /**
+   * Create Faq
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns FAQPublic Successful Response
+   * @throws ApiError
+   */
+  public static createFaq(
+    data: FaqCreateFaqData,
+  ): CancelablePromise<FaqCreateFaqResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/faq/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Faq
+   * @param data The data for the request.
+   * @param data.faqId
+   * @returns FAQPublic Successful Response
+   * @throws ApiError
+   */
+  public static getFaq(
+    data: FaqGetFaqData,
+  ): CancelablePromise<FaqGetFaqResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/faq/{faq_id}",
+      path: {
+        faq_id: data.faqId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Faq
+   * @param data The data for the request.
+   * @param data.faqId
+   * @param data.requestBody
+   * @returns FAQPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateFaq(
+    data: FaqUpdateFaqData,
+  ): CancelablePromise<FaqUpdateFaqResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/faq/{faq_id}",
+      path: {
+        faq_id: data.faqId,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Faq
+   * @param data The data for the request.
+   * @param data.faqId
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static deleteFaq(
+    data: FaqDeleteFaqData,
+  ): CancelablePromise<FaqDeleteFaqResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/faq/{faq_id}",
+      path: {
+        faq_id: data.faqId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
 
 export class ItemsService {
   /**
@@ -1032,6 +1149,28 @@ export class PrivateService {
       },
     })
   }
+
+  /**
+   * Create User With Profile
+   * Create a new user with a profile type.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static createUserWithProfile(
+    data: PrivateCreateUserWithProfileData,
+  ): CancelablePromise<PrivateCreateUserWithProfileResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/private/users/profile",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
 }
 
 export class UsersService {
@@ -1076,6 +1215,31 @@ export class UsersService {
       url: "/api/v1/users/",
       body: data.requestBody,
       mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read Renters
+   * Retrieve renter users (authenticated access).
+   * @param data The data for the request.
+   * @param data.skip
+   * @param data.limit
+   * @returns UsersPublic Successful Response
+   * @throws ApiError
+   */
+  public static readRenters(
+    data: UsersReadRentersData = {},
+  ): CancelablePromise<UsersReadRentersResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/users/renter",
+      query: {
+        skip: data.skip,
+        limit: data.limit,
+      },
       errors: {
         422: "Validation Error",
       },
@@ -1337,25 +1501,27 @@ export class UsersService {
     })
   }
 
-  /**
-   * Update Saved Listings
-   * Update the saved listings for the current user.
-   * @param data The data for the request.
-   * @param data.requestBody
-   * @returns UserPublic Successful Response
+   * Read User Tutorial Status
+   * @returns unknown Successful Response
    * @throws ApiError
    */
-  public static updateSavedListings(
-    data: UsersUpdateSavedListingsData,
-  ): CancelablePromise<UsersUpdateSavedListingsResponse> {
+  public static readUserTutorialStatus(): CancelablePromise<UsersReadUserTutorialStatusResponse> {
     return __request(OpenAPI, {
-      method: "PATCH",
-      url: "/api/v1/users/me/saved_listings",
-      body: data.requestBody,
-      mediaType: "application/json",
-      errors: {
-        422: "Validation Error",
-      },
+      method: "GET",
+      url: "/api/v1/users/me/tutorial",
+    })
+  }
+
+  /**
+   * Complete Profile Tutorial
+   * Mark profile tutorial as completed.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static completeProfileTutorial(): CancelablePromise<UsersCompleteProfileTutorialResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/users/me/tutorial/complete",
     })
   }
 }
