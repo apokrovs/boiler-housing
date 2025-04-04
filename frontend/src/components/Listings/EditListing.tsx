@@ -72,6 +72,7 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
         register,
         handleSubmit,
         reset,
+        getValues,
         formState: {isSubmitting, errors},
     } = useForm<ListingUpdate>({
         mode: "onBlur",
@@ -296,7 +297,23 @@ const EditListing = ({listing, isOpen, onClose}: EditListingProps) => {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button colorScheme='blue' mr={3} type="submit" isLoading={isSubmitting}>
+                        <Button
+                            colorScheme='blue'
+                            mr={3}
+                            type="submit"
+                            isLoading={isSubmitting}
+                            isDisabled={
+                                isSubmitting ||
+                                Object.keys(errors).length > 0 ||
+                                !getValues("address") ||
+                                !getValues("num_bedrooms") ||
+                                !getValues("num_bathrooms") ||
+                                !getValues("rent") ||
+                                leaseStartDate === "" ||
+                                leaseEndDate === "" ||
+                                dateError !== ""
+                            }
+                        >
                             Update Listing
                         </Button>
                         <Button variant='ghost' onClick={onCancel}>Cancel</Button>

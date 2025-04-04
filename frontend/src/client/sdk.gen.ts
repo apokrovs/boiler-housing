@@ -75,6 +75,8 @@ import type {
   MessagesCheckUserBlockedResponse,
   PrivateCreateUserData,
   PrivateCreateUserResponse,
+  PrivateCreateUserWithProfileData,
+  PrivateCreateUserWithProfileResponse,
   UsersReadUsersData,
   UsersReadUsersResponse,
   UsersCreateUserData,
@@ -950,6 +952,28 @@ export class PrivateService {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/private/users/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create User With Profile
+   * Create a new user with a profile type.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static createUserWithProfile(
+    data: PrivateCreateUserWithProfileData,
+  ): CancelablePromise<PrivateCreateUserWithProfileResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/private/users/profile",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {

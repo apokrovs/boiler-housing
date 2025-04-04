@@ -20,3 +20,21 @@ export const createUser = async ({
     },
   })
 }
+
+export const createUserWithProfile = async ({
+  email,
+  password, profile_type
+}: {
+  email: string
+  password: string
+    profile_type: string
+}) => {
+  return await PrivateService.createUserWithProfile({
+    requestBody: {
+      email,
+      password, profile_type,
+      is_verified: true,
+      full_name: "Test User",
+    },
+  })
+}

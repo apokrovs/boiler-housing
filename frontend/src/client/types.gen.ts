@@ -41,9 +41,9 @@ export type FAQCreate = {
 }
 
 export type FAQPublic = {
-  id: string
   question: string
   answer?: string | null
+  id: string
   created_at: string
 }
 
@@ -166,6 +166,14 @@ export type PrivateUserCreate = {
   email: string
   password: string
   full_name: string
+  is_verified?: boolean
+}
+
+export type PrivateUserCreateWithProfile = {
+  email: string
+  password: string
+  full_name: string
+  profile_type: string
   is_verified?: boolean
 }
 
@@ -517,6 +525,12 @@ export type PrivateCreateUserData = {
 }
 
 export type PrivateCreateUserResponse = UserPublic
+
+export type PrivateCreateUserWithProfileData = {
+  requestBody: PrivateUserCreateWithProfile
+}
+
+export type PrivateCreateUserWithProfileResponse = UserPublic
 
 export type UsersReadUsersData = {
   limit?: number
