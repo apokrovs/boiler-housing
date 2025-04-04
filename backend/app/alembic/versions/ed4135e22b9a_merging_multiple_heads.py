@@ -1,8 +1,8 @@
-"""Add messaging table and blocking rules to user
+"""merging multiple heads
 
-Revision ID: 727bd0825888
-Revises: 9d2c7eb6f434
-Create Date: 2025-03-07 00:41:27.135468
+Revision ID: ed4135e22b9a
+Revises: 2da5867559e2, c5614be91309
+Create Date: 2025-04-03 23:31:20.482910
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '727bd0825888'
-down_revision: Union[str, None] = '9d2c7eb6f434'
+revision: str = 'ed4135e22b9a'
+down_revision: Union[str, None] = ('2da5867559e2', 'c5614be91309')
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

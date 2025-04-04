@@ -35,6 +35,27 @@ export type ConversationsPublic = {
   count: number
 }
 
+export type FAQCreate = {
+  question: string
+  answer?: string | null
+}
+
+export type FAQPublic = {
+  id: string
+  question: string
+  answer?: string | null
+  created_at: string
+}
+
+export type FAQsPublic = {
+  data: Array<FAQPublic>
+  count: number
+}
+
+export type FAQUpdate = {
+  answer?: string | null
+}
+
 export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
@@ -213,6 +234,35 @@ export type ValidationError = {
   type: string
 }
 
+export type FaqGetAllFaqsResponse = FAQsPublic
+
+export type FaqCreateFaqData = {
+  requestBody: FAQCreate
+}
+
+export type FaqCreateFaqResponse = FAQPublic
+
+export type FaqGetFaqData = {
+  faqId: string
+}
+
+export type FaqGetFaqResponse = FAQPublic
+
+export type FaqUpdateFaqData = {
+  faqId: string
+  requestBody: FAQUpdate
+}
+
+export type FaqUpdateFaqResponse = FAQPublic
+
+export type FaqDeleteFaqData = {
+  faqId: string
+}
+
+export type FaqDeleteFaqResponse = {
+  [key: string]: unknown
+}
+
 export type ItemsReadItemsData = {
   limit?: number
   skip?: number
@@ -387,6 +437,13 @@ export type UsersCreateUserData = {
 
 export type UsersCreateUserResponse = UserPublic
 
+export type UsersReadRentersData = {
+  limit?: number
+  skip?: number
+}
+
+export type UsersReadRentersResponse = UsersPublic
+
 export type UsersReadUserByEmailData = {
   email: string
 }
@@ -451,6 +508,12 @@ export type UsersUpdate2FaStatusData = {
 }
 
 export type UsersUpdate2FaStatusResponse = UserPublic
+
+export type UsersReadUserTutorialStatusResponse = {
+  [key: string]: unknown
+}
+
+export type UsersCompleteProfileTutorialResponse = Message
 
 export type UtilsTestEmailData = {
   emailTo: string

@@ -83,6 +83,7 @@ class User(UserBase, table=True):
     latest_otp: str | None = Field(default=None)
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
     items: List["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    profile_tutorial_completed: bool = Field(default=False)
 
     # Add these fields for user blocking
     blocked_users: List["UserBlock"] = Relationship(
