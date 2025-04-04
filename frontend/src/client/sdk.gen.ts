@@ -127,6 +127,8 @@ import type {
   UsersDeleteUserResponse,
   UsersUpdate2FaStatusData,
   UsersUpdate2FaStatusResponse,
+  UsersUpdateSavedListingsData,
+  UsersUpdateSavedListingsResponse,
   UsersReadUserTutorialStatusResponse,
   UsersCompleteProfileTutorialResponse,
   UtilsTestEmailData,
@@ -1624,6 +1626,29 @@ export class UsersService {
     })
   }
 
+  /**
+   * Update Saved Listings
+   * Update the saved listings for the current user.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateSavedListings(
+    data: UsersUpdateSavedListingsData,
+  ): CancelablePromise<UsersUpdateSavedListingsResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/users/me/saved_listings",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
    * Read User Tutorial Status
    * @returns unknown Successful Response
    * @throws ApiError

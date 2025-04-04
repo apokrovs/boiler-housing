@@ -29,7 +29,7 @@ import {createFileRoute} from "@tanstack/react-router";
 import {ConversationCreate, ListingPublic, ListingsService, MessagesService, UsersService} from "../../client";
 import {useQuery} from "@tanstack/react-query";
 import {createEvent} from "ics";
-import {ChevronLeftIcon, ChevronRightIcon, IconButton} from "@chakra-ui/icons";
+import {ChevronLeftIcon, ChevronRightIcon} from "@chakra-ui/icons";
 import {FaHeart, FaBookmark, FaComment, FaFile} from "react-icons/fa";
 import {useEffect, useState} from "react";
 import {
@@ -154,7 +154,6 @@ async function fetchSavedListings(user: { saved_listings?: string[]; id?: string
     return {data: listings};
 }
 
-
 function getSavedListingsQuery(user: { saved_listings?: string[]; id?: string }) {
     return {
         queryKey: ["saved_listings", user?.id, user?.saved_listings],
@@ -162,11 +161,9 @@ function getSavedListingsQuery(user: { saved_listings?: string[]; id?: string })
     };
 }
 
-
 interface NewConversationProps {
     onNewConversation?: (conversationId: string, isGroup: boolean, name?: string) => void;
 }
-
 
 function RenterListings({onNewConversation}: NewConversationProps) {
     const {
@@ -219,7 +216,7 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                 duration: 2000,
                 isClosable: true,
             });
-            await queryClient.invalidateQueries(["saved_listings", user?.id, user?.saved_listings]);
+            await queryClient.invalidateQueries({queryKey: ["saved_listings", user?.id, user?.saved_listings]});
         } catch (error) {
             toast({
                 title: "Error updating saved listings",
@@ -331,12 +328,14 @@ function RenterListings({onNewConversation}: NewConversationProps) {
             email: userData.email,
         })
     }
+
     const handleSave = async (owner_id: string) => {
         const userData = await UsersService.readUserById({userId: owner_id});
         ListingsService.listingSaveEmail({
             email: userData.email,
         })
     }
+
     const handleInquiry = async (owner_id: string) => {
         setSelectedUsers([owner_id]);
         if (!user) {
@@ -384,6 +383,153 @@ function RenterListings({onNewConversation}: NewConversationProps) {
         }
     }
 
+    // Render card component for each listing
+    const renderListingCard = (listing: ListingPublic) => (
+            <Card
+                    key={listing.id}
+                    width="300px"
+                    size="lg"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    overflow="hidden"
+                    flexShrink={0}
+            >
+                <Box height="200px" position="relative" overflow="hidden">
+                    <ImageSlideshow images={listing.images || []}/>
+                </Box>
+                <CardHeader>
+                    <Heading
+                            size="md"
+                            whiteSpace="normal"
+                            wordBreak="break-word"
+                    >
+                        {listing.address}
+                    </Heading>
+                </CardHeader>
+                <CardBody>
+                    <VStack align="start" spacing={2}>
+                        <Text fontSize="sm" whiteSpace="normal" wordBreak="break-word">
+                            {listing.realty_company}
+                        </Text>
+                        <HStack spacing={2}>
+                            <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
+                            <Badge colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
+                        </HStack>
+                        <Text fontWeight="bold">
+                            Rent: ${listing.rent?.toLocaleString()}
+                        </Text>
+                        <Text fontSize="sm">
+                            Security Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
+                        </Text>
+                        {listing.included_utilities && (
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        Utilities:
+                                    </Text>
+                                    <HStack wrap="wrap" spacing={1}>
+                                        {listing.included_utilities.map((utility) => (
+                                                <Badge key={utility} colorScheme="green">
+                                                    {utility}
+                                                </Badge>
+                                        ))}
+                                    </HStack>
+                                </Box>
+                        )}
+                        {listing.amenities && (
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        Amenities:
+                                    </Text>
+                                    <HStack wrap="wrap" spacing={1}>
+                                        {listing.amenities.map((amenity) => (
+                                                <Badge key={amenity} colorScheme="pink">
+                                                    {amenity}
+                                                </Badge>
+                                        ))}
+                                    </HStack>
+                                </Box>
+                        )}
+                        <Menu placement="bottom">
+                            <MenuButton textAlign="center">
+                                <Text fontSize="sm">
+                                    Lease: {listing.lease_start_date} → {listing.lease_end_date}
+                                </Text>
+                            </MenuButton>
+                            <Portal>
+                                <MenuList zIndex="popover">
+                                    <>
+                                        <MenuItem
+                                                onClick={() => handleGoogleExport(listing.lease_start_date ?? "",
+                                                        listing.lease_end_date ?? "")}>
+                                            Export to Google
+                                        </MenuItem>
+                                        <MenuItem
+                                                onClick={() => handleICSExport(listing.lease_start_date ?? "",
+                                                        listing.lease_end_date ?? "")}>
+                                            Export to iCal
+                                        </MenuItem>
+                                        <MenuItem
+                                                onClick={() => handleOutlookExport(
+                                                        listing.lease_start_date ?? "",
+                                                        listing.lease_end_date ?? "")}>
+                                            Export to Outlook
+                                        </MenuItem>
+                                    </>
+                                </MenuList>
+                            </Portal>
+                        </Menu>
+                    </VStack>
+                    <HStack spacing={4} mt={4} justifyContent="center">
+                        {/* Lease agreement icon button */}
+                        {listing.lease_agreement && (
+                                <IconButton
+                                        aria-label="View Lease Agreement"
+                                        icon={<FaFile/>}
+                                        size="lg"
+                                        variant="ghost"
+                                        onClick={() => {
+                                            const url = `${import.meta.env.VITE_API_URL}/uploads/${listing.lease_agreement!.file_path}`;
+                                            setLeaseFileUrl(url);
+                                            setLeaseFileName(listing.lease_agreement!.filename as string);
+                                            leaseModal.onOpen();
+                                        }}
+                                />
+                        )}
+
+                        <IconButton
+                                aria-label="Favorite"
+                                icon={<FaHeart/>}
+                                fontSize="xl"
+                                size="lg"
+                                variant={"ghost"}
+                                onClick={() => handleLike(listing.owner_id)}
+                        />
+                        <IconButton
+                                aria-label="Save"
+                                icon={<FaBookmark/>}
+                                size="lg"
+                                fontSize="xl"
+                                isActive={savedListings.has(listing.id)}
+                                colorScheme={savedListings.has(listing.id) ? "yellow" : "gray"}
+                                variant={savedListings.has(listing.id) ? "solid" : "ghost"}
+                                onClick={() => {
+                                    toggleSaveListing(listing.id)
+                                    handleSave(listing.owner_id)
+                                }}
+                        />
+                        <IconButton
+                                aria-label="Inquiry"
+                                icon={<FaComment/>}
+                                variant="ghost"
+                                size="lg"
+                                fontSize="xl"
+                                onClick={() => handleInquiry(listing.owner_id)}
+                        />
+                    </HStack>
+                </CardBody>
+            </Card>
+    );
+
     return (
             <Container maxW="full">
                 <Heading size="lg" textAlign={{base: "center", md: "left"}} pt={12}>
@@ -395,7 +541,6 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                         <Tab>Saved Listings</Tab>
                     </TabList>
                     <TabPanels>
-                        {/* All Listings Tab */}
                         <TabPanel>
                             <Box overflowX="auto" whiteSpace="nowrap" p={4}>
                                 <Flex gap={4}>
@@ -404,206 +549,11 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                                                 No listings available
                                             </Text>
                                     ) : (
-                                            listings?.data.map((listing) => (
-                                                    <Card
-                                                            key={listing.id}
-                                                            width="300px"
-                                                            size="lg"
-                                                            border="1px solid"
-                                                            borderColor="gray.200"
-                                                            overflow="hidden"
-                                                            flexShrink={0}
-                                                    >
-                                                        <Box height="200px" position="relative" overflow="hidden">
-                                                            {listing.images && listing.images.length > 0 ? (
-                                                                    listing.images
-                                                                            .filter(img => img.is_primary)
-                                                                            .map((img, idx) => (
-                                                                                    <Image
-                                                                                            key={idx}
-                                                                                            src={`${import.meta.env.VITE_API_URL}/uploads/${img.file_path}`}
-                                                                                            alt={listing.address || "Image"}
-                                                                                            objectFit="cover"
-                                                                                            width="100%"
-                                                                                            height="100%"
-                                                                                            alignItems="center"
-                                                                                    />
-                                                                            ))
-                                                            ) : (
-                                                                    <Box
-                                                                            bg="gray.100"
-                                                                            width="100%"
-                                                                            height="100%"
-                                                                            display="flex"
-                                                                            alignItems="center"
-                                                                            justifyContent="center"
-                                                                    >
-                                                                        <Text color="gray.500">No Image</Text>
-                                                                    </Box>
-                                                            )}
-                                                        </Box>
-                                                        <CardHeader>
-                                                            <Heading
-                                                                    size="md"
-                                                                    whiteSpace="normal"
-                                                                    wordBreak="break-word"
-                                                            >
-                                                                {listing.address}
-                                                            </Heading>
-                                                        </CardHeader>
-                                                        <CardBody>
-                                                            <VStack align="start" spacing={2}>
-                                                                {/* Realty Company */}
-                                                                <Text fontSize="sm" whiteSpace="normal"
-                                                                      wordBreak="break-word">
-                                                                    {listing.realty_company}
-                                                                </Text>
-
-
-                                                                {/* Bedrooms & Bathrooms */}
-                                                                <HStack spacing={2}>
-                                                                    <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
-                                                                    <Badge
-                                                                            colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
-                                                                </HStack>
-
-
-                                                                {/* Rent & Security Deposit */}
-                                                                <Text fontWeight="bold">
-                                                                    Rent: ${listing.rent?.toLocaleString()}
-                                                                </Text>
-                                                                <Text fontSize="sm">
-                                                                    Security
-                                                                    Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
-                                                                </Text>
-
-
-                                                                {/* Included Utilities */}
-                                                                {listing.included_utilities && (
-                                                                        <Box>
-                                                                            <Text fontSize="sm" fontWeight="semibold">
-                                                                                Utilities:
-                                                                            </Text>
-                                                                            <HStack wrap="wrap" spacing={1}>
-                                                                                {listing.included_utilities.map((utility) => (
-                                                                                        <Badge key={utility}
-                                                                                               colorScheme="green">
-                                                                                            {utility}
-                                                                                        </Badge>
-                                                                                ))}
-                                                                            </HStack>
-                                                                        </Box>
-                                                                )}
-
-
-                                                                {/* Amenities */}
-                                                                {listing.amenities && (
-                                                                        <Box>
-                                                                            <Text fontSize="sm" fontWeight="semibold">
-                                                                                Amenities:
-                                                                            </Text>
-                                                                            <HStack wrap="wrap" spacing={1}>
-                                                                                {listing.amenities.map((amenity) => (
-                                                                                        <Badge key={amenity}
-                                                                                               colorScheme="pink">
-                                                                                            {amenity}
-                                                                                        </Badge>
-                                                                                ))}
-                                                                            </HStack>
-                                                                        </Box>
-                                                                )}
-
-
-                                                                {/* Lease Period */}
-                                                                <Menu placement="bottom">
-                                                                    <MenuButton textAlign="center">
-                                                                        <Text fontSize="sm">
-                                                                            Lease: {listing.lease_start_date} → {listing.lease_end_date}
-                                                                        </Text>
-                                                                    </MenuButton>
-                                                                    <Portal>
-                                                                        <MenuList zIndex="popover">
-                                                                            <>
-                                                                                <MenuItem
-                                                                                        onClick={() => handleGoogleExport(listing.lease_start_date ?? ""
-                                                                                                , listing.lease_end_date ?? "")}>Export
-                                                                                    to
-                                                                                    Google</MenuItem>
-                                                                                <MenuItem
-                                                                                        onClick={() => handleICSExport(listing.lease_start_date ?? ""
-                                                                                                , listing.lease_end_date ?? "")}>Export
-                                                                                    to
-                                                                                    iCal</MenuItem>
-
-
-                                                                                <MenuItem
-                                                                                        onClick={() => handleOutlookExport(
-                                                                                                listing.lease_start_date ?? ""
-                                                                                                , listing.lease_end_date ?? "")}>Export
-                                                                                    to
-                                                                                    Outlook</MenuItem>
-                                                                            </>
-
-
-                                                                        </MenuList>
-                                                                    </Portal>
-                                                                </Menu>
-                                                            </VStack>
-                                                            <HStack spacing={4} mt={4} justifyContent="center">
-                                                                {/* Lease agreement icon button */}
-                                                                {listing.lease_agreement && (
-                                                                        <IconButton
-                                                                                aria-label="View Lease Agreement"
-                                                                                icon={<FaFile/>}
-                                                                                size="lg"
-                                                                                variant="ghost"
-                                                                                onClick={() => {
-                                                                                    const url = `${import.meta.env.VITE_API_URL}/uploads/${listing.lease_agreement!.file_path}`;
-                                                                                    setLeaseFileUrl(url);
-                                                                                    setLeaseFileName(listing.lease_agreement!.filename as string);
-                                                                                    leaseModal.onOpen();
-                                                                                }}
-                                                                        />
-                                                                )}
-                                                                <IconButton
-                                                                        aria-label="Favorite"
-                                                                        icon={<FaHeart/>}
-                                                                        fontSize="xl"
-                                                                        size="lg"
-                                                                        variant={"ghost"}
-                                                                        onClick={() => handleLike(listing.owner_id)}
-                                                                />
-                                                                <IconButton
-                                                                        aria-label="Save"
-                                                                        icon={<FaBookmark/>}
-                                                                        size="lg"
-                                                                        fontSize="xl"
-                                                                        isActive={savedListings.has(listing.id)}
-                                                                        colorScheme={savedListings.has(listing.id) ? "yellow" : "gray"}
-                                                                        variant={savedListings.has(listing.id) ? "solid" : "ghost"}
-                                                                        onClick={() => {
-                                                                            toggleSaveListing(listing.id);
-                                                                            handleSave(listing.owner_id);
-                                                                        }}
-
-                                                                />
-                                                                <IconButton
-                                                                        aria-label="Inquiry"
-                                                                        icon={<FaComment/>}
-                                                                        variant="ghost"
-                                                                        size="lg"
-                                                                        fontSize="xl"
-                                                                        onClick={() => handleInquiry(listing.owner_id)}
-                                                                />
-                                                            </HStack>
-                                                        </CardBody>
-                                                    </Card>
-                                            ))
+                                            listings?.data.map((listing) => renderListingCard(listing))
                                     )}
                                 </Flex>
                             </Box>
                         </TabPanel>
-                        {/* Saved Listings Tab */}
                         <TabPanel>
                             <Box overflowX="auto" whiteSpace="nowrap" p={4}>
                                 <Flex gap={4}>
@@ -612,206 +562,19 @@ function RenterListings({onNewConversation}: NewConversationProps) {
                                                 You have no saved listings
                                             </Text>
                                     ) : (
-                                            saved_listings?.data.map((listing: ListingPublic) => (
-                                                    <Card
-                                                            key={listing.id}
-                                                            width="300px"
-                                                            size="lg"
-                                                            border="1px solid"
-                                                            borderColor="gray.200"
-                                                            overflow="hidden"
-                                                            flexShrink={0}
-                                                    >
-                                                        <Box height="200px" position="relative" overflow="hidden">
-                                                            {listing.images && listing.images.length > 0 ? (
-                                                                    listing.images
-                                                                            .filter(img => img.is_primary)
-                                                                            .map((img, idx) => (
-                                                                                    <Image
-                                                                                            key={idx}
-                                                                                            src={`${import.meta.env.VITE_API_URL}/uploads/${img.file_path}`}
-                                                                                            alt={listing.address || "Image"}
-                                                                                            objectFit="cover"
-                                                                                            width="100%"
-                                                                                            height="100%"
-                                                                                            alignItems="center"
-                                                                                    />
-                                                                            ))
-                                                            ) : (
-                                                                    <Box
-                                                                            bg="gray.100"
-                                                                            width="100%"
-                                                                            height="100%"
-                                                                            display="flex"
-                                                                            alignItems="center"
-                                                                            justifyContent="center"
-                                                                    >
-                                                                        <Text color="gray.500">No Image</Text>
-                                                                    </Box>
-                                                            )}
-                                                        </Box>
-                                                        <CardHeader>
-                                                            <Heading
-                                                                    size="md"
-                                                                    whiteSpace="normal"
-                                                                    wordBreak="break-word"
-                                                            >
-                                                                {listing.address}
-                                                            </Heading>
-                                                        </CardHeader>
-                                                        <CardBody>
-                                                            <VStack align="start" spacing={2}>
-                                                                {/* Realty Company */}
-                                                                <Text fontSize="sm" whiteSpace="normal"
-                                                                      wordBreak="break-word">
-                                                                    {listing.realty_company}
-                                                                </Text>
-
-
-                                                                {/* Bedrooms & Bathrooms */}
-                                                                <HStack spacing={2}>
-                                                                    <Badge colorScheme="blue">{listing.num_bedrooms}</Badge>
-                                                                    <Badge
-                                                                            colorScheme="purple">{listing.num_bathrooms} Bath</Badge>
-                                                                </HStack>
-
-
-                                                                {/* Rent & Security Deposit */}
-                                                                <Text fontWeight="bold">
-                                                                    Rent: ${listing.rent?.toLocaleString()}
-                                                                </Text>
-                                                                <Text fontSize="sm">
-                                                                    Security
-                                                                    Deposit: {listing.security_deposit ? `$${listing.security_deposit}` : "None"}
-                                                                </Text>
-
-
-                                                                {/* Included Utilities */}
-                                                                {listing.included_utilities && (
-                                                                        <Box>
-                                                                            <Text fontSize="sm" fontWeight="semibold">
-                                                                                Utilities:
-                                                                            </Text>
-                                                                            <HStack wrap="wrap" spacing={1}>
-                                                                                {listing.included_utilities.map((utility) => (
-                                                                                        <Badge key={utility}
-                                                                                               colorScheme="green">
-                                                                                            {utility}
-                                                                                        </Badge>
-                                                                                ))}
-                                                                            </HStack>
-                                                                        </Box>
-                                                                )}
-
-
-                                                                {/* Amenities */}
-                                                                {listing.amenities && (
-                                                                        <Box>
-                                                                            <Text fontSize="sm" fontWeight="semibold">
-                                                                                Amenities:
-                                                                            </Text>
-                                                                            <HStack wrap="wrap" spacing={1}>
-                                                                                {listing.amenities.map((amenity) => (
-                                                                                        <Badge key={amenity}
-                                                                                               colorScheme="pink">
-                                                                                            {amenity}
-                                                                                        </Badge>
-                                                                                ))}
-                                                                            </HStack>
-                                                                        </Box>
-                                                                )}
-
-
-                                                                {/* Lease Period */}
-                                                                <Menu placement="bottom">
-                                                                    <MenuButton textAlign="center">
-                                                                        <Text fontSize="sm">
-                                                                            Lease: {listing.lease_start_date} → {listing.lease_end_date}
-                                                                        </Text>
-                                                                    </MenuButton>
-                                                                    <Portal>
-                                                                        <MenuList zIndex="popover">
-                                                                            <>
-                                                                                <MenuItem
-                                                                                        onClick={() => handleGoogleExport(listing.lease_start_date ?? ""
-                                                                                                , listing.lease_end_date ?? "")}>Export
-                                                                                    to
-                                                                                    Google</MenuItem>
-                                                                                <MenuItem
-                                                                                        onClick={() => handleICSExport(listing.lease_start_date ?? ""
-                                                                                                , listing.lease_end_date ?? "")}>Export
-                                                                                    to
-                                                                                    iCal</MenuItem>
-
-
-                                                                                <MenuItem
-                                                                                        onClick={() => handleOutlookExport(
-                                                                                                listing.lease_start_date ?? ""
-                                                                                                , listing.lease_end_date ?? "")}>Export
-                                                                                    to
-                                                                                    Outlook</MenuItem>
-                                                                            </>
-
-
-                                                                        </MenuList>
-                                                                    </Portal>
-                                                                </Menu>
-                                                            </VStack>
-                                                            <HStack spacing={4} mt={4} justifyContent="center">
-                                                                {/* Lease agreement icon button */}
-                                                                {listing.lease_agreement && (
-                                                                        <IconButton
-                                                                                aria-label="View Lease Agreement"
-                                                                                icon={<FaFile/>}
-                                                                                size="lg"
-                                                                                variant="ghost"
-                                                                                onClick={() => {
-                                                                                    const url = `${import.meta.env.VITE_API_URL}/uploads/${listing.lease_agreement!.file_path}`;
-                                                                                    setLeaseFileUrl(url);
-                                                                                    setLeaseFileName(listing.lease_agreement!.filename as string);
-                                                                                    leaseModal.onOpen();
-                                                                                }}
-                                                                        />
-                                                                )}
-                                                                <IconButton
-                                                                        aria-label="Favorite"
-                                                                        icon={<FaHeart/>}
-                                                                        fontSize="xl"
-                                                                        size="lg"
-                                                                        variant={"ghost"}
-                                                                        onClick={() => handleLike(listing.owner_id)}
-                                                                />
-                                                                <IconButton
-                                                                        aria-label="Save"
-                                                                        icon={<FaBookmark/>}
-                                                                        size="lg"
-                                                                        fontSize="xl"
-                                                                        isActive={savedListings.has(listing.id)}
-                                                                        colorScheme={savedListings.has(listing.id) ? "yellow" : "gray"}
-                                                                        variant={savedListings.has(listing.id) ? "solid" : "ghost"}
-                                                                        onClick={() => {
-                                                                            toggleSaveListing(listing.id);
-                                                                            handleSave(listing.owner_id);
-                                                                        }}
-                                                                />
-                                                                <IconButton
-                                                                        aria-label="Inquiry"
-                                                                        icon={<FaComment/>}
-                                                                        variant="ghost"
-                                                                        size="lg"
-                                                                        fontSize="xl"
-                                                                        onClick={() => handleInquiry(listing.owner_id)}
-                                                                />
-                                                            </HStack>
-                                                        </CardBody>
-                                                    </Card>
-                                            ))
+                                            saved_listings?.data.map((listing: ListingPublic) => renderListingCard(listing))
                                     )}
                                 </Flex>
                             </Box>
                         </TabPanel>
                     </TabPanels>
                 </Tabs>
+                <LeaseAgreementViewer
+                        isOpen={leaseModal.isOpen}
+                        onClose={leaseModal.onClose}
+                        fileUrl={leaseFileUrl}
+                        fileName={leaseFileName}
+                />
             </Container>
     )
 }
