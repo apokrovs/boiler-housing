@@ -11,7 +11,6 @@ const items = [
   { icon: FiSettings, title: "User Settings", path: "/settings" },
   { icon: FiMessageCircle, title: "Messages", path: "/chat" },
   { icon: FiHelpCircle, title: "FAQ", path: "/faq" },
-  { icon: FiUsers, title: "Roommates", path: "/roommates"},
   {icon: FiMessageCircle, title: "Renter Search", path: "/renter_search"},
 ]
 
@@ -33,7 +32,7 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
         finalItems.splice(2, 0, {
             icon: FiHome,
             title: "Listings",
-            path: "/renter_listings"});
+            path: "/renter_listings"}, { icon: FiUsers, title: "Roommates", path: "/roommates"},);
     }
      if (currentUser?.is_superuser) {
         finalItems.push({icon: FiUsers, title: "Admin", path: "/admin"});
