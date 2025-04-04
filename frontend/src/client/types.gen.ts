@@ -41,9 +41,9 @@ export type FAQCreate = {
 }
 
 export type FAQPublic = {
-  id: string
   question: string
   answer?: string | null
+  id: string
   created_at: string
 }
 
