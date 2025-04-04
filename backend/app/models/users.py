@@ -4,6 +4,8 @@ from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 from typing import List
 from app.models.items import Item
+from sqlalchemy import JSON
+from sqlmodel import Column
 
 
 # Shared properties
@@ -17,6 +19,7 @@ class UserBase(SQLModel):
     profile_type: str | None = Field(default=None, max_length=255)
     auto_logout: float = Field(default=30)
     is_2fa_enabled: bool | None = Field(default=False)
+    saved_listings: List[str] = []
     hasTakenRoommateQuiz: bool | None = Field(default=False)
     cleanScore: int | None = Field(default=None)
     visitScore: int | None = Field(default=None)
@@ -43,7 +46,7 @@ class UserRegister(SQLModel):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=40)
-    auto_logout: float | None  = Field(default=30)
+    auto_logout: float | None = Field(default=30)
     pin: str | None = Field(default=None, min_length=4, max_length=4)
     is_2fa_enabled: bool | None = Field(default=False)
     hasTakenRoommateQuiz: bool | None = Field(default=False)
@@ -75,11 +78,13 @@ class UpdatePassword(SQLModel):
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
 
+
 class UpdatePin(SQLModel):
     current_pin: str = Field(min_length=4, max_length=4)
     new_pin: str = Field(min_length=4, max_length=4)
 
-# Database model, database table inferred from class name
+
+# Database model, database table inferred from class sender_name
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
@@ -99,10 +104,13 @@ class User(UserBase, table=True):
 
     listings: List["Listing"] = Relationship(back_populates="owner", cascade_delete=True)
 
+    saved_listings: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+
 
 class PinLogin(SQLModel):
     email: EmailStr = Field(max_length=255)
     pin: str = Field(min_length=4, max_length=4)
+
 
 class UserCreateWithPin(UserCreate):
     pin: str | None = Field(default=None, min_length=4, max_length=4)
@@ -116,3 +124,7 @@ class UserPublic(UserBase):
 class UsersPublic(SQLModel):
     data: List[UserPublic]
     count: int
+
+
+class UpdateSavedListings(SQLModel):
+    saved_listings: List[str]

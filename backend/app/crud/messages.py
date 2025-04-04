@@ -241,7 +241,7 @@ def get_user_conversations(
         # Use a dictionary that matches your ConversationPublic model
         conversation_info = {
             "id": conversation.id,
-            "name": conversation.name,
+            "sender_name": conversation.name,
             "is_group": conversation.is_group,
             "created_at": conversation.created_at,
             "last_message": last_message.content if last_message else None,

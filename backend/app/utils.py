@@ -121,3 +121,42 @@ def verify_password_reset_token(token: str) -> str | None:
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
+
+
+def generate_new_message_email(email_to: str, sender_name: str, message: str) -> EmailData:
+    subject = f"New message from {sender_name}"
+    project_name = settings.PROJECT_NAME
+    html_content = render_email_template(
+        template_name="new_message.html",
+        context={
+            "project_name": project_name,
+            "sender_name": sender_name,
+            "email": email_to,
+            "message": message,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+def generate_listing_like_email(email_to: str) -> EmailData:
+    subject = f"Someone liked your listing!"
+    project_name = settings.PROJECT_NAME
+    html_content = render_email_template(
+        template_name="listing_like.html",
+        context={
+            "project_name": project_name,
+            "email": email_to,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+def generate_listing_save_email(email_to: str) -> EmailData:
+    subject = f"Someone saved your listing!"
+    project_name = settings.PROJECT_NAME
+    html_content = render_email_template(
+        template_name="listing_save.html",
+        context={
+            "project_name": project_name,
+            "email": email_to,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)

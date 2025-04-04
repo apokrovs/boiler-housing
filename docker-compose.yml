@@ -1,3 +1,4 @@
+# docker-compose.yml
 services:
 
   db:
@@ -164,6 +165,7 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
 volumes:
   app-db-data:
+  uploads_data:
 
 networks:
   traefik-public:

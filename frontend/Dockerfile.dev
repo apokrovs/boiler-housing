@@ -3,13 +3,13 @@ FROM node:20
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package*.json /app/
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the code
-COPY . .
+COPY ./ /app/
 
 # Expose Vite dev server port
 EXPOSE 5173
