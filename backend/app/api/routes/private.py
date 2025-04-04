@@ -19,6 +19,13 @@ class PrivateUserCreate(BaseModel):
     full_name: str
     is_verified: bool = False
 
+class PrivateUserCreateWithProfile(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    profile_type: str
+    is_verified: bool = False
+
 
 @router.post("/users/", response_model=UserPublic)
 def create_user(user_in: PrivateUserCreate, session: SessionDep) -> Any:
@@ -29,6 +36,24 @@ def create_user(user_in: PrivateUserCreate, session: SessionDep) -> Any:
     user = User(
         email=user_in.email,
         full_name=user_in.full_name,
+        hashed_password=get_password_hash(user_in.password),
+    )
+
+    session.add(user)
+    session.commit()
+
+    return user
+
+@router.post("/users/profile", response_model=UserPublic)
+def create_user_with_profile(user_in: PrivateUserCreateWithProfile, session: SessionDep) -> Any:
+    """
+    Create a new user with a profile type.
+    """
+
+    user = User(
+        email=user_in.email,
+        full_name=user_in.full_name,
+        profile_type=user_in.profile_type,
         hashed_password=get_password_hash(user_in.password),
     )
 

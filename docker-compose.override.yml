@@ -1,3 +1,4 @@
+# docker-compose.override.yml
 services:
 
   # Local services are available on their ports, but also available on:
@@ -83,6 +84,7 @@ services:
     volumes:
       - ./backend/htmlcov:/app/htmlcov
       - ./backend/app/alembic/versions:/app/app/alembic/versions
+      - ./backend/app/data/uploads:/app/app/data/uploads
     environment:
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
@@ -122,6 +124,7 @@ services:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
       - ./frontend/package.json:/app/package.json
+      - ./frontend/package-lock.json:/app/package-lock.json
       - ./frontend/vite.config.ts:/app/vite.config.ts
     build:
       context: ./frontend

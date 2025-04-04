@@ -14,6 +14,7 @@ dependencies = [
     "psycopg[binary]>=3.2.4",
     "pydantic-settings>=2.7.1",
     "pyjwt>=2.10.1",
+    "python-magic>=0.4.27",
     "sentry-sdk>=2.21.0",
     "sqlmodel>=0.0.22",
     "tenacity>=9.0.0",

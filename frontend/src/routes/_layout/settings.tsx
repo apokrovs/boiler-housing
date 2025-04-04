@@ -38,11 +38,11 @@ function UserSettings() {
         ? tabsConfig.slice(0, 6)
         : tabsConfig
 
-    if (!currentUser?.is_2fa_enabled) {
+    /*if (!currentUser?.is_2fa_enabled) {
         setTimeout(() => {
             alert("For better security, we recommend enabling Two-Factor Authentication.");
         }, 2000);
-    }
+    }*/
 
     return (
         <Container maxW="full" p={4}>

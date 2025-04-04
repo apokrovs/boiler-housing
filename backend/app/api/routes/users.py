@@ -27,6 +27,7 @@ from app.models.users import (
     UserUpdate,
     UserUpdateMe,
     UpdatePin,
+    UpdateSavedListings
 )
 
 from app.models.utils import Message
@@ -109,7 +110,7 @@ def read_user_by_email(*, email: str, session: SessionDep) -> Any:
 
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
-    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+        *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> Any:
     """
     Update own user.
@@ -130,7 +131,7 @@ def update_user_me(
 
 @router.patch("/me/password", response_model=Message)
 def update_password_me(
-    *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
+        *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
     """
     Update own password.
@@ -150,7 +151,7 @@ def update_password_me(
 
 @router.post("/me/pin", response_model=Message)
 def update_user_pin(
-    *, session: SessionDep, body: UpdatePin, current_user: CurrentUser
+        *, session: SessionDep, body: UpdatePin, current_user: CurrentUser
 ) -> Any:
     """
     Set or update the user's PIN.
@@ -169,7 +170,7 @@ def update_user_pin(
 
 @router.post("/me/verify-pin", response_model=Message)
 def verify_user_pin(
-    *, session: SessionDep, pin: str, current_user: CurrentUser
+        *, session: SessionDep, pin: str, current_user: CurrentUser
 ) -> Any:
     """
     Verify the user's PIN.
@@ -224,7 +225,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 
 @router.get("/by-id/{user_id}", response_model=UserPublic)
 def read_user_by_id(
-    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+        user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
     """
     Get a specific user by id.
@@ -246,10 +247,10 @@ def read_user_by_id(
     response_model=UserPublic,
 )
 def update_user(
-    *,
-    session: SessionDep,
-    user_id: uuid.UUID,
-    user_in: UserUpdate,
+        *,
+        session: SessionDep,
+        user_id: uuid.UUID,
+        user_in: UserUpdate,
 ) -> Any:
     """
     Update a user.
@@ -273,7 +274,7 @@ def update_user(
 
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(
-    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
+        session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
     """
     Delete a user.
@@ -295,7 +296,7 @@ def delete_user(
 
 @router.patch("/me/2fa", response_model=UserPublic)
 def update_2fa_status(
-    *, session: SessionDep, current_user: CurrentUser, enabled: bool
+        *, session: SessionDep, current_user: CurrentUser, enabled: bool
 ) -> Any:
     """
     Enable or disable two-factor authentication for the current user.
@@ -306,6 +307,22 @@ def update_2fa_status(
     session.refresh(current_user)
     return current_user
 
+@router.patch("/me/saved_listings", response_model=UserPublic)
+def update_saved_listings(
+        *,
+        session: SessionDep,
+        saved_listings_in: UpdateSavedListings,
+        current_user: CurrentUser
+) -> Any:
+    """
+    Update the saved listings for the current user.
+    """
+    current_user.saved_listings = saved_listings_in.saved_listings
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
+  
 @router.get("/me/tutorial")
 def read_user_tutorial_status(current_user: CurrentUser) -> dict:
     return {"profile_tutorial_completed": current_user.profile_tutorial_completed}

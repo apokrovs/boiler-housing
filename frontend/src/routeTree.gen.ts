@@ -23,7 +23,9 @@ import { Route as LayoutRoommatesImport } from './routes/_layout/roommates'
 import { Route as LayoutRoommateagreementImport } from './routes/_layout/roommate_agreement'
 import { Route as LayoutRoommateQuizImport } from './routes/_layout/roommate-quiz'
 import { Route as LayoutRentersearchImport } from './routes/_layout/renter_search'
+import { Route as LayoutRenterlistingsImport } from './routes/_layout/renter_listings'
 import { Route as LayoutMessagingImport } from './routes/_layout/messaging'
+import { Route as LayoutListingsImport } from './routes/_layout/listings'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutFaqImport } from './routes/_layout/faq'
 import { Route as LayoutChatImport } from './routes/_layout/chat'
@@ -91,8 +93,18 @@ const LayoutRentersearchRoute = LayoutRentersearchImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutRenterlistingsRoute = LayoutRenterlistingsImport.update({
+  path: '/renter_listings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutMessagingRoute = LayoutMessagingImport.update({
   path: '/messaging',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutListingsRoute = LayoutListingsImport.update({
+  path: '/listings',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -160,8 +172,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/listings': {
+      preLoaderRoute: typeof LayoutListingsImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/messaging': {
       preLoaderRoute: typeof LayoutMessagingImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/renter_listings': {
+      preLoaderRoute: typeof LayoutRenterlistingsImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/renter_search': {
@@ -199,7 +219,9 @@ export const routeTree = rootRoute.addChildren([
     LayoutChatRoute,
     LayoutFaqRoute,
     LayoutItemsRoute,
+    LayoutListingsRoute,
     LayoutMessagingRoute,
+    LayoutRenterlistingsRoute,
     LayoutRentersearchRoute,
     LayoutRoommateQuizRoute,
     LayoutRoommateagreementRoute,
