@@ -53,6 +53,23 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     return UsersPublic(data=users, count=count)
 
 
+@router.get("/renter", response_model=UsersPublic)
+def read_renters(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+    """
+    Retrieve renter users (authenticated access).
+    """
+    # Exclude current user and filter by profile type
+    count_statement = select(func.count()).select_from(User).where((User.profile_type == "Renter") | (User.profile_type == "Both"))
+    count = session.exec(count_statement).one()
+
+    statement = select(User).where((User.profile_type == "Renter") | (User.profile_type == "Both")).offset(skip).limit(limit)
+
+    users = session.exec(statement).all()
+
+    return UsersPublic(data=users, count=count)
+
+
+
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
@@ -290,7 +307,6 @@ def update_2fa_status(
     session.refresh(current_user)
     return current_user
 
-
 @router.patch("/me/saved_listings", response_model=UserPublic)
 def update_saved_listings(
         *,
@@ -306,3 +322,18 @@ def update_saved_listings(
     session.commit()
     session.refresh(current_user)
     return current_user
+  
+@router.get("/me/tutorial")
+def read_user_tutorial_status(current_user: CurrentUser) -> dict:
+    return {"profile_tutorial_completed": current_user.profile_tutorial_completed}
+
+@router.post("/me/tutorial/complete", response_model=Message)
+def complete_profile_tutorial(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Mark profile tutorial as completed.
+    """
+    current_user.profile_tutorial_completed = True
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return Message(message="Tutorial marked as completed.")

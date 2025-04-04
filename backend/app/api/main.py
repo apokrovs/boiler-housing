@@ -9,7 +9,8 @@ from app.api.routes import (
     messages,
     listings,
     listing_images,
-    lease_agreements
+    lease_agreements,
+    faq
 )
 
 app = FastAPI()
@@ -21,6 +22,7 @@ api_router.include_router(users.router)
 api_router.include_router(utils.router)
 api_router.include_router(items.router)
 api_router.include_router(messages.router)
+api_router.include_router(faq.router)
 api_router.include_router(listings.router)
 api_router.include_router(listing_images.router)
 api_router.include_router(lease_agreements.router)
