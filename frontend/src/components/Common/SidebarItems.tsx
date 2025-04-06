@@ -1,18 +1,16 @@
-import { Box, Flex, Icon, Text, useColorModeValue } from "@chakra-ui/react"
-import { useQueryClient } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
-import { FiHome, FiSettings, FiUsers, FiMessageCircle, FiHelpCircle, FiLayout, FiFileText } from "react-icons/fi"
+import {Box, Flex, Icon, Text, useColorModeValue} from "@chakra-ui/react"
+import {useQueryClient} from "@tanstack/react-query"
+import {Link} from "@tanstack/react-router"
+import {FiHome, FiSettings, FiUsers, FiMessageCircle, FiHelpCircle, FiLayout, FiFileText} from "react-icons/fi"
 
-import type { UserPublic } from "../../client"
+import type {UserPublic} from "../../client"
 
 
 const items = [
-  { icon: FiLayout, title: "Dashboard", path: "/" },
-  { icon: FiSettings, title: "User Settings", path: "/settings" },
-  { icon: FiMessageCircle, title: "Messages", path: "/chat" },
-  { icon: FiHelpCircle, title: "FAQ", path: "/faq" },
-  { icon: FiUsers, title: "Roommates", path: "/roommates"},
-  {icon: FiMessageCircle, title: "Renter Search", path: "/renter_search"},
+    {icon: FiLayout, title: "Dashboard", path: "/"},
+    {icon: FiSettings, title: "User Settings", path: "/settings"},
+    {icon: FiMessageCircle, title: "Messages", path: "/chat"},
+    {icon: FiHelpCircle, title: "FAQ", path: "/faq"},
 ]
 
 interface SidebarItemsProps {
@@ -29,13 +27,31 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
     if (currentUser?.profile_type === "Leaser" || currentUser?.profile_type === "Both") {
         finalItems.splice(2, 0, {icon: FiFileText, title: "My Listings", path: "/listings"});
     }
-     if (currentUser?.profile_type === "Renter" || currentUser?.profile_type === "Both") {
+    if (currentUser?.profile_type === "Renter" || currentUser?.profile_type === "Both") {
         finalItems.splice(2, 0, {
-            icon: FiHome,
-            title: "Listings",
-            path: "/renter_listings"});
+                icon: FiHome,
+                title: "Listings",
+                path: "/renter_listings"
+            },
+            {
+                icon: FiUsers,
+                title: "Roommates",
+                path: "/roommates"
+            },
+            {
+                icon: FiUsers,
+                title: "Roommate Agreement",
+                path: "/roommate_agreement"
+            },
+            {
+                icon: FiMessageCircle,
+                title: "Renter Search",
+                path: "/renter_search"
+            },
+        );
+
     }
-     if (currentUser?.is_superuser) {
+    if (currentUser?.is_superuser) {
         finalItems.push({icon: FiUsers, title: "Admin", path: "/admin"});
     }
 

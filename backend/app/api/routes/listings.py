@@ -25,31 +25,16 @@ def get_file_storage_service():
 
 @router.get("/", response_model=ListingsPublic)
 def read_listings(
-        session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
+        session: SessionDep, skip: int = 0, limit: int = 100
 ) -> Any:
     """
     Retrieve listings.
     """
 
-    if current_user.is_superuser:
-        count_statement = select(func.count()).select_from(Listing)
-        count = session.exec(count_statement).one()
-        statement = select(Listing).offset(skip).limit(limit)
-        listings = session.exec(statement).all()
-    else:
-        count_statement = (
-            select(func.count())
-            .select_from(Listing)
-            .where(Listing.owner_id == current_user.id)
-        )
-        count = session.exec(count_statement).one()
-        statement = (
-            select(Listing)
-            .where(Listing.owner_id == current_user.id)
-            .offset(skip)
-            .limit(limit)
-        )
-        listings = session.exec(statement).all()
+    count_statement = select(func.count()).select_from(Listing)
+    count = session.exec(count_statement).one()
+    statement = select(Listing).offset(skip).limit(limit)
+    listings = session.exec(statement).all()
 
     processed_listings = []
     for listing in listings:
@@ -91,15 +76,13 @@ def read_all_listings(
 
 
 @router.get("/{id}", response_model=ListingPublic)
-def read_listing(*, session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+def read_listing(*, session: SessionDep, id: uuid.UUID) -> Any:
     """
     Get listing by ID.
     """
     listing = session.get(Listing, id)
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
-    if not current_user.is_superuser and (listing.owner_id != current_user.id):
-        raise HTTPException(status_code=400, detail="Not enough permissions")
 
     # For images
     listing_dict = listing.dict()
@@ -109,7 +92,7 @@ def read_listing(*, session: SessionDep, current_user: CurrentUser, id: uuid.UUI
     return ListingPublic.model_validate(listing_dict)
 
 
-@router.post("/", response_model=ListingPublic)
+@router.post("/", response_model=Listing)
 def create_listing(
         *, session: SessionDep, current_user: CurrentUser, listing_in: ListingCreate
 ) -> Any:
