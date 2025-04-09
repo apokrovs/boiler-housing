@@ -5,6 +5,7 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+    Portal
 } from "@chakra-ui/react"
 import { Link } from "@tanstack/react-router"
 import { FaBars } from "react-icons/fa"
@@ -22,17 +23,19 @@ const UserMenu = () => {
   return (
     <>
       {/* Desktop */}
+      <Portal>
       <Box
         display={{ base: "none", md: "block" }}
         position="fixed"
         top={7}
         right={9}
+        zIndex={3}
       >
         <Menu>
           <MenuButton
             as={IconButton}
             aria-label="Options"
-            icon={<FaBars color="CEB888" fontSize="24px" />}
+            icon={<FaBars color="#CEB888" fontSize="24px" />}
             bg="ui.main"
             isRound
             data-testid="user-menu"
@@ -55,6 +58,7 @@ const UserMenu = () => {
           </MenuList>
         </Menu>
       </Box>
+        </Portal>
     </>
   )
 }

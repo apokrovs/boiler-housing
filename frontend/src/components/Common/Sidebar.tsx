@@ -84,7 +84,7 @@ const Sidebar = () => {
         w="100vw"
         position="sticky"
         top="0"
-        zIndex={100}
+        zIndex={2}
         boxShadow="md"
         opacity={1}
         display={{ base: "none", md: "flex" }}
