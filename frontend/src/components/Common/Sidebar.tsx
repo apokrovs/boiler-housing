@@ -23,7 +23,7 @@ import {Link as RouterLink} from "@tanstack/react-router";
 
 const Sidebar = () => {
   const queryClient = useQueryClient()
-  const bgColor = useColorModeValue("ui.light", "ui.dark")
+  const bgColor = useColorModeValue("#ffffff", "#1a202c")
   const textColor = useColorModeValue("ui.dark", "ui.light")
   const secBgColor = useColorModeValue("ui.secondary", "ui.darkSlate")
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
@@ -84,6 +84,9 @@ const Sidebar = () => {
         w="100vw"
         position="sticky"
         top="0"
+        zIndex={100}
+        boxShadow="md"
+        opacity={1}
         display={{ base: "none", md: "flex" }}
       >
         <Flex
