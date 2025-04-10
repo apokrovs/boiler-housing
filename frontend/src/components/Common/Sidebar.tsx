@@ -99,7 +99,7 @@ const Sidebar = () => {
           w={'100%'}
         >
           <RouterLink to={"/"}>
-          <Image src={Logo} alt="Logo" w="300px" maxW="2xs" p={6} />
+          <Image src={Logo} alt="Logo" w="300px" maxW="2xs" p={6} data-testid={"home_logo"}/>
             </RouterLink>
           <Box>
             <SidebarItems />
