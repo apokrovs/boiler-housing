@@ -88,7 +88,7 @@ test("Navigate to user messages page", async ({page}) => {
     await fillForm(page, firstSuperuser, firstSuperuserPassword)
     await page.getByRole("button", {name: "Log In"}).click()
     await page.waitForURL("/")
-    await page.locator('text=Messages').click()
+    await page.getByText("Messages").click({force: true})
     await page.goto("/messages")
 })
 

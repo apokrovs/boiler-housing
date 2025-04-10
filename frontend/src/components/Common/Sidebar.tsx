@@ -93,13 +93,13 @@ const Sidebar = () => {
           flexDir="row"
           justify="stretch"
           bg={secBgColor}
-          p={2}
+          p={1}
           borderRadius={6}
           align={"center"}
           w={'100%'}
         >
           <RouterLink to={"/"}>
-          <Image src={Logo} alt="Logo" w="300px" maxW="2xs" p={6} data-testid={"home_logo"}/>
+          <Image src={Logo} alt="Logo" w="180px" maxW="2xs" p={4} data-testid={"home_logo"}/>
             </RouterLink>
           <Box>
             <SidebarItems />

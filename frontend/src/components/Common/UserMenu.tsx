@@ -27,7 +27,7 @@ const UserMenu = () => {
       <Box
         display={{ base: "none", md: "block" }}
         position="fixed"
-        top={7}
+        top={"18px"}
         right={9}
         zIndex={3}
       >

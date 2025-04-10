@@ -60,7 +60,7 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
             as={Link}
             to={path}
             h="100%"
-            p={2}
+            p={1}
             key={title}
             activeProps={{
                 style: {
@@ -72,7 +72,7 @@ const SidebarItems = ({onClose}: SidebarItemsProps) => {
             onClick={onClose}
         >
             <Icon as={icon} alignSelf="center"/>
-            <Text ml={2} fontSize="xl">{title}</Text>
+            <Text ml={2} fontSize="l">{title}</Text>
         </Flex>
     ))
 
