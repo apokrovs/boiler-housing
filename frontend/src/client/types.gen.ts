@@ -131,6 +131,21 @@ export type LeaseAgreementPublic = {
 
 export type LeaseFileType = "application/pdf" | "text/plain"
 
+export type Listing = {
+  num_bedrooms?: string | null
+  num_bathrooms?: string | null
+  address?: string | null
+  realty_company?: string | null
+  rent?: number | null
+  included_utilities?: Array<string> | null
+  security_deposit?: string | null
+  amenities?: Array<string> | null
+  lease_start_date?: string | null
+  lease_end_date?: string | null
+  id?: string
+  owner_id: string
+}
+
 export type ListingCreate = {
   num_bedrooms?: string | null
   num_bathrooms?: string | null
@@ -431,7 +446,7 @@ export type ListingsCreateListingData = {
   requestBody: ListingCreate
 }
 
-export type ListingsCreateListingResponse = ListingPublic
+export type ListingsCreateListingResponse = Listing
 
 export type ListingsReadAllListingsData = {
   limit?: number
@@ -470,6 +485,13 @@ export type ListingsListingSaveEmailData = {
 }
 
 export type ListingsListingSaveEmailResponse = Message
+
+export type ListingsListingDeadlineEmailData = {
+  address: string
+  email: string
+}
+
+export type ListingsListingDeadlineEmailResponse = Message
 
 export type ListingsUploadListingImageData = {
   currentUser?: unknown

@@ -160,3 +160,17 @@ def generate_listing_save_email(email_to: str) -> EmailData:
         },
     )
     return EmailData(html_content=html_content, subject=subject)
+
+def generate_listing_deadline_email(email_to: str, address: str) -> EmailData:
+    subject = f"{address} is approaching the listing deadline!"
+    project_name = settings.PROJECT_NAME
+    html_content = render_email_template(
+        template_name="listing_deadline.html",
+        context={
+            "project_name": project_name,
+            "email": email_to,
+            "address": address,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
+

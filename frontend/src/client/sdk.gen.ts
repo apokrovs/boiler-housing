@@ -39,6 +39,8 @@ import type {
   ListingsListingLikeEmailResponse,
   ListingsListingSaveEmailData,
   ListingsListingSaveEmailResponse,
+  ListingsListingDeadlineEmailData,
+  ListingsListingDeadlineEmailResponse,
   ListingsUploadListingImageData,
   ListingsUploadListingImageResponse,
   ListingsDeleteListingImageData,
@@ -392,7 +394,7 @@ export class ListingsService {
    * Create new listing.
    * @param data The data for the request.
    * @param data.requestBody
-   * @returns ListingPublic Successful Response
+   * @returns Listing Successful Response
    * @throws ApiError
    */
   public static createListing(
@@ -543,6 +545,32 @@ export class ListingsService {
       url: "/api/v1/listings/save/{email}",
       path: {
         email: data.email,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Listing Deadline Email
+   * @param data The data for the request.
+   * @param data.email
+   * @param data.address
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static listingDeadlineEmail(
+    data: ListingsListingDeadlineEmailData,
+  ): CancelablePromise<ListingsListingDeadlineEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/listings/deadline/{email}",
+      path: {
+        email: data.email,
+      },
+      query: {
+        address: data.address,
       },
       errors: {
         422: "Validation Error",

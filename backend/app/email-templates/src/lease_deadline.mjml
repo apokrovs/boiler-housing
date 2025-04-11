@@ -1,0 +1,12 @@
+<mjml>
+  <mj-body background-color="#fafbfc">
+    <mj-section background-color="#fff" padding="40px 20px">
+      <mj-column vertical-align="middle" width="100%">
+        <mj-text align="center" padding="35px" font-size="20px" color="#333">Listing Aproaching Lease Deadline!</mj-text>
+        <mj-text align="center" font-size="16px" padding-left="25px" padding-right="25px" font-family="Arial, Helvetica, sans-serif" color="#555">The lease dealine for your saved listing with the address {{ address }} is in a week!</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+
+
