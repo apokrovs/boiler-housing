@@ -131,6 +131,21 @@ export type LeaseAgreementPublic = {
 
 export type LeaseFileType = "application/pdf" | "text/plain"
 
+export type Listing = {
+  num_bedrooms?: string | null
+  num_bathrooms?: string | null
+  address?: string | null
+  realty_company?: string | null
+  rent?: number | null
+  included_utilities?: Array<string> | null
+  security_deposit?: string | null
+  amenities?: Array<string> | null
+  lease_start_date?: string | null
+  lease_end_date?: string | null
+  id?: string
+  owner_id: string
+}
+
 export type ListingCreate = {
   num_bedrooms?: string | null
   num_bathrooms?: string | null
@@ -235,6 +250,36 @@ export type PrivateUserCreateWithProfile = {
 export type ReadReceipt = {
   user_id: string
   read_at: string
+}
+
+export type ReviewCreate = {
+  item_name: string
+  item_type: string
+  rating: number
+  review?: string | null
+  item_id: string
+  reviewer_id?: string | null
+}
+
+export type ReviewPublic = {
+  item_name: string
+  item_type: string
+  rating: number
+  review?: string | null
+  id: string
+  item_id: string
+  reviewer_id: string | null
+  created_at: string
+}
+
+export type ReviewsPublic = {
+  data: Array<ReviewPublic>
+  count: number
+}
+
+export type ReviewUpdate = {
+  review?: string | null
+  rating?: number | null
 }
 
 export type Token = {
@@ -431,7 +476,7 @@ export type ListingsCreateListingData = {
   requestBody: ListingCreate
 }
 
-export type ListingsCreateListingResponse = ListingPublic
+export type ListingsCreateListingResponse = Listing
 
 export type ListingsReadAllListingsData = {
   limit?: number
@@ -674,6 +719,39 @@ export type PrivateCreateUserWithProfileData = {
 }
 
 export type PrivateCreateUserWithProfileResponse = UserPublic
+
+export type ReviewsCreateReviewData = {
+  requestBody: ReviewCreate
+}
+
+export type ReviewsCreateReviewResponse = ReviewPublic
+
+export type ReviewsGetReviewsData = {
+  itemId: string
+}
+
+export type ReviewsGetReviewsResponse = ReviewsPublic
+
+export type ReviewsGetReviewData = {
+  reviewId: string
+}
+
+export type ReviewsGetReviewResponse = ReviewPublic
+
+export type ReviewsUpdateReviewData = {
+  requestBody: ReviewUpdate
+  reviewId: string
+}
+
+export type ReviewsUpdateReviewResponse = ReviewPublic
+
+export type ReviewsDeleteReviewData = {
+  reviewId: string
+}
+
+export type ReviewsDeleteReviewResponse = {
+  [key: string]: unknown
+}
 
 export type UsersReadUsersData = {
   limit?: number

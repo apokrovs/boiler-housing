@@ -10,7 +10,8 @@ from app.api.routes import (
     listings,
     listing_images,
     lease_agreements,
-    faq
+    faq,
+    reviews
 )
 
 app = FastAPI()
@@ -26,6 +27,7 @@ api_router.include_router(faq.router)
 api_router.include_router(listings.router)
 api_router.include_router(listing_images.router)
 api_router.include_router(lease_agreements.router)
+api_router.include_router(reviews.router)
 
 
 if settings.ENVIRONMENT == "local":

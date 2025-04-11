@@ -99,6 +99,16 @@ import type {
   PrivateCreateUserResponse,
   PrivateCreateUserWithProfileData,
   PrivateCreateUserWithProfileResponse,
+  ReviewsCreateReviewData,
+  ReviewsCreateReviewResponse,
+  ReviewsGetReviewsData,
+  ReviewsGetReviewsResponse,
+  ReviewsGetReviewData,
+  ReviewsGetReviewResponse,
+  ReviewsUpdateReviewData,
+  ReviewsUpdateReviewResponse,
+  ReviewsDeleteReviewData,
+  ReviewsDeleteReviewResponse,
   UsersReadUsersData,
   UsersReadUsersResponse,
   UsersCreateUserData,
@@ -392,7 +402,7 @@ export class ListingsService {
    * Create new listing.
    * @param data The data for the request.
    * @param data.requestBody
-   * @returns ListingPublic Successful Response
+   * @returns Listing Successful Response
    * @throws ApiError
    */
   public static createListing(
@@ -1291,6 +1301,120 @@ export class PrivateService {
       url: "/api/v1/private/users/profile",
       body: data.requestBody,
       mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
+
+export class ReviewsService {
+  /**
+   * Create Review
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns ReviewPublic Successful Response
+   * @throws ApiError
+   */
+  public static createReview(
+    data: ReviewsCreateReviewData,
+  ): CancelablePromise<ReviewsCreateReviewResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/reviews/",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Reviews
+   * @param data The data for the request.
+   * @param data.itemId
+   * @returns ReviewsPublic Successful Response
+   * @throws ApiError
+   */
+  public static getReviews(
+    data: ReviewsGetReviewsData,
+  ): CancelablePromise<ReviewsGetReviewsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/reviews/{item_id}",
+      path: {
+        item_id: data.itemId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Get Review
+   * @param data The data for the request.
+   * @param data.reviewId
+   * @returns ReviewPublic Successful Response
+   * @throws ApiError
+   */
+  public static getReview(
+    data: ReviewsGetReviewData,
+  ): CancelablePromise<ReviewsGetReviewResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/reviews/review/{review_id}",
+      path: {
+        review_id: data.reviewId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update Review
+   * @param data The data for the request.
+   * @param data.reviewId
+   * @param data.requestBody
+   * @returns ReviewPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateReview(
+    data: ReviewsUpdateReviewData,
+  ): CancelablePromise<ReviewsUpdateReviewResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: "/api/v1/reviews/{review_id}",
+      path: {
+        review_id: data.reviewId,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Delete Review
+   * @param data The data for the request.
+   * @param data.reviewId
+   * @returns unknown Successful Response
+   * @throws ApiError
+   */
+  public static deleteReview(
+    data: ReviewsDeleteReviewData,
+  ): CancelablePromise<ReviewsDeleteReviewResponse> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/reviews/{review_id}",
+      path: {
+        review_id: data.reviewId,
+      },
       errors: {
         422: "Validation Error",
       },
