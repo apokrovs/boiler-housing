@@ -188,7 +188,7 @@ def listing_save_email(*, session: SessionDep, email: str) -> Message:
     if not user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this email does not exist in the system.",
+            detail="The user with this email does not exist in the system. ",
         )
 
     logger.info(f"Sending new message email to {user.email}")
